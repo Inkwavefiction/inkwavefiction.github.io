@@ -7,17 +7,28 @@
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: 'Arial', sans-serif; background-color: #f5f5f5; }
+        body { font-family: 'Arial', sans-serif; background-color: #f5f5f5; color: #333; }
         .navbar { background: #2c3e50; }
         .navbar-brand, .nav-link { color: white !important; }
-        .hero { background: url('https://source.unsplash.com/1600x900/?books,writing') no-repeat center center/cover; padding: 100px 20px; text-align: center; color: white; }
+        .hero {
+            background: url('https://source.unsplash.com/1600x900/?books,writing') no-repeat center center/cover;
+            padding: 100px 20px;
+            text-align: center;
+            color: white;
+        }
         .hero h1 { font-size: 3rem; }
         .hero p { font-size: 1.3rem; }
-        .story-card { margin-bottom: 20px; }
+        .story-card { margin-bottom: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
         .theme-toggle { cursor: pointer; font-size: 18px; padding: 10px; position: absolute; top: 10px; right: 20px; }
         .dark-mode { background-color: #1e1e1e; color: white; }
         .dark-mode .card { background-color: #2a2a2a; color: white; }
         .dark-mode .navbar { background: #1a252f; }
+        .animated-button {
+            transition: all 0.3s ease-in-out;
+        }
+        .animated-button:hover {
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body>
@@ -46,8 +57,8 @@
     <div class="hero">
         <h1>Welcome to Inkwave</h1>
         <p>Discover, read, and share amazing fiction.</p>
-        <a href="stories.html" class="btn btn-primary">Explore Stories</a>
-        <a href="#" class="btn btn-outline-light">Submit Your Story</a>
+        <a href="stories.html" class="btn btn-primary animated-button">Explore Stories</a>
+        <a href="#" class="btn btn-outline-light animated-button">Submit Your Story</a>
     </div>
 
     <!-- Stories Section -->
@@ -59,7 +70,7 @@
                     <div class="card-body">
                         <h5 class="card-title">The Lost Kingdom</h5>
                         <p class="card-text">A thrilling fantasy adventure awaits...</p>
-                        <a href="#" class="btn btn-sm btn-primary">Read More</a>
+                        <a href="#" class="btn btn-sm btn-primary animated-button">Read More</a>
                     </div>
                 </div>
             </div>
@@ -68,7 +79,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Beyond the Stars</h5>
                         <p class="card-text">A sci-fi tale that will take you beyond...</p>
-                        <a href="#" class="btn btn-sm btn-primary">Read More</a>
+                        <a href="#" class="btn btn-sm btn-primary animated-button">Read More</a>
                     </div>
                 </div>
             </div>
@@ -77,7 +88,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Echoes of the Past</h5>
                         <p class="card-text">Mystery and history collide in this gripping story.</p>
-                        <a href="#" class="btn btn-sm btn-primary">Read More</a>
+                        <a href="#" class="btn btn-sm btn-primary animated-button">Read More</a>
                     </div>
                 </div>
             </div>
