@@ -1,24 +1,21 @@
 # inkwave.com
 A wave of stories, an ocean of imagination. Welcome to Inkwave.
-# Inkwave 🌊✍️  
+# Inkwave  
 
-Welcome to **Inkwave**, a platform where readers and writers connect through stories.  
+**Inkwave** is a platform where writers and readers come together to share and discover fiction.  
 
-## 🔹 What is Inkwave?  
-Inkwave is a place for authors to share their fiction and for readers to discover amazing new stories.  
+## About  
+Inkwave is built for storytellers and fiction lovers. Writers can submit their work, and readers can explore a growing library of stories across various genres.  
 
-## 🔹 Features  
-✅ Read and explore new stories 📖  
-✅ Submit your own fiction ✍️  
-✅ Support and engage with fellow writers 💬  
+## Features  
+- Read and explore new fiction  
+- Submit your own stories  
+- Connect with a community of writers and readers  
 
-## 🔹 How to Use  
-1. **Visit the website**: [https://inkwavefiction.github.io](https://inkwavefiction.github.io)  
-2. **Submit a story** via our Google Forms link (coming soon!)  
-3. **Read & Enjoy!**  
+## How It Works  
+1. **Visit the website**: [Inkwave](https://inkwavefiction.github.io)  
+2. **Submit a story** (submission form coming soon)  
+3. **Browse and enjoy** original fiction  
 
-## 🔹 Get Involved  
-- Follow our progress on **GitHub**  
-- Suggest features or report bugs by opening an **Issue**  
-
-📌 *This project is in early development. Stay tuned for updates!* 🚀  
+## Development  
+This project is in early development. More features and improvements are on the way.  
