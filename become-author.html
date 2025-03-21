@@ -55,6 +55,22 @@
         <p>Fill out the form below to submit your application.</p>
 
             <form action="https://submit-form.com/pz9ua0N0v" method="POST">
+<form action="https://submit-form.com/pz9ua0N0v" method="POST" onsubmit="redirectAfterSubmit()">
+    <div class="form-group">
+        <label for="name">Full Name:</label>
+        <input type="text" id="name" class="form-control" name="name" placeholder="Enter your full name" required>
+    </div>
+
+    <button type="submit" class="btn-primary">Submit Application</button>
+</form>
+
+<script>
+function redirectAfterSubmit() {
+    setTimeout(function () {
+        window.location.href = "https://inkwavefiction.github.io/thank-you.html";
+    }, 1000); // 1-second delay
+}
+</script>
 
 
 
