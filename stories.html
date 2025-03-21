@@ -3,47 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stories - Inkwave</title>
+    <title>Explore Stories - Inkwave</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins:wght@300&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <style>
-        body { 
-            font-family: 'Poppins', sans-serif; 
-            background: linear-gradient(to bottom, #8faecc, #1f2d50); 
-            color: #222; 
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: white;
+            color: #222;
             text-align: center;
             padding: 30px;
         }
-        .navbar { background: #1f2d50; padding: 15px; display: flex; justify-content: space-around; }
-        .navbar a { color: white; text-decoration: none; font-size: 18px; }
-        .container { max-width: 1000px; margin: auto; }
-        
-        /* Search Bar */
-        .search-container { position: relative; display: flex; justify-content: flex-end; margin-bottom: 20px; }
-        .search-icon { cursor: pointer; font-size: 20px; background: white; padding: 8px 12px; border-radius: 50px; }
-        .search-input { display: none; width: 200px; padding: 8px; border-radius: 20px; border: 1px solid #ccc; margin-left: 10px; }
-        .search-container.active .search-input { display: inline-block; }
-
-        /* Filters */
-        .filters { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px; }
-        .filter-dropdown { padding: 8px; border-radius: 8px; border: 1px solid #ccc; background: white; cursor: pointer; font-size: 14px; }
-
-        /* Story Grid */
-        .story-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 15px; justify-items: center; }
-        .story-card { 
-            background: white; padding: 15px; border-radius: 12px; 
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); transition: transform 0.3s ease-in-out;
-            text-align: center;
-            width: 100%;
+        .navbar {
+            background: #2c3e50;
+            padding: 15px;
         }
-        .story-card:hover { transform: scale(1.05); }
-        .story-title { font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 5px; }
-        .story-author { font-size: 13px; color: #666; margin-bottom: 10px; }
-        .btn-primary { background-color: #0056b3; color: white; padding: 6px 10px; font-size: 14px; border: none; border-radius: 5px; cursor: pointer; }
-        .btn-primary:hover { background-color: #004494; }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-right: 15px;
+            font-size: 18px;
+        }
+        .container {
+            max-width: 900px;
+            margin: auto;
+            padding: 20px;
+        }
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            color: #2c3e50;
+        }
+        .search-container {
+            position: relative;
+            display: inline-block;
+        }
+        .search-input {
+            display: none;
+            width: 200px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .search-icon {
+            cursor: pointer;
+            font-size: 20px;
+            color: #2c3e50;
+            background: none;
+            border: none;
+        }
+        .filters {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .filter-select {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .story-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            justify-items: center;
+        }
+        .story-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            width: 250px;
+            text-align: center;
+        }
+        .story-card h5 {
+            font-size: 18px;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .story-card p {
+            font-size: 14px;
+            color: #666;
+        }
+        .btn-primary {
+            background-color: #0056b3;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #004494;
+        }
     </style>
 </head>
 <body>
+
     <nav class="navbar">
         <a href="index.html">Home</a>
         <a href="stories.html">Stories</a>
@@ -55,47 +115,44 @@
         <h1>Explore Stories</h1>
         <p>Discover amazing fiction from talented authors.</p>
 
-        <!-- Search Bar -->
-        <div class="search-container">
-            <div class="search-icon" onclick="toggleSearch()">🔍</div>
-            <input type="text" id="search" class="search-input" placeholder="Search for stories..." onkeyup="searchStories()">
-        </div>
-
-        <!-- Filter Options -->
         <div class="filters">
-            <select id="sortFilter" class="filter-dropdown" onchange="sortStories()">
-                <option value="newest">Sort by: Newest</option>
-                <option value="popular">Sort by: Most Popular</option>
+            <button class="search-icon" onclick="toggleSearch()">
+                <i class="fas fa-search"></i>
+            </button>
+            <input type="text" class="search-input" id="searchBar" placeholder="Search for stories...">
+            <select class="filter-select">
+                <option>Sort by: Newest</option>
+                <option>Sort by: Oldest</option>
+                <option>Sort by: Most Popular</option>
             </select>
-            <select id="genreFilter" class="filter-dropdown" onchange="filterStories()">
-                <option value="all">Filter by Genre</option>
-                <option value="fantasy">Fantasy</option>
-                <option value="sci-fi">Sci-Fi</option>
-                <option value="mystery">Mystery</option>
-                <option value="romance">Romance</option>
+            <select class="filter-select">
+                <option>Filter by Genre</option>
+                <option>Fantasy</option>
+                <option>Sci-Fi</option>
+                <option>Mystery</option>
+                <option>Romance</option>
             </select>
         </div>
 
-        <!-- Stories Grid -->
-        <div class="story-grid" id="storyGrid">
-            <div class="story-card" data-genre="fantasy">
-                <div class="story-title">The Lost Kingdom</div>
-                <div class="story-author">by Alex Carter</div>
+        <div class="story-grid">
+            <div class="story-card">
+                <h5>The Lost Kingdom</h5>
+                <p>by Alex Carter</p>
                 <button class="btn-primary">Read More</button>
             </div>
-            <div class="story-card" data-genre="sci-fi">
-                <div class="story-title">Beyond the Stars</div>
-                <div class="story-author">by Jamie Lee</div>
+            <div class="story-card">
+                <h5>Beyond the Stars</h5>
+                <p>by Jamie Lee</p>
                 <button class="btn-primary">Read More</button>
             </div>
-            <div class="story-card" data-genre="mystery">
-                <div class="story-title">Echoes of the Past</div>
-                <div class="story-author">by Taylor Smith</div>
+            <div class="story-card">
+                <h5>Echoes of the Past</h5>
+                <p>by Taylor Smith</p>
                 <button class="btn-primary">Read More</button>
             </div>
-            <div class="story-card" data-genre="romance">
-                <div class="story-title">Love in Paris</div>
-                <div class="story-author">by Sarah Johnson</div>
+            <div class="story-card">
+                <h5>Love in Paris</h5>
+                <p>by Sarah Johnson</p>
                 <button class="btn-primary">Read More</button>
             </div>
         </div>
@@ -103,38 +160,15 @@
 
     <script>
         function toggleSearch() {
-            document.querySelector('.search-container').classList.toggle('active');
-        }
-
-        function searchStories() {
-            let input = document.getElementById('search').value.toLowerCase();
-            let stories = document.getElementsByClassName('story-card');
-            for (let story of stories) {
-                let title = story.getElementsByClassName('story-title')[0].textContent.toLowerCase();
-                story.style.display = title.includes(input) ? "block" : "none";
-            }
-        }
-
-        function sortStories() {
-            let sortType = document.getElementById('sortFilter').value;
-            let storiesContainer = document.getElementById('storyGrid');
-            let stories = Array.from(storiesContainer.children);
-            if (sortType === "newest") {
-                stories.reverse();
+            var searchInput = document.getElementById("searchBar");
+            if (searchInput.style.display === "none" || searchInput.style.display === "") {
+                searchInput.style.display = "inline-block";
+                searchInput.focus();
             } else {
-                stories.sort((a, b) => a.getElementsByClassName('story-title')[0].textContent.localeCompare(b.getElementsByClassName('story-title')[0].textContent));
-            }
-            storiesContainer.innerHTML = "";
-            stories.forEach(story => storiesContainer.appendChild(story));
-        }
-
-        function filterStories() {
-            let genre = document.getElementById('genreFilter').value;
-            let stories = document.getElementsByClassName('story-card');
-            for (let story of stories) {
-                story.style.display = (genre === "all" || story.getAttribute('data-genre') === genre) ? "block" : "none";
+                searchInput.style.display = "none";
             }
         }
     </script>
+
 </body>
 </html>
