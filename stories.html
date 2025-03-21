@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: 'Poppins', sans-serif;
-            background: linear-gradient(to bottom, #b0c4de, #1e3a5f);
+            background: white;
             color: #222;
             text-align: center;
             padding: 30px;
@@ -26,33 +26,26 @@
         }
         .container {
             max-width: 900px;
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             margin: auto;
             margin-top: 30px;
+        }
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 36px;
+            color: #2c3e50;
         }
         .search-container {
             display: flex;
             justify-content: flex-end;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
-        .search-box {
-            display: none;
-            transition: all 0.3s ease;
-        }
-        .search-box.active {
-            display: block;
-        }
-        .search-icon {
-            cursor: pointer;
-            background: #2c3e50;
-            color: white;
-            padding: 8px 12px;
+        #search {
+            width: 250px;
+            padding: 8px;
+            border: 1px solid #ccc;
             border-radius: 5px;
         }
-        .filter-container {
+        .filters {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
@@ -63,42 +56,28 @@
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            transition: transform 0.3s ease-in-out;
+            margin: 15px;
+            width: 280px;
+            display: inline-block;
+            text-align: left;
         }
-        .story-card:hover {
-            transform: scale(1.05);
-        }
-        .story-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 20px;
-            justify-content: center;
-            padding-top: 20px;
-        }
-        .btn-primary {
-            background-color: #0056b3;
-            color: white;
-            border-radius: 5px;
-            font-size: 14px;
-            transition: 0.3s ease-in-out;
-        }
-        .btn-primary:hover {
-            background-color: #004494;
-        }
-        h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 36px;
+        .story-card h3 {
+            font-size: 20px;
             color: #1e3a5f;
         }
-        p {
-            font-size: 18px;
-            color: #444;
-        }
-        .story-description {
+        .story-card p {
             font-size: 14px;
-            color: #666;
-            margin-bottom: 10px;
+            color: #555;
+        }
+        .story-card .read-more {
+            background-color: #0056b3;
+            color: white;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -115,58 +94,99 @@
         <h1>Explore Stories</h1>
         <p>Discover amazing fiction from talented authors.</p>
 
-        <div class="search-container">
-            <span class="search-icon" onclick="toggleSearch()">🔍</span>
-            <input type="text" id="searchBar" class="form-control search-box" placeholder="Search for stories...">
-        </div>
-
-        <div class="filter-container">
-            <select class="form-select">
-                <option>Sort by: Newest</option>
-                <option>Sort by: Oldest</option>
-                <option>Sort by: Most Popular</option>
+        <div class="filters">
+            <input type="text" id="search" placeholder="Search stories...">
+            <select id="sort">
+                <option value="newest">Sort by: Newest</option>
+                <option value="oldest">Sort by: Oldest</option>
             </select>
-            <select class="form-select">
-                <option>Filter by Genre</option>
-                <option>Fantasy</option>
-                <option>Romance</option>
-                <option>Science Fiction</option>
-                <option>Mystery</option>
+            <select id="genre">
+                <option value="all">Filter by Genre</option>
+                <option value="fantasy">Fantasy</option>
+                <option value="sci-fi">Sci-Fi</option>
+                <option value="mystery">Mystery</option>
+                <option value="romance">Romance</option>
             </select>
         </div>
 
-        <div class="story-grid">
-            <div class="story-card">
+        <div id="stories">
+            <div class="story-card" data-title="The Lost Kingdom" data-description="A thrilling fantasy adventure." data-genre="fantasy">
                 <h3>The Lost Kingdom</h3>
                 <p>by Alex Carter</p>
-                <p class="story-description">A young warrior uncovers a forgotten kingdom lost to time, filled with secrets and ancient magic.</p>
-                <button class="btn btn-primary">Read More</button>
+                <p>A thrilling fantasy adventure.</p>
+                <a href="#" class="read-more">Read More</a>
             </div>
-            <div class="story-card">
+
+            <div class="story-card" data-title="Beyond the Stars" data-description="A sci-fi tale that will take you beyond." data-genre="sci-fi">
                 <h3>Beyond the Stars</h3>
                 <p>by Jamie Lee</p>
-                <p class="story-description">A space traveler discovers an uncharted planet—only to realize it's not as empty as it seems.</p>
-                <button class="btn btn-primary">Read More</button>
+                <p>A sci-fi tale that will take you beyond.</p>
+                <a href="#" class="read-more">Read More</a>
             </div>
-            <div class="story-card">
+
+            <div class="story-card" data-title="Echoes of the Past" data-description="Mystery and history collide in this gripping story." data-genre="mystery">
                 <h3>Echoes of the Past</h3>
                 <p>by Taylor Smith</p>
-                <p class="story-description">A detective in 1920s London investigates a string of murders connected to an unsolved case from decades ago.</p>
-                <button class="btn btn-primary">Read More</button>
+                <p>Mystery and history collide in this gripping story.</p>
+                <a href="#" class="read-more">Read More</a>
             </div>
-            <div class="story-card">
+
+            <div class="story-card" data-title="Love in Paris" data-description="A heartfelt romance set in the city of love." data-genre="romance">
                 <h3>Love in Paris</h3>
                 <p>by Sarah Johnson</p>
-                <p class="story-description">Two strangers meet in a Parisian café and find themselves caught in a whirlwind romance.</p>
-                <button class="btn btn-primary">Read More</button>
+                <p>A heartfelt romance set in the city of love.</p>
+                <a href="#" class="read-more">Read More</a>
             </div>
         </div>
     </div>
 
     <script>
-        function toggleSearch() {
-            document.getElementById('searchBar').classList.toggle('active');
-        }
+        document.getElementById("search").addEventListener("input", function() {
+            let query = this.value.toLowerCase();
+            let stories = document.querySelectorAll(".story-card");
+
+            stories.forEach(story => {
+                let title = story.getAttribute("data-title").toLowerCase();
+                let description = story.getAttribute("data-description").toLowerCase();
+
+                if (title.includes(query) || description.includes(query)) {
+                    story.style.display = "inline-block";
+                } else {
+                    story.style.display = "none";
+                }
+            });
+        });
+
+        document.getElementById("sort").addEventListener("change", function() {
+            let storiesContainer = document.getElementById("stories");
+            let stories = Array.from(storiesContainer.children);
+            let sortValue = this.value;
+
+            stories.sort((a, b) => {
+                if (sortValue === "newest") {
+                    return b.getAttribute("data-title").localeCompare(a.getAttribute("data-title"));
+                } else {
+                    return a.getAttribute("data-title").localeCompare(b.getAttribute("data-title"));
+                }
+            });
+
+            stories.forEach(story => storiesContainer.appendChild(story));
+        });
+
+        document.getElementById("genre").addEventListener("change", function() {
+            let selectedGenre = this.value;
+            let stories = document.querySelectorAll(".story-card");
+
+            stories.forEach(story => {
+                let storyGenre = story.getAttribute("data-genre");
+
+                if (selectedGenre === "all" || storyGenre === selectedGenre) {
+                    story.style.display = "inline-block";
+                } else {
+                    story.style.display = "none";
+                }
+            });
+        });
     </script>
 
 </body>
