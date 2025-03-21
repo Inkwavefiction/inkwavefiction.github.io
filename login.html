@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -21,10 +21,11 @@
       padding: 30px;
       border-radius: 10px;
       box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-      width: 350px;
+      width: 90%;
+      max-width: 400px;
+      text-align: center;
     }
     h2 {
-      text-align: center;
       margin-bottom: 20px;
     }
     input {
@@ -49,7 +50,6 @@
       background-color: #004494;
     }
     .toggle {
-      text-align: center;
       margin-top: 10px;
       cursor: pointer;
       color: #0056b3;
@@ -61,13 +61,13 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
-      authDomain: "inkwave-549c0.firebaseapp.com",
-      projectId: "inkwave-549c0",
-      storageBucket: "inkwave-549c0.appspot.com",
-      messagingSenderId: "1084811926133",
-      appId: "1:1084811926133:web:f1656fce68d5c4d697363c",
-      measurementId: "G-LKJX3HJ8JX"
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID",
+      measurementId: "YOUR_MEASUREMENT_ID"
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
@@ -77,11 +77,11 @@
 
 <div class="container">
   <h2 id="formTitle">Login</h2>
-
   <input type="email" id="email" placeholder="Email" required />
   <input type="password" id="password" placeholder="Password" required />
   <button id="submitBtn">Login</button>
   <div class="toggle" onclick="toggleForm()">Don't have an account? Sign up</div>
+  <p id="formMessage"></p>
 </div>
 
 <script>
@@ -89,30 +89,9 @@
 
   function toggleForm() {
     isLogin = !isLogin;
-    document.getElementById("formTitle").textContent = isLogin ? "Login" : "Sign Up";
-    document.getElementById("submitBtn").textContent = isLogin ? "Login" : "Sign Up";
-    document.querySelector(".toggle").textContent = isLogin
+    document.getElementById('formTitle').textContent = isLogin ? 'Login' : 'Sign Up';
+    document.getElementById('submitBtn').textContent = isLogin ? 'Login' : 'Sign Up';
+    document.querySelector('.toggle').textContent = isLogin
       ? "Don't have an account? Sign up"
-      : "Already have an account? Log in";
-  }
-
-  document.getElementById("submitBtn").addEventListener("click", async () => {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-
-    try {
-      if (isLogin) {
-        await auth.signInWithEmailAndPassword(email, password);
-      } else {
-        await auth.createUserWithEmailAndPassword(email, password);
-      }
-      // ✅ Redirect after login/signup
-      window.location.href = "index.html"; // Change to author-dashboard.html if needed
-    } catch (error) {
-      alert(error.message);
-    }
-  });
-</script>
-
-</body>
-</html>
+      :
+::contentReference[oaicite:0]{index=0}
