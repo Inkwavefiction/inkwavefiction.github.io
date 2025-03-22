@@ -59,17 +59,28 @@
             color: #555;
         }
     </style>
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js"></script>
+    <!-- Firebase Authentication -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js"></script>
+    <!-- Firebase Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js"></script>
 </head>
 <body>
 
     <div class="container">
         <h1>Sign Up for Inkwave</h1>
         <p>By signing up, you're creating an account to track your author application.  
-           If approved, your account will unlock the **Author Dashboard**,  
+           If approved, your account will unlock the <strong>Author Dashboard</strong>,  
            where you can write, publish, and track your earnings.  
            If not approved, your account will be deactivated.</p>
         
-        <form id="signup-form">
+        <form id="signupForm">
+            <div class="form-group">
+                <label for="name">Full Name:</label>
+                <input type="text" id="name" class="form-control" name="name" required>
+            </div>
+
             <div class="form-group">
                 <label for="email">Email Address:</label>
                 <input type="email" id="email" class="form-control" name="email" required>
@@ -80,9 +91,72 @@
                 <input type="password" id="password" class="form-control" name="password" required>
             </div>
 
+            <div class="form-group">
+                <label for="style">How would you describe your writing style in three words?</label>
+                <input type="text" id="style" class="form-control" name="style" required>
+            </div>
+
+            <div class="form-group">
+                <label for="genres">What genres or tones do you feel most comfortable writing in? Which ones would challenge you?</label>
+                <textarea id="genres" class="form-control" name="genres" rows="3" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="prompt">If I gave you a prompt about Illness, how would you approach it?</label>
+                <textarea id="prompt" class="form-control" name="prompt" rows="3" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="tone">Can you switch between formal and conversational tones? Give a quick example.</label>
+                <textarea id="tone" class="form-control" name="tone" rows="3" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="rule">What’s a writing rule you love breaking, and why?</label>
+                <textarea id="rule" class="form-control" name="rule" rows="3" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="unique">What makes your writing stand out from others?</label>
+                <textarea id="unique" class="form-control" name="unique" rows="3" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="story1">Short Story #1:</label>
+                <textarea id="story1" class="form-control" name="story1" rows="6" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="story2">Short Story #2:</label>
+                <textarea id="story2" class="form-control" name="story2" rows="6" required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="story3">Short Story #3:</label>
+                <textarea id="story3" class="form-control" name="story3" rows="6" required></textarea>
+            </div>
+
             <button type="submit" class="btn-primary">Sign Up</button>
         </form>
     </div>
 
-</body>
-</html>
+    <script>
+        // Your Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+            authDomain: "inkwave-549c0.firebaseapp.com",
+            projectId: "inkwave-549c0",
+            storageBucket: "inkwave-549c0.appspot.com",
+            messagingSenderId: "1084811926133",
+            appId: "1:1084811926133:web:f1656fce68d5c4d697363c",
+            measurementId: "G-LKJX3HJ8JX"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
+
+::contentReference[oaicite:0]{index=0}
+ 
