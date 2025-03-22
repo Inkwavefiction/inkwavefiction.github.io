@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Author Login – Inkwave</title>
 
-  <!-- Fonts and Minimal Styling -->
+  <!-- Fonts and Styling -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
   <style>
     body {
@@ -16,6 +16,7 @@
       justify-content: center;
       align-items: center;
       height: 100vh;
+      padding: 1rem;
     }
     .login-container {
       background: white;
@@ -27,7 +28,13 @@
     }
     h2 {
       font-family: 'Playfair Display', serif;
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem;
+      text-align: center;
+    }
+    p.description {
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 1.5rem;
       text-align: center;
     }
     input {
@@ -40,7 +47,7 @@
     button {
       width: 100%;
       padding: 0.6rem;
-      background-color: #789a91; /* sage green */
+      background-color: #789a91;
       color: white;
       border: none;
       border-radius: 4px;
@@ -68,6 +75,9 @@
 
 <div class="login-container">
   <h2 id="form-title">Author Login</h2>
+  <p class="description" id="form-description">
+    Log in to access your author application dashboard. If your account is approved, you’ll gain access to the full author tools. If not, your account will be deactivated.
+  </p>
   <form id="auth-form">
     <input type="email" id="email" placeholder="Email" required />
     <input type="password" id="password" placeholder="Password" required />
@@ -77,13 +87,12 @@
   <div class="message" id="login-message"></div>
 </div>
 
-<!-- Firebase SDKs -->
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js"></script>
+<!-- Firebase Modular SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, deleteUser } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-<script>
-  // Firebase Config
   const firebaseConfig = {
     apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
     authDomain: "inkwave-549c0.firebaseapp.com",
@@ -94,22 +103,25 @@
     measurementId: "G-LKJX3HJ8JX"
   };
 
-  // Initialize Firebase
-  const app = firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
   const authForm = document.getElementById('auth-form');
   const messageDiv = document.getElementById('login-message');
   const toggleLink = document.getElementById('toggle-form');
   const formTitle = document.getElementById('form-title');
+  const formDesc = document.getElementById('form-description');
   const submitBtn = document.getElementById('submit-btn');
 
-  let isLogin = true; // Toggle between login and signup
+  let isLogin = true;
 
   toggleLink.addEventListener('click', () => {
     isLogin = !isLogin;
     formTitle.textContent = isLogin ? 'Author Login' : 'Create Author Account';
+    formDesc.textContent = isLogin
+      ? 'Log in to access your author application dashboard. If your account is approved, you’ll gain access to the full author tools. If not, your account will be deactivated.'
+      : 'Create your author account to track your application. Once approved, you’ll unlock the full writing dashboard.';
     submitBtn.textContent = isLogin ? 'Log In' : 'Sign Up';
     toggleLink.textContent = isLogin ? "Don't have an account? Sign up" : "Already have an account? Log in";
     messageDiv.textContent = '';
@@ -125,37 +137,36 @@
       let userCred;
 
       if (isLogin) {
-        userCred = await auth.signInWithEmailAndPassword(email, password);
+        userCred = await signInWithEmailAndPassword(auth, email, password);
       } else {
-        userCred = await auth.createUserWithEmailAndPassword(email, password);
-        // Create pending author entry
-        await db.collection('authors').doc(userCred.user.uid).set({
+        userCred = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, "authors", userCred.user.uid), {
           email: email,
-          status: 'pending'
+          status: "pending"
         });
         messageDiv.textContent = "Account created. Awaiting approval.";
         return;
       }
 
-      // Check approval status
       const user = userCred.user;
-      const doc = await db.collection('authors').doc(user.uid).get();
+      const docRef = doc(db, "authors", user.uid);
+      const docSnap = await getDoc(docRef);
 
-      if (!doc.exists) {
+      if (!docSnap.exists()) {
         messageDiv.textContent = "No application found.";
         return;
       }
 
-      const status = doc.data().status;
+      const status = docSnap.data().status;
 
-      if (status === 'approved') {
-        window.location.href = 'dashboard.html';
-      } else if (status === 'pending') {
+      if (status === "approved") {
+        window.location.href = "dashboard.html";
+      } else if (status === "pending") {
         messageDiv.textContent = "Your account is pending approval.";
-      } else if (status === 'denied') {
-        await user.delete();
+      } else if (status === "denied") {
+        await deleteUser(user);
         messageDiv.textContent = "Application denied. Redirecting...";
-        setTimeout(() => window.location.href = 'index.html', 3000);
+        setTimeout(() => window.location.href = "index.html", 3000);
       }
     } catch (error) {
       messageDiv.textContent = error.message;
