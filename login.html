@@ -4,8 +4,6 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Author Login – Inkwave</title>
-
-  <!-- Fonts and Styling -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
   <style>
     body {
@@ -87,7 +85,7 @@
   <div class="message" id="login-message"></div>
 </div>
 
-<!-- Firebase Modular SDK -->
+<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, deleteUser } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -138,18 +136,20 @@
 
       if (isLogin) {
         userCred = await signInWithEmailAndPassword(auth, email, password);
-
-        // Check approval status
         const user = userCred.user;
+        console.log("Logging in user:", user.uid);
+
         const docRef = doc(db, "authors", user.uid);
         const docSnap = await getDoc(docRef);
 
         if (!docSnap.exists()) {
+          console.log("No Firestore record for UID:", user.uid);
           messageDiv.textContent = "No application found.";
           return;
         }
 
         const status = docSnap.data().status;
+        console.log("Application status:", status);
 
         if (status === "approved") {
           window.location.href = "dashboard.html";
@@ -162,18 +162,16 @@
         }
 
       } else {
-        // SIGNUP mode
         userCred = await createUserWithEmailAndPassword(auth, email, password);
         await setDoc(doc(db, "authors", userCred.user.uid), {
           email: email,
           status: "pending"
         });
-        // Send to status checker
         window.location.href = "pending.html";
-        return;
       }
 
     } catch (error) {
+      console.error("Error:", error.message);
       messageDiv.textContent = error.message;
     }
   });
