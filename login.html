@@ -74,7 +74,7 @@
 <div class="login-container">
   <h2 id="form-title">Author Login</h2>
   <p class="description" id="form-description">
-    Log in to access your author application dashboard. If your account is approved, you’ll gain access to the full author tools. If not, your account will be deactivated.
+    Log in or sign up to access your author dashboard and view your application status.
   </p>
   <form id="auth-form">
     <input type="email" id="email" placeholder="Email" required />
@@ -88,8 +88,8 @@
 <!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, deleteUser } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
@@ -118,7 +118,7 @@
     isLogin = !isLogin;
     formTitle.textContent = isLogin ? 'Author Login' : 'Create Author Account';
     formDesc.textContent = isLogin
-      ? 'Log in to access your author application dashboard. If your account is approved, you’ll gain access to the full author tools. If not, your account will be deactivated.'
+      ? 'Log in or sign up to access your author dashboard and view your application status.'
       : 'Create your author account to track your application. Once approved, you’ll unlock the full writing dashboard.';
     submitBtn.textContent = isLogin ? 'Log In' : 'Sign Up';
     toggleLink.textContent = isLogin ? "Don't have an account? Sign up" : "Already have an account? Log in";
@@ -132,44 +132,17 @@
     messageDiv.textContent = '';
 
     try {
-      let userCred;
-
       if (isLogin) {
-        userCred = await signInWithEmailAndPassword(auth, email, password);
-        const user = userCred.user;
-        console.log("Logging in user:", user.uid);
-
-        const docRef = doc(db, "authors", user.uid);
-        const docSnap = await getDoc(docRef);
-
-        if (!docSnap.exists()) {
-          console.log("No Firestore record for UID:", user.uid);
-          messageDiv.textContent = "No application found.";
-          return;
-        }
-
-        const status = docSnap.data().status;
-        console.log("Application status:", status);
-
-        if (status === "approved") {
-          window.location.href = "dashboard.html";
-        } else if (status === "pending") {
-          messageDiv.textContent = "Your account is still pending approval.";
-        } else if (status === "denied") {
-          await deleteUser(user);
-          messageDiv.textContent = "Application denied. Redirecting...";
-          setTimeout(() => window.location.href = "index.html", 3000);
-        }
-
+        await signInWithEmailAndPassword(auth, email, password);
+        window.location.href = "dashboard.html";
       } else {
-        userCred = await createUserWithEmailAndPassword(auth, email, password);
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
         await setDoc(doc(db, "authors", userCred.user.uid), {
           email: email,
           status: "pending"
         });
-        window.location.href = "pending.html";
+        window.location.href = "dashboard.html";
       }
-
     } catch (error) {
       console.error("Error:", error.message);
       messageDiv.textContent = error.message;
