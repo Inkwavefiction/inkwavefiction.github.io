@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>New Story – Inkwave</title>
 
   <!-- Quill -->
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet"/>
   <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
-  <!-- Google Fonts API -->
+  <!-- Google Fonts -->
   <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
 
   <style>
@@ -54,11 +54,11 @@
       font-weight: 600;
     }
 
-    .tab {
+    .section {
       display: flex;
       align-items: center;
       background: #e8ecf0;
-      padding: 0.7rem 1rem;
+      padding: 0.6rem 1rem;
       border-radius: 999px;
       font-size: 0.95rem;
       color: #111;
@@ -67,25 +67,25 @@
       font-weight: 500;
     }
 
-    .tab:hover {
+    .section:hover {
       background: #d8dee4;
     }
 
-    .tab-icon {
+    .section-icon {
       margin-right: 0.5rem;
     }
 
-    .sidebar .add-tab {
+    .add-section {
       margin-top: 1rem;
-      font-size: 1.2rem;
+      font-size: 0.9rem;
+      color: #444;
       background: none;
       border: none;
+      text-align: left;
+      padding: 0.4rem 0;
       cursor: pointer;
-      color: #666;
-      padding: 0;
     }
 
-    /* Main Editor */
     .editor-area {
       flex: 1;
       padding: 2rem;
@@ -143,28 +143,68 @@
       color: white;
     }
 
-    /* Font support */
-    .ql-font-poppins { font-family: 'Poppins', sans-serif; }
-    .ql-font-playfair-display { font-family: 'Playfair Display', serif; }
-    .ql-font-lora { font-family: 'Lora', serif; }
-    .ql-font-roboto { font-family: 'Roboto', sans-serif; }
-    .ql-font-source-code-pro { font-family: 'Source Code Pro', monospace; }
-    .ql-font-merriweather { font-family: 'Merriweather', serif; }
+    /* Font Picker Modal */
+    .font-modal {
+      position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      width: 500px;
+      height: 400px;
+      overflow-y: auto;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      z-index: 999;
+      display: none;
+    }
+
+    .font-modal h4 {
+      margin-bottom: 0.8rem;
+    }
+
+    .font-option {
+      padding: 0.4rem 0;
+      cursor: pointer;
+      border-bottom: 1px solid #eee;
+    }
+
+    .font-option:hover {
+      background-color: #f9f9f9;
+    }
+
+    .font-modal-close {
+      float: right;
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .more-fonts-btn {
+      margin-left: 1rem;
+      font-size: 0.95rem;
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.2rem 0.6rem;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
 
   <!-- Sidebar -->
   <div class="sidebar">
-    <h3>Document Tabs</h3>
-    <div class="tab"><span class="tab-icon">📄</span> Tab 1</div>
-    <button class="add-tab" onclick="alert('Coming soon: Add new tab')">＋</button>
-    <p style="font-size: 0.85rem; color: #777; margin-top: 1rem;">Headings you add to the document will appear here.</p>
+    <h3>Chapters/Sections</h3>
+    <div class="section"><span class="section-icon">📄</span> Section 1</div>
+    <div class="section"><span class="section-icon">📄</span> Section 2</div>
+    <button class="add-section" onclick="alert('Feature coming soon')">➕ Add Section</button>
   </div>
 
   <!-- Editor -->
   <div class="editor-area">
-    <input class="title-input" placeholder="Enter your story title..." />
+    <input class="title-input" placeholder="Enter your story title..."/>
 
     <!-- Toolbar -->
     <div id="toolbar">
@@ -174,13 +214,10 @@
         <option value="2">H2</option>
       </select>
 
-      <select class="ql-font">
+      <select class="ql-font" id="font-selector">
         <option selected value="poppins">Poppins</option>
         <option value="playfair-display">Playfair</option>
         <option value="lora">Lora</option>
-        <option value="roboto">Roboto</option>
-        <option value="source-code-pro">Code</option>
-        <option value="merriweather">Merriweather</option>
       </select>
 
       <button class="ql-bold"></button>
@@ -189,6 +226,8 @@
       <button class="ql-strike"></button>
       <button class="ql-link"></button>
       <button class="ql-clean"></button>
+
+      <button class="more-fonts-btn" onclick="toggleFontModal()">More Fonts</button>
     </div>
 
     <div id="editor"></div>
@@ -199,35 +238,73 @@
     </div>
   </div>
 
+  <!-- Font Picker Modal -->
+  <div class="font-modal" id="font-modal">
+    <div>
+      <span class="font-modal-close" onclick="toggleFontModal()">✕</span>
+      <h4>Select a Font</h4>
+    </div>
+    <div id="font-list">
+      <!-- Dynamic fonts go here -->
+    </div>
+  </div>
+
   <!-- Scripts -->
   <script>
-    WebFont.load({
-      google: {
-        families: ['Poppins', 'Playfair Display', 'Lora', 'Roboto', 'Source Code Pro', 'Merriweather']
-      }
-    });
+    const fontList = [
+      'Roboto', 'Open Sans', 'Lato', 'Merriweather', 'Poppins', 'Playfair Display', 'Lora',
+      'Inter', 'Raleway', 'Quicksand', 'Spectral', 'Satisfy', 'Permanent Marker', 'Comfortaa',
+      'Caveat', 'Courier New', 'Amatic SC', 'Comic Sans MS', 'Shadows Into Light', 'Dancing Script'
+    ];
+
+    WebFont.load({ google: { families: fontList } });
 
     const Font = Quill.import('formats/font');
-    Font.whitelist = ['poppins', 'playfair-display', 'lora', 'roboto', 'source-code-pro', 'merriweather'];
+    Font.whitelist = fontList.map(f => f.toLowerCase().replace(/\s+/g, '-'));
     Quill.register(Font, true);
 
     const quill = new Quill('#editor', {
       theme: 'snow',
       placeholder: 'Start writing your story...',
-      modules: {
-        toolbar: '#toolbar'
-      }
+      modules: { toolbar: '#toolbar' }
     });
 
     function saveDraft() {
       const title = document.querySelector('.title-input').value;
       const content = quill.root.innerHTML;
-      alert("Saved: " + title);
+      alert("Saving: " + title);
     }
 
     function goToPublish() {
-      alert("Redirecting to Publish Page soon...");
+      alert("Redirecting to publish flow...");
     }
+
+    function toggleFontModal() {
+      document.getElementById('font-modal').style.display =
+        document.getElementById('font-modal').style.display === 'block' ? 'none' : 'block';
+    }
+
+    const fontListDiv = document.getElementById('font-list');
+    fontList.forEach(font => {
+      const div = document.createElement('div');
+      div.className = 'font-option';
+      div.style.fontFamily = font;
+      div.innerText = font;
+      div.onclick = () => {
+        const select = document.getElementById('font-selector');
+        const val = font.toLowerCase().replace(/\s+/g, '-');
+        if (![...select.options].some(o => o.value === val)) {
+          const opt = document.createElement('option');
+          opt.value = val;
+          opt.innerText = font;
+          select.appendChild(opt);
+        }
+        select.value = val;
+        quill.format('font', val);
+        toggleFontModal();
+      };
+      fontListDiv.appendChild(div);
+    });
   </script>
 
 </body>
