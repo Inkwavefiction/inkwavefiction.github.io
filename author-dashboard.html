@@ -4,93 +4,101 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Author Dashboard – Inkwave</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:500&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #f5f8f7;
-      --sidebar: #ffffff;
       --text: #1e1e1e;
       --muted: #6a6a6a;
       --accent: #789a91;
-      --card: #ffffff;
+      --white: #ffffff;
       --border: #e0e0e0;
     }
 
     * {
       box-sizing: border-box;
-      margin: 0;
-      padding: 0;
     }
 
     body {
+      margin: 0;
       font-family: 'Poppins', sans-serif;
       background-color: var(--bg);
       color: var(--text);
       display: flex;
-      height: 100vh;
     }
 
     .sidebar {
-      width: 240px;
-      background: var(--sidebar);
+      width: 220px;
+      background: var(--white);
       padding: 2rem 1.5rem;
       border-right: 1px solid var(--border);
+      height: 100vh;
     }
 
-    .sidebar h1 {
+    .sidebar h2 {
       font-family: 'Playfair Display', serif;
-      font-size: 1.5rem;
       margin-bottom: 2rem;
+      font-size: 1.5rem;
     }
 
-    .nav-link {
+    .sidebar a {
       display: block;
       margin: 1rem 0;
       color: var(--text);
       text-decoration: none;
       font-weight: 500;
-      transition: 0.2s ease;
-    }
-
-    .nav-link:hover {
-      color: var(--accent);
     }
 
     .main {
       flex: 1;
       padding: 2.5rem;
-      overflow-y: auto;
     }
 
-    .dashboard-header {
+    .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 2rem;
     }
 
-    .dashboard-header h2 {
+    h1 {
       font-family: 'Playfair Display', serif;
       font-size: 2rem;
+      margin: 0;
     }
 
-    .quick-stats {
+    .new-btn {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 4px;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+
+    .new-btn:hover {
+      background-color: #5f7f76;
+    }
+
+    .stats {
       display: flex;
-      gap: 2rem;
+      gap: 1.5rem;
+      margin-top: 2rem;
+      margin-bottom: 2.5rem;
     }
 
     .stat-box {
-      background: var(--card);
-      padding: 1.5rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
       flex: 1;
+      background: var(--white);
+      padding: 1.25rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
     }
 
     .stat-box h4 {
-      font-size: 1rem;
+      font-size: 0.95rem;
       color: var(--muted);
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.25rem;
     }
 
     .stat-box p {
@@ -98,69 +106,113 @@
       font-weight: 600;
     }
 
-    .welcome {
-      font-size: 1rem;
-      color: var(--muted);
+    table {
+      width: 100%;
+      background-color: var(--white);
+      border: 1px solid var(--border);
+      border-collapse: collapse;
+    }
+
+    th, td {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.95rem;
+    }
+
+    th {
+      background-color: #f0f3f2;
+    }
+
+    tr:hover {
+      background-color: #f9f9f9;
+    }
+
+    .status-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background-color: #4caf50;
+      margin-right: 0.4rem;
+    }
+
+    .story-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .story-link:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
 
-  <aside class="sidebar">
-    <h1>Inkwave</h1>
-    <a href="author-dashboard.html" class="nav-link">Dashboard</a>
-    <a href="your-stories.html" class="nav-link">Your Stories</a>
-    <a href="#" class="nav-link">Earnings</a>
-    <a href="#" class="nav-link">Settings</a>
-  </aside>
+  <div class="sidebar">
+    <h2>Inkwave</h2>
+    <a href="author-dashboard.html">Dashboard</a>
+    <a href="#">Earnings</a>
+    <a href="#">Settings</a>
+  </div>
 
-  <main class="main">
-    <div class="dashboard-header">
-      <div>
-        <h2>Dashboard</h2>
-        <p class="welcome">Welcome back, <span id="user-email">Author</span></p>
-      </div>
+  <div class="main">
+    <div class="header">
+      <h1>Dashboard</h1>
+      <button class="new-btn" onclick="alert('Story creation coming soon!')">+ New Story</button>
     </div>
 
-    <div class="quick-stats">
+    <div class="stats">
       <div class="stat-box">
         <h4>Total Reads</h4>
         <p>1,204</p>
       </div>
       <div class="stat-box">
         <h4>Total Likes</h4>
-        <p>582</p>
+        <p>387</p>
       </div>
       <div class="stat-box">
-        <h4>Earnings</h4>
-        <p>$92.10</p>
+        <h4>Total Earnings</h4>
+        <p>$98.10</p>
       </div>
     </div>
-  </main>
 
-  <!-- Firebase Auth -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
-      authDomain: "inkwave-549c0.firebaseapp.com",
-      projectId: "inkwave-549c0",
-      storageBucket: "inkwave-549c0.firebasestorage.app",
-      messagingSenderId: "1084811926133",
-      appId: "1:1084811926133:web:f1656fce68d5c4d697363c",
-      measurementId: "G-LKJX3HJ8JX"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const emailEl = document.getElementById("user-email");
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) emailEl.textContent = user.email;
-    });
-  </script>
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Reads</th>
+          <th>Likes</th>
+          <th>Revenue</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><a href="story.html?id=1" class="story-link">The Wandering Soul</a></td>
+          <td>742</td>
+          <td>124</td>
+          <td>$21.30</td>
+          <td><span class="status-dot"></span> Published</td>
+        </tr>
+        <tr>
+          <td><a href="story.html?id=2" class="story-link">Beneath the Glass</a></td>
+          <td>463</td>
+          <td>89</td>
+          <td>$15.20</td>
+          <td><span class="status-dot" style="background-color: gray;"></span> Draft</td>
+        </tr>
+        <tr>
+          <td><a href="story.html?id=3" class="story-link">Ashes and Ember</a></td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td><span class="status-dot" style="background-color: gray;"></span> Draft</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
 </body>
 </html>
