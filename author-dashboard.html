@@ -3,110 +3,142 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard – Inkwave</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
+  <title>Author Dashboard – Inkwave</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:500&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
+      --bg: #f5f8f7;
+      --sidebar: #ffffff;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
       --accent: #789a91;
-      --bg: #f6f8f7;
-      --text: #333;
-      --white: #fff;
+      --card: #ffffff;
+      --border: #e0e0e0;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
-      margin: 0;
       font-family: 'Poppins', sans-serif;
       background-color: var(--bg);
       color: var(--text);
       display: flex;
+      height: 100vh;
     }
 
     .sidebar {
-      width: 220px;
-      background: var(--white);
-      padding: 2rem 1rem;
-      box-shadow: 2px 0 8px rgba(0,0,0,0.05);
-      height: 100vh;
-      position: fixed;
+      width: 240px;
+      background: var(--sidebar);
+      padding: 2rem 1.5rem;
+      border-right: 1px solid var(--border);
     }
 
-    .sidebar h2 {
+    .sidebar h1 {
       font-family: 'Playfair Display', serif;
       font-size: 1.5rem;
       margin-bottom: 2rem;
     }
 
-    .sidebar a {
+    .nav-link {
       display: block;
       margin: 1rem 0;
-      text-decoration: none;
       color: var(--text);
+      text-decoration: none;
       font-weight: 500;
+      transition: 0.2s ease;
+    }
+
+    .nav-link:hover {
+      color: var(--accent);
     }
 
     .main {
-      margin-left: 220px;
-      padding: 2rem;
-      width: 100%;
+      flex: 1;
+      padding: 2.5rem;
+      overflow-y: auto;
     }
 
-    .top {
+    .dashboard-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 2rem;
     }
 
-    h1 {
+    .dashboard-header h2 {
       font-family: 'Playfair Display', serif;
+      font-size: 2rem;
     }
 
-    .stats {
+    .quick-stats {
       display: flex;
       gap: 2rem;
-      margin-top: 2rem;
     }
 
-    .stat-card {
-      background: var(--white);
-      padding: 1rem;
+    .stat-box {
+      background: var(--card);
+      padding: 1.5rem;
+      border: 1px solid var(--border);
       border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.04);
       flex: 1;
+    }
+
+    .stat-box h4 {
+      font-size: 1rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    .stat-box p {
+      font-size: 1.5rem;
+      font-weight: 600;
+    }
+
+    .welcome {
+      font-size: 1rem;
+      color: var(--muted);
     }
   </style>
 </head>
 <body>
 
-  <div class="sidebar">
-    <h2>Inkwave</h2>
-    <a href="author-dashboard.html">🏠 Dashboard</a>
-    <a href="your-stories.html">📚 Your Stories</a>
-    <a href="#">💰 Earnings</a>
-    <a href="#">⚙️ Settings</a>
-  </div>
+  <aside class="sidebar">
+    <h1>Inkwave</h1>
+    <a href="author-dashboard.html" class="nav-link">Dashboard</a>
+    <a href="your-stories.html" class="nav-link">Your Stories</a>
+    <a href="#" class="nav-link">Earnings</a>
+    <a href="#" class="nav-link">Settings</a>
+  </aside>
 
-  <div class="main">
-    <div class="top">
-      <h1>Welcome back!</h1>
-      <p id="user-email"></p>
-    </div>
-
-    <div class="stats">
-      <div class="stat-card">
-        <strong>Total Reads</strong>
-        <p>1,234</p>
-      </div>
-      <div class="stat-card">
-        <strong>Total Likes</strong>
-        <p>567</p>
-      </div>
-      <div class="stat-card">
-        <strong>Total Earnings</strong>
-        <p>$89.40</p>
+  <main class="main">
+    <div class="dashboard-header">
+      <div>
+        <h2>Dashboard</h2>
+        <p class="welcome">Welcome back, <span id="user-email">Author</span></p>
       </div>
     </div>
-  </div>
 
+    <div class="quick-stats">
+      <div class="stat-box">
+        <h4>Total Reads</h4>
+        <p>1,204</p>
+      </div>
+      <div class="stat-box">
+        <h4>Total Likes</h4>
+        <p>582</p>
+      </div>
+      <div class="stat-box">
+        <h4>Earnings</h4>
+        <p>$92.10</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Firebase Auth -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
@@ -123,11 +155,10 @@
 
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    const emailBox = document.getElementById("user-email");
+    const emailEl = document.getElementById("user-email");
 
     onAuthStateChanged(auth, (user) => {
-      if (user) emailBox.textContent = user.email;
-      else emailBox.textContent = "Not signed in";
+      if (user) emailEl.textContent = user.email;
     });
   </script>
 
