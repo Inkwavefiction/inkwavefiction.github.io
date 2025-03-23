@@ -8,34 +8,53 @@
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      background-color: #e4ede7; /* Sage green tint */
+      background-color: #e4ede7;
       color: #333;
       padding: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
-    .container {
-      max-width: 600px;
-      margin: 0 auto;
+    .card {
       background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      padding: 2.5rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
     }
     h1 {
       font-family: 'Playfair Display', serif;
-      font-size: 2rem;
-      margin-bottom: 1rem;
+      margin-bottom: 0.5rem;
     }
     .status-msg {
       font-size: 1.1rem;
       margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+    .approved {
+      background-color: #e0f5ea;
+      color: #1e7f4f;
+    }
+    .pending {
+      background-color: #fff6e5;
+      color: #b16c00;
+    }
+    .denied {
+      background-color: #fce5e5;
+      color: #a33c3c;
     }
     .tools {
       margin-top: 2rem;
-    }
-    .hidden {
-      display: none;
+      padding: 1rem;
+      border-top: 1px solid #ccc;
     }
     button {
+      margin-top: 1rem;
       padding: 0.6rem 1rem;
       background-color: #789a91;
       color: white;
@@ -50,73 +69,71 @@
 </head>
 <body>
 
-  <div class="container">
-    <h1>Welcome, Author!</h1>
-    <div class="status-msg" id="status-msg">Checking your application status...</div>
+<div class="card">
+  <h1>Welcome to your Author Dashboard</h1>
+  <div id="status" class="status-msg">Checking your application status...</div>
 
-    <div class="tools hidden" id="author-tools">
-      <p>✅ Your application is approved! You now have access to your author tools.</p>
-      <button onclick="alert('Story editor coming soon!')">➕ Create New Story</button>
-      <!-- You can add more buttons like “View Stats” or “Earnings” here later -->
-    </div>
-
-    <div class="denied hidden" id="denied-msg">
-      <p>❌ Unfortunately, your application was denied.</p>
-      <p>If you believe this was a mistake, feel free to contact us or reapply.</p>
-    </div>
+  <div id="author-tools" class="tools" style="display: none;">
+    <p>🎉 Your application is approved!</p>
+    <p>Start sharing your stories with the world.</p>
+    <button onclick="alert('Story editor coming soon!')">➕ Create New Story</button>
   </div>
+</div>
 
-  <!-- Firebase SDK -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged, deleteUser } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+<!-- Firebase SDK -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
-      authDomain: "inkwave-549c0.firebaseapp.com",
-      projectId: "inkwave-549c0",
-      storageBucket: "inkwave-549c0.firebasestorage.app",
-      messagingSenderId: "1084811926133",
-      appId: "1:1084811926133:web:f1656fce68d5c4d697363c",
-      measurementId: "G-LKJX3HJ8JX"
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+    authDomain: "inkwave-549c0.firebaseapp.com",
+    projectId: "inkwave-549c0",
+    storageBucket: "inkwave-549c0.firebasestorage.app",
+    messagingSenderId: "1084811926133",
+    appId: "1:1084811926133:web:f1656fce68d5c4d697363c",
+    measurementId: "G-LKJX3HJ8JX"
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    const statusMsg = document.getElementById("status-msg");
-    const toolsSection = document.getElementById("author-tools");
-    const deniedSection = document.getElementById("denied-msg");
+  const statusBox = document.getElementById("status");
+  const toolsBox = document.getElementById("author-tools");
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        statusMsg.textContent = "You are not logged in.";
-        return;
-      }
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      statusBox.textContent = "You are not logged in.";
+      statusBox.classList.add("denied");
+      return;
+    }
 
-      const docRef = doc(db, "authors", user.uid);
-      const docSnap = await getDoc(docRef);
+    const docRef = doc(db, "authors", user.uid);
+    const docSnap = await getDoc(docRef);
 
-      if (!docSnap.exists()) {
-        statusMsg.textContent = "No application found.";
-        return;
-      }
+    if (!docSnap.exists()) {
+      statusBox.textContent = "No application found.";
+      statusBox.classList.add("denied");
+      return;
+    }
 
-      const status = docSnap.data().status;
+    const status = docSnap.data().status;
 
-      if (status === "approved") {
-        statusMsg.textContent = "🎉 Your application has been approved!";
-        toolsSection.classList.remove("hidden");
-      } else if (status === "pending") {
-        statusMsg.textContent = "⏳ Your application is still under review. Please check back soon.";
-      } else if (status === "denied") {
-        statusMsg.textContent = "❌ Your application has been denied.";
-        deniedSection.classList.remove("hidden");
-      }
-    });
-  </script>
+    if (status === "approved") {
+      statusBox.textContent = "✅ Approved – You now have full author access!";
+      statusBox.classList.add("approved");
+      toolsBox.style.display = "block";
+    } else if (status === "pending") {
+      statusBox.textContent = "⏳ Your application is still pending review. Please check back soon.";
+      statusBox.classList.add("pending");
+    } else if (status === "denied") {
+      statusBox.textContent = "❌ Your application was denied.";
+      statusBox.classList.add("denied");
+    }
+  });
+</script>
 
 </body>
 </html>
