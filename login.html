@@ -126,11 +126,12 @@
         window.location.href = "dashboard.html";
       } else {
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
-        await setDoc(doc(db, "authors", userCred.user.uid), {
-          email: email,
-          status: "pending"
-        });
-        window.location.href = "account-created.html"; // confirmation page
+       await setDoc(doc(db, "authors", userCred.user.uid), {
+  email: email,
+  status: "pending"
+});
+alert("Your account has been created successfully!");
+window.location.href = "account-created.html";
       }
     } catch (error) {
       messageDiv.textContent = error.message;
