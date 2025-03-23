@@ -15,9 +15,11 @@
   <style>
     :root {
       --accent: #789a91;
-      --bg: #f4f7f6;
+      --bg: #f5f7f6;
       --text: #1e1e1e;
       --white: #ffffff;
+      --light-gray: #f0f1f2;
+      --border: #ddd;
     }
 
     * {
@@ -30,50 +32,73 @@
       background-color: var(--bg);
       color: var(--text);
       height: 100vh;
-      overflow: hidden;
       display: flex;
+      overflow: hidden;
     }
 
     /* Sidebar */
     .sidebar {
       width: 260px;
-      background: #111;
-      color: white;
+      background: var(--light-gray);
       padding: 2rem 1.5rem;
-      height: 100%;
       display: flex;
       flex-direction: column;
+      border-right: 1px solid var(--border);
     }
 
-    .sidebar h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .sidebar a {
-      color: #ddd;
+    .sidebar h3 {
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      color: #555;
       margin-bottom: 1rem;
-      text-decoration: none;
-      font-size: 1rem;
+      font-weight: 600;
+    }
+
+    .tab {
+      display: flex;
+      align-items: center;
+      background: #e8ecf0;
+      padding: 0.7rem 1rem;
+      border-radius: 999px;
+      font-size: 0.95rem;
+      color: #111;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
       font-weight: 500;
     }
 
-    /* Main Editor Layout */
+    .tab:hover {
+      background: #d8dee4;
+    }
+
+    .tab-icon {
+      margin-right: 0.5rem;
+    }
+
+    .sidebar .add-tab {
+      margin-top: 1rem;
+      font-size: 1.2rem;
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: #666;
+      padding: 0;
+    }
+
+    /* Main Editor */
     .editor-area {
       flex: 1;
       padding: 2rem;
-      overflow: auto;
       display: flex;
       flex-direction: column;
     }
 
     .title-input {
-      font-size: 2.4rem;
+      font-size: 2.2rem;
       font-family: 'Playfair Display', serif;
       border: none;
-      border-bottom: 1px solid #ccc;
-      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.5rem;
       padding: 0.5rem 0;
       outline: none;
       width: 100%;
@@ -89,8 +114,8 @@
       border: 1px solid #ccc;
       border-radius: 8px;
       padding: 1rem;
-      height: calc(100vh - 250px);
       overflow-y: auto;
+      height: calc(100vh - 260px);
     }
 
     .button-bar {
@@ -118,25 +143,26 @@
       color: white;
     }
 
-    /* Font Picker */
-    .ql-font-picker {
-      margin-left: 1rem;
-      font-size: 0.9rem;
-    }
+    /* Font support */
+    .ql-font-poppins { font-family: 'Poppins', sans-serif; }
+    .ql-font-playfair-display { font-family: 'Playfair Display', serif; }
+    .ql-font-lora { font-family: 'Lora', serif; }
+    .ql-font-roboto { font-family: 'Roboto', sans-serif; }
+    .ql-font-source-code-pro { font-family: 'Source Code Pro', monospace; }
+    .ql-font-merriweather { font-family: 'Merriweather', serif; }
   </style>
 </head>
 <body>
 
   <!-- Sidebar -->
   <div class="sidebar">
-    <h2>Inkwave</h2>
-    <a href="#">📖 Story</a>
-    <a href="#">📝 Chapters</a>
-    <a href="#">📢 Blurb & Meta</a>
-    <a href="#">✅ Readiness</a>
+    <h3>Document Tabs</h3>
+    <div class="tab"><span class="tab-icon">📄</span> Tab 1</div>
+    <button class="add-tab" onclick="alert('Coming soon: Add new tab')">＋</button>
+    <p style="font-size: 0.85rem; color: #777; margin-top: 1rem;">Headings you add to the document will appear here.</p>
   </div>
 
-  <!-- Main Editor -->
+  <!-- Editor -->
   <div class="editor-area">
     <input class="title-input" placeholder="Enter your story title..." />
 
@@ -148,45 +174,41 @@
         <option value="2">H2</option>
       </select>
 
-      <select class="ql-font"></select>
+      <select class="ql-font">
+        <option selected value="poppins">Poppins</option>
+        <option value="playfair-display">Playfair</option>
+        <option value="lora">Lora</option>
+        <option value="roboto">Roboto</option>
+        <option value="source-code-pro">Code</option>
+        <option value="merriweather">Merriweather</option>
+      </select>
 
       <button class="ql-bold"></button>
       <button class="ql-italic"></button>
       <button class="ql-underline"></button>
       <button class="ql-strike"></button>
-      <button class="ql-blockquote"></button>
       <button class="ql-link"></button>
       <button class="ql-clean"></button>
     </div>
 
-    <!-- Editor -->
     <div id="editor"></div>
 
-    <!-- Buttons -->
     <div class="button-bar">
       <button class="save-btn" onclick="saveDraft()">Save Draft</button>
       <button class="publish-btn" onclick="goToPublish()">Publish</button>
     </div>
   </div>
 
-  <!-- Script -->
+  <!-- Scripts -->
   <script>
-    const fontNames = [
-      "Poppins", "Playfair Display", "Merriweather", "Lora", "Roboto", "Open Sans", "Source Code Pro", "Montserrat", "Nunito", "Raleway", "Libre Baskerville"
-    ];
-
-    const fontPicker = document.querySelector('.ql-font');
-    fontNames.forEach(font => {
-      const option = document.createElement('option');
-      option.value = font.toLowerCase().replace(/ /g, '-');
-      option.innerText = font;
-      fontPicker.appendChild(option);
+    WebFont.load({
+      google: {
+        families: ['Poppins', 'Playfair Display', 'Lora', 'Roboto', 'Source Code Pro', 'Merriweather']
+      }
     });
 
-    WebFont.load({ google: { families: fontNames } });
-
     const Font = Quill.import('formats/font');
-    Font.whitelist = fontNames.map(f => f.toLowerCase().replace(/ /g, '-'));
+    Font.whitelist = ['poppins', 'playfair-display', 'lora', 'roboto', 'source-code-pro', 'merriweather'];
     Quill.register(Font, true);
 
     const quill = new Quill('#editor', {
@@ -200,11 +222,11 @@
     function saveDraft() {
       const title = document.querySelector('.title-input').value;
       const content = quill.root.innerHTML;
-      alert("Saving draft: " + title);
+      alert("Saved: " + title);
     }
 
     function goToPublish() {
-      alert("Opening publish flow soon...");
+      alert("Redirecting to Publish Page soon...");
     }
   </script>
 
