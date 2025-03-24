@@ -28,7 +28,6 @@
       display: flex;
     }
 
-    /* Sidebar */
     .sidebar {
       width: 300px;
       background: #111;
@@ -75,7 +74,6 @@
       background-color: #1e1e1e;
     }
 
-    /* Main Content */
     .main {
       margin-left: 300px;
       padding: 2.5rem;
@@ -126,7 +124,7 @@
     }
 
     .stat-box h4 {
-      font-size: 1rem;
+      font-size: 1rem
       color: var(--accent);
       margin-bottom: 0.25rem;
       font-weight: 500;
@@ -192,6 +190,13 @@
       background-color: #e8e8e8;
       color: #555;
     }
+
+    .no-stories {
+      text-align: center;
+      color: var(--muted);
+      padding: 2rem 0;
+      font-style: italic;
+    }
   </style>
 </head>
 <body>
@@ -244,21 +249,21 @@
         <h1>Dashboard</h1>
         <p style="color: var(--muted); margin-top: 0.3rem;">Welcome back, Author!</p>
       </div>
-      <button class="new-btn" onclick="alert('Create New Story coming soon!')">+ New Story</button>
+      <button class="new-btn" onclick="window.location.href='new-story.html'">+ New Story</button>
     </div>
 
     <div class="stats">
       <div class="stat-box">
         <h4>Total Reads</h4>
-        <p>1,204</p>
+        <p id="total-reads">0</p>
       </div>
       <div class="stat-box">
         <h4>Total Likes</h4>
-        <p>387</p>
+        <p id="total-likes">0</p>
       </div>
       <div class="stat-box">
         <h4>Total Earnings</h4>
-        <p>$98.10</p>
+        <p id="total-earnings">$0.00</p>
       </div>
     </div>
 
@@ -272,37 +277,85 @@
           <th>Status</th>
         </tr>
       </thead>
-      <tbody>
-        <tr>
-          <td><a href="#" class="story-link">The Wandering Soul</a></td>
-          <td>742</td>
-          <td>124</td>
-          <td>$21.30</td>
-          <td><span class="badge published">Published</span></td>
-        </tr>
-        <tr>
-          <td><a href="#" class="story-link">Beneath the Glass</a></td>
-          <td>463</td>
-          <td>89</td>
-          <td>$15.20</td>
-          <td><span class="badge draft">Draft</span></td>
-        </tr>
-        <tr>
-          <td><a href="#" class="story-link">Ashes and Ember</a></td>
-          <td>—</td>
-          <td>—</td>
-          <td>—</td>
-          <td><span class="badge draft">Draft</span></td>
-        </tr>
+      <tbody id="story-table">
+        <tr><td colspan="5" class="no-stories">Loading your stories...</td></tr>
       </tbody>
     </table>
   </div>
 
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0",
+      storageBucket: "inkwave-549c0.appspot.com",
+      messagingSenderId: "1084811926133",
+      appId: "1:1084811926133:web:auto-generated"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
     function comingSoon() {
       alert("This feature is coming soon!");
     }
-  </script>
 
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        alert("Please log in to view your dashboard.");
+        return;
+      }
+
+      const storiesRef = db.collection("users").doc(user.uid).collection("stories");
+
+      storiesRef.get().then(snapshot => {
+        const table = document.getElementById("story-table");
+        table.innerHTML = "";
+
+        let totalReads = 0;
+        let totalLikes = 0;
+        let totalEarnings = 0;
+        let storyCount = 0;
+
+        if (snapshot.empty) {
+          table.innerHTML = '<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>';
+          return;
+        }
+
+        snapshot.forEach(doc => {
+          const story = doc.data();
+          const title = story.title || "(Untitled)";
+          const reads = story.reads ?? "—";
+          const likes = story.likes ?? "—";
+          const revenue = story.revenue ? `$${story.revenue.toFixed(2)}` : "—";
+          const status = story.status || "draft";
+
+          if (!isNaN(story.reads)) totalReads += story.reads;
+          if (!isNaN(story.likes)) totalLikes += story.likes;
+          if (!isNaN(story.revenue)) totalEarnings += story.revenue;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><a href="new-story.html" class="story-link">${title}</a></td>
+            <td>${reads}</td>
+            <td>${likes}</td>
+            <td>${revenue}</td>
+            <td><span class="badge ${status === 'published' ? 'published' : 'draft'}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+          `;
+          table.appendChild(tr);
+          storyCount++;
+        });
+
+        document.getElementById("total-reads").textContent = totalReads;
+        document.getElementById("total-likes").textContent = totalLikes;
+        document.getElementById("total-earnings").textContent = `$${totalEarnings.toFixed(2)}`;
+      });
+    });
+  </script>
 </body>
 </html>
