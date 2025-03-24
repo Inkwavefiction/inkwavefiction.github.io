@@ -286,6 +286,8 @@
           <th>Likes</th>
           <th>Revenue</th>
           <th>Status</th>
+<th></th>
+
         </tr>
       </thead>
       <tbody id="story-table">
@@ -378,12 +380,12 @@
           tr.innerHTML = `
             <td>
               <a href="#" class="story-link" onclick="openStory('${doc.id}')">${title}</a>
-              <button class="delete-btn" onclick="deleteStory('${doc.id}')">🗑️</button>
             </td>
             <td>${reads}</td>
             <td>${likes}</td>
             <td>${revenue}</td>
             <td><span class="badge ${status === 'published' ? 'published' : 'draft'}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
+            <td><button class="delete-btn" onclick="deleteStory('${doc.id}')">🗑️</button></td>
           `;
           table.appendChild(tr);
         });
