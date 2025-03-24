@@ -1,4 +1,3 @@
-<!-- CLEANED VERSION -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,9 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>New Story – Inkwave</title>
 
-  <!-- Quill -->
+  <!-- Quill Editor -->
   <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
-  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
   <style>
     :root {
@@ -20,9 +18,7 @@
       --border: #ddd;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -101,9 +97,7 @@
       width: 100%;
     }
 
-    #toolbar {
-      margin-bottom: 1rem;
-    }
+    #toolbar { margin-bottom: 1rem; }
 
     #editor {
       flex: 1;
@@ -180,69 +174,128 @@
     </div>
   </div>
 
-<script>
-  const sectionData = {};
-  let currentSection = null;
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
-  const quill = new Quill('#editor', {
-    theme: 'snow',
-    placeholder: 'Start writing your story...',
-    modules: {
-      toolbar: '#toolbar'
-    }
-  });
+  <!-- Quill -->
+  <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 
-  function saveDraft() {
-    const title = document.getElementById("story-title").value;
-    const content = quill.root.innerHTML;
-    if (currentSection) {
-      sectionData[currentSection].content = content;
-    }
-    alert("Draft saved for: " + title + " – Section: " + currentSection);
-  }
+  <script>
+    // 🔐 FIREBASE CONFIG
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0",
+      storageBucket: "inkwave-549c0.appspot.com",
+      messagingSenderId: "1084811926133",
+      appId: "1:1084811926133:web:auto-generated"
+    };
 
-  function goToPublish() {
-    alert("This will go to the publishing flow soon!");
-  }
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-  function addSection(name = null) {
-    const sectionName = name || `Section ${Object.keys(sectionData).length + 1}`;
-    sectionData[sectionName] = { content: '' };
-    renderSections();
-    switchSection(sectionName);
-  }
+    const sectionData = {};
+    let currentSection = null;
+    let storyId = "story-" + Date.now(); // Unique ID per story
 
-  function switchSection(name) {
-    if (currentSection) {
-      sectionData[currentSection].content = quill.root.innerHTML;
-    }
-    currentSection = name;
-    quill.root.innerHTML = sectionData[name].content || '';
-    highlightActiveSection(name);
-  }
-
-  function renderSections() {
-    const container = document.getElementById("sections");
-    container.innerHTML = '';
-    Object.keys(sectionData).forEach(name => {
-      const div = document.createElement("div");
-      div.className = "section";
-      div.innerHTML = `<span class="section-icon">📄</span> ${name}`;
-      div.onclick = () => switchSection(name);
-      container.appendChild(div);
+    const quill = new Quill('#editor', {
+      theme: 'snow',
+      placeholder: 'Start writing your story...',
+      modules: {
+        toolbar: '#toolbar'
+      }
     });
-  }
 
-  function highlightActiveSection(name) {
-    const sections = document.querySelectorAll('.section');
-    sections.forEach(section => {
-      section.style.backgroundColor = section.textContent.trim().includes(name) ? '#c8dad3' : '#e8ecf0';
+    firebase.auth().onAuthStateChanged(async user => {
+      if (!user) {
+        alert("Please login to write a story.");
+        return;
+      }
+
+      // Try to load existing draft
+      const docRef = db.collection("users").doc(user.uid).collection("stories").doc(storyId);
+      const docSnap = await docRef.get();
+      if (docSnap.exists) {
+        const data = docSnap.data();
+        document.getElementById("story-title").value = data.title || "";
+        if (data.sections) {
+          Object.keys(data.sections).forEach(section => {
+            sectionData[section] = { content: data.sections[section].content || "" };
+          });
+          renderSections();
+          switchSection(Object.keys(sectionData)[0]);
+        }
+      } else {
+        // Add default section if no data
+        addSection("Introduction");
+      }
     });
-  }
 
-  // Initialize with one section
-  addSection('Introduction');
-</script>
+    function saveDraft() {
+      const user = firebase.auth().currentUser;
+      if (!user) {
+        alert("You must be logged in to save.");
+        return;
+      }
 
+      const title = document.getElementById("story-title").value;
+      const content = quill.root.innerHTML;
+      if (currentSection) {
+        sectionData[currentSection].content = content;
+      }
+
+      db.collection("users").doc(user.uid).collection("stories").doc(storyId).set({
+        title: title,
+        status: "draft",
+        sections: sectionData
+      }).then(() => {
+        alert("Draft saved.");
+      }).catch(err => {
+        console.error("Save error:", err);
+        alert("Error saving draft.");
+      });
+    }
+
+    function goToPublish() {
+      alert("This will link to the publish flow.");
+    }
+
+    function addSection(name = null) {
+      const sectionName = name || `Section ${Object.keys(sectionData).length + 1}`;
+      sectionData[sectionName] = { content: '' };
+      renderSections();
+      switchSection(sectionName);
+    }
+
+    function switchSection(name) {
+      if (currentSection) {
+        sectionData[currentSection].content = quill.root.innerHTML;
+      }
+      currentSection = name;
+      quill.root.innerHTML = sectionData[name].content || '';
+      highlightActiveSection(name);
+    }
+
+    function renderSections() {
+      const container = document.getElementById("sections");
+      container.innerHTML = '';
+      Object.keys(sectionData).forEach(name => {
+        const div = document.createElement("div");
+        div.className = "section";
+        div.innerHTML = `<span class="section-icon">📄</span> ${name}`;
+        div.onclick = () => switchSection(name);
+        container.appendChild(div);
+      });
+    }
+
+    function highlightActiveSection(name) {
+      const sections = document.querySelectorAll('.section');
+      sections.forEach(section => {
+        section.style.backgroundColor = section.textContent.trim().includes(name) ? '#c8dad3' : '#e8ecf0';
+      });
+    }
+  </script>
 </body>
 </html>
