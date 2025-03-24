@@ -223,8 +223,13 @@
   }
 
   function goToPublish() {
-    alert("Publishing coming soon!");
+  if (!storyId) {
+    alert("No story ID found.");
+    return;
   }
+  window.location.href = `publish-story.html?storyId=${storyId}`;
+}
+
 
   function addSection(name = null) {
     const sectionName = name || `Section ${Object.keys(sectionData).length + 1}`;
