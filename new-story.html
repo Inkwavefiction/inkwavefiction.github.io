@@ -198,7 +198,13 @@
 
     const sectionData = {};
     let currentSection = null;
-    let storyId = "story-" + Date.now(); // Unique ID per story
+
+    // 🔄 Keep storyId across page loads using localStorage
+    let storyId = localStorage.getItem("currentStoryId");
+    if (!storyId) {
+      storyId = "story-" + Date.now();
+      localStorage.setItem("currentStoryId", storyId);
+    }
 
     const quill = new Quill('#editor', {
       theme: 'snow',
@@ -214,7 +220,6 @@
         return;
       }
 
-      // Try to load existing draft
       const docRef = db.collection("users").doc(user.uid).collection("stories").doc(storyId);
       const docSnap = await docRef.get();
       if (docSnap.exists) {
@@ -228,7 +233,6 @@
           switchSection(Object.keys(sectionData)[0]);
         }
       } else {
-        // Add default section if no data
         addSection("Introduction");
       }
     });
@@ -251,7 +255,8 @@
         status: "draft",
         sections: sectionData
       }).then(() => {
-        alert("Draft saved.");
+        localStorage.removeItem("currentStoryId");
+        window.location.href = "author-dashboard.html";
       }).catch(err => {
         console.error("Save error:", err);
         alert("Error saving draft.");
