@@ -30,6 +30,7 @@
       flex: 1;
       padding: 2rem;
       gap: 2rem;
+      overflow: hidden;
     }
 
     .form-area {
@@ -38,7 +39,8 @@
       padding: 2rem;
       border: 1px solid var(--border);
       border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      overflow-y: auto;
+      max-height: 100%;
     }
 
     .form-area h1 {
@@ -99,25 +101,31 @@
     }
 
     .preview-area {
-      flex: 1;
+      flex: 2;
       background: #fff;
       padding: 2rem;
       border: 1px solid var(--border);
       border-radius: 8px;
-      max-height: calc(100vh - 4rem);
       overflow-y: auto;
+      display: flex;
+      flex-direction: column;
     }
 
-    .preview-area h2 {
+    .preview-cover {
+      max-width: 100%;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+    }
+
+    .preview-title {
       font-family: 'Playfair Display', serif;
-      font-size: 1.8rem;
-      margin-bottom: 0.5rem;
+      font-size: 2rem;
+      margin-bottom: 0.3rem;
     }
 
-    .preview-blurb {
-      margin: 1rem 0;
-      font-size: 1rem;
-      color: var(--muted);
+    .preview-tags {
+      margin-bottom: 1rem;
     }
 
     .tag {
@@ -130,11 +138,32 @@
       margin-right: 0.5rem;
     }
 
-    .preview-cover {
-      max-width: 100%;
-      border-radius: 6px;
+    .preview-blurb {
+      font-size: 1rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .preview-nav {
       margin-bottom: 1rem;
+    }
+
+    .preview-nav button {
+      margin-right: 0.5rem;
+      padding: 0.3rem 0.8rem;
       border: 1px solid var(--border);
+      background: #f0f1f2;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .preview-section-content {
+      background: #fdfdfd;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
     }
   </style>
 </head>
@@ -143,6 +172,7 @@
   <div class="container">
     <div class="form-area">
       <h1>Publish Your Story</h1>
+
       <div class="form-group">
         <label>Title</label>
         <input type="text" id="story-title" readonly />
@@ -184,9 +214,12 @@
 
     <div class="preview-area">
       <img id="preview-cover" class="preview-cover" style="display:none;" />
-      <h2 id="preview-title">Title Preview</h2>
-      <p class="preview-blurb" id="preview-blurb">Blurb preview will appear here...</p>
-      <div id="preview-tags"></div>
+      <h2 id="preview-title" class="preview-title">Title Preview</h2>
+      <div id="preview-tags" class="preview-tags"></div>
+      <p id="preview-blurb" class="preview-blurb">Blurb preview will appear here...</p>
+
+      <div id="section-nav" class="preview-nav"></div>
+      <div id="section-content" class="preview-section-content">Story content will appear here...</div>
     </div>
   </div>
 <script>
@@ -203,6 +236,8 @@
   const db = firebase.firestore();
   let currentUser;
   let storyId = new URLSearchParams(window.location.search).get("storyId");
+  let sections = {};
+  let currentSection = "";
 
   firebase.auth().onAuthStateChanged(async user => {
     if (!user) return alert("Please log in.");
@@ -216,17 +251,24 @@
     document.getElementById("story-title").value = data.title || "";
     document.getElementById("story-blurb").value = data.blurb || "";
     document.getElementById("story-genre").value = data.genre || "";
+
+    if (data.status === "published") {
+      document.querySelector('input[value="published"]').checked = true;
+    }
+
     if (data.cover) {
       document.getElementById("cover-preview").src = data.cover;
       document.getElementById("cover-preview").style.display = "block";
       document.getElementById("preview-cover").src = data.cover;
       document.getElementById("preview-cover").style.display = "block";
     }
-    if (data.status === "published") {
-      document.querySelector('input[value="published"]').checked = true;
-    }
 
+    sections = data.sections || {};
     updatePreview();
+    renderSectionNav();
+    if (Object.keys(sections).length > 0) {
+      switchSection(Object.keys(sections)[0]);
+    }
   });
 
   document.getElementById("story-blurb").addEventListener("input", updatePreview);
@@ -256,8 +298,24 @@
     document.getElementById("preview-tags").innerHTML = genre ? `<span class="tag">${genre}</span>` : "";
   }
 
+  function renderSectionNav() {
+    const nav = document.getElementById("section-nav");
+    nav.innerHTML = "";
+    Object.keys(sections).forEach(name => {
+      const btn = document.createElement("button");
+      btn.textContent = name;
+      btn.onclick = () => switchSection(name);
+      nav.appendChild(btn);
+    });
+  }
+
+  function switchSection(name) {
+    currentSection = name;
+    const content = sections[name]?.content || "";
+    document.getElementById("section-content").innerHTML = content;
+  }
+
   function publishStory() {
-    const title = document.getElementById("story-title").value;
     const blurb = document.getElementById("story-blurb").value;
     const genre = document.getElementById("story-genre").value;
     const cover = document.getElementById("cover-preview").src || "";
