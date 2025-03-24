@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Publish Story – Inkwave</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --accent: #789a91;
+      --white: #ffffff;
+      --border: #ddd;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      flex: 1;
+      padding: 2rem;
+      gap: 2rem;
+    }
+
+    .form-area {
+      flex: 1;
+      background: var(--white);
+      padding: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    }
+
+    .form-area h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    textarea {
+      resize: vertical;
+      height: 120px;
+    }
+
+    .cover-preview {
+      max-width: 100%;
+      height: auto;
+      margin-top: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .publish-btn {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 1.5rem;
+    }
+
+    .preview-area {
+      flex: 1;
+      background: #fff;
+      padding: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      max-height: calc(100vh - 4rem);
+      overflow-y: auto;
+    }
+
+    .preview-area h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .preview-blurb {
+      margin: 1rem 0;
+      font-size: 1rem;
+      color: var(--muted);
+    }
+
+    .tag {
+      display: inline-block;
+      background: #eef3f1;
+      color: #333;
+      padding: 0.3rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      margin-right: 0.5rem;
+    }
+
+    .preview-cover {
+      max-width: 100%;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="form-area">
+      <h1>Publish Your Story</h1>
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="story-title" readonly />
+      </div>
+
+      <div class="form-group">
+        <label>Blurb</label>
+        <textarea id="story-blurb" placeholder="Write a short summary of your story..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Genre / Tags</label>
+        <select id="story-genre">
+          <option value="">Select a genre</option>
+          <option>Fantasy</option>
+          <option>Romance</option>
+          <option>Thriller</option>
+          <option>Science Fiction</option>
+          <option>Drama</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Cover Image</label>
+        <input type="file" id="cover-upload" accept="image/*" />
+        <img id="cover-preview" class="cover-preview" style="display:none;" />
+      </div>
+
+      <div class="form-group">
+        <label>Status</label>
+        <div class="toggle">
+          <label><input type="radio" name="status" value="draft" checked /> Draft</label>
+          <label><input type="radio" name="status" value="published" /> Publish</label>
+        </div>
+      </div>
+
+      <button class="publish-btn" onclick="publishStory()">Publish Story</button>
+    </div>
+
+    <div class="preview-area">
+      <img id="preview-cover" class="preview-cover" style="display:none;" />
+      <h2 id="preview-title">Title Preview</h2>
+      <p class="preview-blurb" id="preview-blurb">Blurb preview will appear here...</p>
+      <div id="preview-tags"></div>
+    </div>
+  </div>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+    authDomain: "inkwave-549c0.firebaseapp.com",
+    projectId: "inkwave-549c0",
+    storageBucket: "inkwave-549c0.appspot.com",
+    messagingSenderId: "1084811926133",
+    appId: "1:1084811926133:web:auto-generated"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  let currentUser;
+  let storyId = new URLSearchParams(window.location.search).get("storyId");
+
+  firebase.auth().onAuthStateChanged(async user => {
+    if (!user) return alert("Please log in.");
+    currentUser = user;
+
+    if (!storyId) return alert("No story ID found.");
+    const doc = await db.collection("users").doc(user.uid).collection("stories").doc(storyId).get();
+    if (!doc.exists) return alert("Story not found.");
+
+    const data = doc.data();
+    document.getElementById("story-title").value = data.title || "";
+    document.getElementById("story-blurb").value = data.blurb || "";
+    document.getElementById("story-genre").value = data.genre || "";
+    if (data.cover) {
+      document.getElementById("cover-preview").src = data.cover;
+      document.getElementById("cover-preview").style.display = "block";
+      document.getElementById("preview-cover").src = data.cover;
+      document.getElementById("preview-cover").style.display = "block";
+    }
+    if (data.status === "published") {
+      document.querySelector('input[value="published"]').checked = true;
+    }
+
+    updatePreview();
+  });
+
+  document.getElementById("story-blurb").addEventListener("input", updatePreview);
+  document.getElementById("story-genre").addEventListener("change", updatePreview);
+
+  document.getElementById("cover-upload").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const url = event.target.result;
+      document.getElementById("cover-preview").src = url;
+      document.getElementById("cover-preview").style.display = "block";
+      document.getElementById("preview-cover").src = url;
+      document.getElementById("preview-cover").style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  });
+
+  function updatePreview() {
+    const title = document.getElementById("story-title").value || "Title Preview";
+    const blurb = document.getElementById("story-blurb").value || "Blurb preview will appear here...";
+    const genre = document.getElementById("story-genre").value;
+
+    document.getElementById("preview-title").textContent = title;
+    document.getElementById("preview-blurb").textContent = blurb;
+    document.getElementById("preview-tags").innerHTML = genre ? `<span class="tag">${genre}</span>` : "";
+  }
+
+  function publishStory() {
+    const title = document.getElementById("story-title").value;
+    const blurb = document.getElementById("story-blurb").value;
+    const genre = document.getElementById("story-genre").value;
+    const cover = document.getElementById("cover-preview").src || "";
+    const status = document.querySelector('input[name="status"]:checked').value;
+
+    db.collection("users").doc(currentUser.uid).collection("stories").doc(storyId).update({
+      blurb, genre, cover, status
+    }).then(() => {
+      alert("Story published!");
+      window.location.href = "author-dashboard.html";
+    }).catch(err => {
+      console.error("Publish failed", err);
+      alert("Failed to publish.");
+    });
+  }
+</script>
+</body>
+</html>
