@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login – Inkwave</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #e4ede7;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .login-box {
+      background: white;
+      padding: 2rem 2.5rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      max-width: 420px;
+      width: 100%;
+      text-align: center;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+    }
+
+    .toggle-role {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .toggle-role button {
+      background: #f0f1f2;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      margin: 0 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .toggle-role button.active {
+      background-color: #789a91;
+      color: white;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: 500;
+    }
+
+    input {
+      width: 100%;
+      padding: 0.6rem;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    .login-btn {
+      width: 100%;
+      margin-top: 1.5rem;
+      background-color: #789a91;
+      color: white;
+      padding: 0.7rem;
+      border: none;
+      border-radius: 6px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .login-btn:hover {
+      background-color: #5f7f76;
+    }
+
+    .note {
+      font-size: 0.9rem;
+      color: #666;
+      margin-top: 1.5rem;
+    }
+
+    .error {
+      color: #a33c3c;
+      font-size: 0.95rem;
+      margin-top: 1rem;
+    }
+
+    .success {
+      color: green;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-box">
+    <h1>Log in to Inkwave</h1>
+
+    <div class="toggle-role">
+      <button class="active" id="author-btn">Author</button>
+      <button disabled>Reader (Coming Soon)</button>
+    </div>
+
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" id="email" placeholder="you@example.com" />
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" placeholder="Your password" />
+    </div>
+
+    <button class="login-btn" id="login-btn">Log In</button>
+
+    <div class="note">
+      New here? <a href="become-author.html">Apply to be an author</a>
+    </div>
+
+    <div class="error" id="error-msg"></div>
+  </div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+    authDomain: "inkwave-549c0.firebaseapp.com",
+    projectId: "inkwave-549c0",
+    storageBucket: "inkwave-549c0.appspot.com",
+    messagingSenderId: "1084811926133",
+    appId: "1:1084811926133:web:f1656fce68d5c4d697363c"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const loginBtn = document.getElementById("login-btn");
+  const errorMsg = document.getElementById("error-msg");
+
+  loginBtn.addEventListener("click", async () => {
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value.trim();
+    errorMsg.textContent = "";
+
+    if (!email || !password) {
+      errorMsg.textContent = "Please enter both email and password.";
+      return;
+    }
+
+    try {
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCred.user;
+      const docRef = doc(db, "authors", user.uid);
+      const docSnap = await getDoc(docRef);
+
+      if (!docSnap.exists()) {
+        errorMsg.textContent = "You haven't submitted an author application yet.";
+        return;
+      }
+
+      const status = docSnap.data().status;
+
+      if (status === "approved") {
+        const seenWelcome = localStorage.getItem("seenWelcome");
+        if (!seenWelcome) {
+          localStorage.setItem("seenWelcome", "true");
+          window.location.href = "approved.html";
+        } else {
+          window.location.href = "author-dashboard.html";
+        }
+      } else if (status === "pending") {
+        window.location.href = "dashboard.html";
+      } else if (status === "denied") {
+        errorMsg.textContent = "Your author application was denied.";
+      } else {
+        errorMsg.textContent = "Unknown status. Please contact support.";
+      }
+    } catch (err) {
+      console.error(err);
+      errorMsg.textContent = "Login failed. Please check your credentials.";
+    }
+  });
+</script>
+</body>
+</html>
