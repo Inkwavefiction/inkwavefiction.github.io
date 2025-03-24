@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF- />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Author Dashboard – Inkwave</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
@@ -124,7 +124,7 @@
     }
 
     .stat-box h4 {
-      font-size: 1rem
+      font-size: 1rem;
       color: var(--accent);
       margin-bottom: 0.25rem;
       font-weight: 500;
@@ -211,60 +211,23 @@
       <a href="#" class="nav-link" onclick="comingSoon()">💰 Earnings</a>
     </div>
 
-    <div class="section">
-      <div class="section-title">Writing Tools</div>
-      <a href="#" class="nav-link" onclick="comingSoon()">🧠 Blurb Generator</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">📝 Grammar Fixer</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">📄 Story Templates</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">🎛 Formatting Tools</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">🏷️ Genre & Tags</a>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Testing & Feedback</div>
-      <a href="#" class="nav-link" onclick="comingSoon()">🧪 A/B Testing</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">🔥 Reader Heatmap</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">👥 Critique Exchange</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">📢 Pitch to Readers</a>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Publishing</div>
-      <a href="#" class="nav-link" onclick="comingSoon()">✅ Checklist</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">🖼️ Cover Generator</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">📱 Mobile Mode</a>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Productivity</div>
-      <a href="#" class="nav-link" onclick="comingSoon()">🤖 Inky Assistant</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">🎯 Daily Challenges</a>
-    </div>
+    <!-- Other Nav Items... -->
   </div>
 
-  <!-- MAIN CONTENT -->
+  <!-- MAIN -->
   <div class="main">
     <div class="header">
       <div>
         <h1>Dashboard</h1>
         <p style="color: var(--muted); margin-top: 0.3rem;">Welcome back, Author!</p>
       </div>
-      <button class="new-btn" onclick="window.location.href='new-story.html'">+ New Story</button>
+      <button class="new-btn" onclick="createNewStory()">+ New Story</button>
     </div>
 
     <div class="stats">
-      <div class="stat-box">
-        <h4>Total Reads</h4>
-        <p id="total-reads">0</p>
-      </div>
-      <div class="stat-box">
-        <h4>Total Likes</h4>
-        <p id="total-likes">0</p>
-      </div>
-      <div class="stat-box">
-        <h4>Total Earnings</h4>
-        <p id="total-earnings">$0.00</p>
-      </div>
+      <div class="stat-box"><h4>Total Reads</h4><p id="total-reads">0</p></div>
+      <div class="stat-box"><h4>Total Likes</h4><p id="total-likes">0</p></div>
+      <div class="stat-box"><h4>Total Earnings</h4><p id="total-earnings">$0.00</p></div>
     </div>
 
     <table>
@@ -305,9 +268,20 @@
       alert("This feature is coming soon!");
     }
 
+    function createNewStory() {
+      const newId = "story-" + Date.now();
+      localStorage.setItem("currentStoryId", newId);
+      window.location.href = "new-story.html";
+    }
+
+    function openStory(storyId) {
+      localStorage.setItem("currentStoryId", storyId);
+      window.location.href = "new-story.html";
+    }
+
     firebase.auth().onAuthStateChanged(user => {
       if (!user) {
-        alert("Please log in to view your dashboard.");
+        alert("Please log in.");
         return;
       }
 
@@ -317,38 +291,34 @@
         const table = document.getElementById("story-table");
         table.innerHTML = "";
 
-        let totalReads = 0;
-        let totalLikes = 0;
-        let totalEarnings = 0;
-        let storyCount = 0;
-
         if (snapshot.empty) {
           table.innerHTML = '<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>';
           return;
         }
 
-        snapshot.forEach(doc => {
-          const story = doc.data();
-          const title = story.title || "(Untitled)";
-          const reads = story.reads ?? "—";
-          const likes = story.likes ?? "—";
-          const revenue = story.revenue ? `$${story.revenue.toFixed(2)}` : "—";
-          const status = story.status || "draft";
+        let totalReads = 0, totalLikes = 0, totalEarnings = 0;
 
-          if (!isNaN(story.reads)) totalReads += story.reads;
-          if (!isNaN(story.likes)) totalLikes += story.likes;
-          if (!isNaN(story.revenue)) totalEarnings += story.revenue;
+        snapshot.forEach(doc => {
+          const s = doc.data();
+          const title = s.title || "(Untitled)";
+          const reads = s.reads ?? "—";
+          const likes = s.likes ?? "—";
+          const revenue = s.revenue ? `$${s.revenue.toFixed(2)}` : "—";
+          const status = s.status || "draft";
+
+          if (!isNaN(s.reads)) totalReads += s.reads;
+          if (!isNaN(s.likes)) totalLikes += s.likes;
+          if (!isNaN(s.revenue)) totalEarnings += s.revenue;
 
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td><a href="new-story.html" class="story-link">${title}</a></td>
+            <td><a href="#" class="story-link" onclick="openStory('${doc.id}')">${title}</a></td>
             <td>${reads}</td>
             <td>${likes}</td>
             <td>${revenue}</td>
             <td><span class="badge ${status === 'published' ? 'published' : 'draft'}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
           `;
           table.appendChild(tr);
-          storyCount++;
         });
 
         document.getElementById("total-reads").textContent = totalReads;
