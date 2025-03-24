@@ -3,150 +3,225 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>New Story – Inkwave</title>
-
-  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <title>Publish Story – Inkwave</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --accent: #789a91;
-      --bg: #f5f7f6;
+      --bg: #f5f8f7;
       --text: #1e1e1e;
-      --light-gray: #f0f1f2;
+      --muted: #6a6a6a;
+      --accent: #789a91;
+      --white: #ffffff;
       --border: #ddd;
     }
-
-    * { box-sizing: border-box; }
 
     body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
       background-color: var(--bg);
       color: var(--text);
-      height: 100vh;
       display: flex;
+      height: 100vh;
+    }
+
+    .container {
+      display: flex;
+      flex: 1;
+      padding: 2rem;
+      gap: 2rem;
       overflow: hidden;
     }
 
-    .sidebar {
-      width: 260px;
-      background: var(--light-gray);
-      padding: 2rem 1.5rem;
-      display: flex;
-      flex-direction: column;
-      border-right: 1px solid var(--border);
-    }
-
-    .editor-area {
+    .form-area {
       flex: 1;
+      background: var(--white);
       padding: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow-y: auto;
+      max-height: 100%;
+    }
+
+    .form-area h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+
+    textarea {
+      resize: vertical;
+      height: 120px;
+    }
+
+    .cover-preview {
+      max-width: 100%;
+      height: auto;
+      margin-top: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .publish-btn {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 1.5rem;
+    }
+
+    .preview-area {
+      flex: 2;
+      background: #fff;
+      padding: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow-y: auto;
       display: flex;
       flex-direction: column;
     }
 
-    .title-input {
-      font-size: 2.2rem;
-      font-family: 'Playfair Display', serif;
-      border: none;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 0.5rem;
-      padding: 0.5rem 0;
-      outline: none;
-      width: 100%;
+    .preview-cover {
+      max-width: 100%;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
     }
 
-    #save-status {
-      text-align: right;
-      font-size: 0.9rem;
-      color: #666;
+    .preview-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .preview-tags {
       margin-bottom: 1rem;
     }
 
-    #toolbar { margin-bottom: 1rem; }
-
-    #editor {
-      flex: 1;
-      background: white;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 1rem;
-      overflow-y: auto;
-      height: calc(100vh - 260px);
+    .tag {
+      display: inline-block;
+      background: #eef3f1;
+      color: #333;
+      padding: 0.3rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      margin-right: 0.5rem;
     }
 
-    .section {
-      display: flex;
-      align-items: center;
-      background: #e8ecf0;
-      padding: 0.6rem 1rem;
-      border-radius: 999px;
-      font-size: 0.95rem;
-      color: #111;
-      margin-bottom: 0.5rem;
-      cursor: pointer;
-      font-weight: 500;
-    }
-
-    .section:hover {
-      background: #d8dee4;
-    }
-
-    .button-bar {
-      margin-top: 1rem;
-      display: flex;
-      justify-content: flex-end;
-      gap: 1rem;
-    }
-
-    button {
-      padding: 0.6rem 1.2rem;
+    .preview-blurb {
       font-size: 1rem;
-      border: none;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+
+    .preview-nav {
+      margin-bottom: 1rem;
+    }
+
+    .preview-nav button {
+      margin-right: 0.5rem;
+      padding: 0.3rem 0.8rem;
+      border: 1px solid var(--border);
+      background: #f0f1f2;
       border-radius: 4px;
       cursor: pointer;
+      font-size: 0.85rem;
     }
 
-    .save-btn { background-color: #ddd; color: #333; }
-    .publish-btn { background-color: var(--accent); color: white; }
+    .preview-section-content {
+      background: #fdfdfd;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+    }
   </style>
 </head>
 <body>
 
-  <div class="sidebar">
-    <h3>Chapters / Sections</h3>
-    <div id="sections"></div>
-    <button class="add-section" onclick="addSection()">➕ Add Section</button>
-  </div>
+  <div class="container">
+    <div class="form-area">
+      <h1>Publish Your Story</h1>
 
-  <div class="editor-area">
-    <input class="title-input" id="story-title" placeholder="Enter your story title..." />
-    <div id="save-status">Not Saved</div>
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="story-title" readonly />
+      </div>
 
-    <div id="toolbar">
-      <select class="ql-header">
-        <option selected></option>
-        <option value="1">H1</option>
-        <option value="2">H2</option>
-      </select>
-      <button class="ql-bold"></button>
-      <button class="ql-italic"></button>
-      <button class="ql-underline"></button>
-      <button class="ql-strike"></button>
-      <button class="ql-link"></button>
-      <button class="ql-clean"></button>
+      <div class="form-group">
+        <label>Blurb</label>
+        <textarea id="story-blurb" placeholder="Write a short summary of your story..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Genre / Tags</label>
+        <select id="story-genre">
+          <option value="">Select a genre</option>
+          <option>Fantasy</option>
+          <option>Romance</option>
+          <option>Thriller</option>
+          <option>Science Fiction</option>
+          <option>Drama</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Cover Image</label>
+        <input type="file" id="cover-upload" accept="image/*" />
+        <img id="cover-preview" class="cover-preview" style="display:none;" />
+      </div>
+
+      <div class="form-group">
+        <label>Status</label>
+        <div class="toggle">
+          <label><input type="radio" name="status" value="draft" checked /> Draft</label>
+          <label><input type="radio" name="status" value="published" /> Publish</label>
+        </div>
+      </div>
+
+      <button class="publish-btn" onclick="publishStory()">Publish Story</button>
     </div>
 
-    <div id="editor"></div>
+    <div class="preview-area">
+      <img id="preview-cover" class="preview-cover" style="display:none;" />
+      <h2 id="preview-title" class="preview-title">Title Preview</h2>
+      <div id="preview-tags" class="preview-tags"></div>
+      <p id="preview-blurb" class="preview-blurb">Blurb preview will appear here...</p>
 
-    <div class="button-bar">
-      <button class="save-btn" onclick="saveDraft(true)">Save Draft</button>
-      <button class="publish-btn" onclick="goToPublish()">Publish</button>
+      <div id="section-nav" class="preview-nav"></div>
+      <div id="section-content" class="preview-section-content">Story content will appear here...</div>
     </div>
   </div>
-<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
@@ -159,136 +234,103 @@
 
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
-
   let currentUser;
-  let storyId = localStorage.getItem("currentStoryId");
-  const sectionData = {};
-  let currentSection = null;
-  let hasUnsavedChanges = false;
-  let loaded = false;
-
-  const quill = new Quill('#editor', {
-    theme: 'snow',
-    placeholder: 'Start writing your story...',
-    modules: { toolbar: '#toolbar' }
-  });
+  let storyId = new URLSearchParams(window.location.search).get("storyId");
+  let sections = {};
+  let currentSection = "";
 
   firebase.auth().onAuthStateChanged(async user => {
-    if (!user) return alert("You must log in.");
+    if (!user) return alert("Please log in.");
     currentUser = user;
 
-    if (!storyId) return alert("No story ID. Please start from the dashboard.");
+    if (!storyId) return alert("No story ID found.");
+    const doc = await db.collection("users").doc(user.uid).collection("stories").doc(storyId).get();
+    if (!doc.exists) return alert("Story not found.");
 
-    const docRef = db.collection("users").doc(user.uid).collection("stories").doc(storyId);
-    const docSnap = await docRef.get();
+    const data = doc.data();
+    document.getElementById("story-title").value = data.title || "";
+    document.getElementById("story-blurb").value = data.blurb || "";
+    document.getElementById("story-genre").value = data.genre || "";
 
-    if (docSnap.exists) {
-      const data = docSnap.data();
-      document.getElementById("story-title").value = data.title || "";
-      Object.entries(data.sections || {}).forEach(([name, section]) => {
-        sectionData[name] = { content: section.content || "" };
-      });
-      renderSections();
-      if (Object.keys(sectionData).length > 0) {
-        switchSection(Object.keys(sectionData)[0]);
-      }
-      document.getElementById("save-status").textContent = "Saved ✓";
-    } else {
-      addSection("Introduction");
+    if (data.status === "published") {
+      document.querySelector('input[value="published"]').checked = true;
     }
 
-    loaded = true;
+    if (data.cover) {
+      document.getElementById("cover-preview").src = data.cover;
+      document.getElementById("cover-preview").style.display = "block";
+      document.getElementById("preview-cover").src = data.cover;
+      document.getElementById("preview-cover").style.display = "block";
+    }
+
+    sections = data.sections || {};
+    updatePreview();
+    renderSectionNav();
+    if (Object.keys(sections).length > 0) {
+      switchSection(Object.keys(sections)[0]);
+    }
   });
 
-  function saveDraft(manual = false) {
-    if (!currentUser || !storyId || !currentSection) return;
+  document.getElementById("story-blurb").addEventListener("input", updatePreview);
+  document.getElementById("story-genre").addEventListener("change", updatePreview);
 
-    const title = document.getElementById("story-title").value;
-    sectionData[currentSection].content = quill.root.innerHTML;
+  document.getElementById("cover-upload").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const url = event.target.result;
+      document.getElementById("cover-preview").src = url;
+      document.getElementById("cover-preview").style.display = "block";
+      document.getElementById("preview-cover").src = url;
+      document.getElementById("preview-cover").style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  });
 
-    document.getElementById("save-status").textContent = "Saving...";
+  function updatePreview() {
+    const title = document.getElementById("story-title").value || "Title Preview";
+    const blurb = document.getElementById("story-blurb").value || "Blurb preview will appear here...";
+    const genre = document.getElementById("story-genre").value;
 
-    db.collection("users").doc(currentUser.uid).collection("stories").doc(storyId).set({
-      title,
-      status: "draft",
-      sections: sectionData
-    }).then(() => {
-      hasUnsavedChanges = false;
-      document.getElementById("save-status").textContent = "Saved ✓";
-      if (manual) {
-  localStorage.removeItem("currentStoryId");
-  window.location.href = "author-dashboard.html";
-}
+    document.getElementById("preview-title").textContent = title;
+    document.getElementById("preview-blurb").textContent = blurb;
+    document.getElementById("preview-tags").innerHTML = genre ? `<span class="tag">${genre}</span>` : "";
+  }
 
-    }).catch(err => {
-      console.error("Save error", err);
-      alert("Failed to save.");
+  function renderSectionNav() {
+    const nav = document.getElementById("section-nav");
+    nav.innerHTML = "";
+    Object.keys(sections).forEach(name => {
+      const btn = document.createElement("button");
+      btn.textContent = name;
+      btn.onclick = () => switchSection(name);
+      nav.appendChild(btn);
     });
-  }
-
-  function goToPublish() {
-  if (!storyId) {
-    alert("No story ID found.");
-    return;
-  }
-  window.location.href = `publish-story.html?storyId=${storyId}`;
-}
-
-  function addSection(name = null) {
-    const sectionName = name || `Section ${Object.keys(sectionData).length + 1}`;
-    sectionData[sectionName] = { content: "" };
-    renderSections();
-    switchSection(sectionName);
   }
 
   function switchSection(name) {
-    if (currentSection) {
-      sectionData[currentSection].content = quill.root.innerHTML;
-    }
     currentSection = name;
-    quill.root.innerHTML = sectionData[name]?.content || "";
-    highlightSection(name);
+    const content = sections[name]?.content || "";
+    document.getElementById("section-content").innerHTML = content;
   }
 
-  function renderSections() {
-    const container = document.getElementById("sections");
-    container.innerHTML = '';
-    Object.keys(sectionData).forEach(name => {
-      const div = document.createElement("div");
-      div.className = "section";
-      div.innerHTML = `📄 ${name}`;
-      div.onclick = () => switchSection(name);
-      container.appendChild(div);
+  function publishStory() {
+    const blurb = document.getElementById("story-blurb").value;
+    const genre = document.getElementById("story-genre").value;
+    const cover = document.getElementById("cover-preview").src || "";
+    const status = document.querySelector('input[name="status"]:checked').value;
+
+    db.collection("users").doc(currentUser.uid).collection("stories").doc(storyId).update({
+      blurb, genre, cover, status
+    }).then(() => {
+      alert("Story published!");
+      window.location.href = "author-dashboard.html";
+    }).catch(err => {
+      console.error("Publish failed", err);
+      alert("Failed to publish.");
     });
   }
-
-  function highlightSection(name) {
-    document.querySelectorAll(".section").forEach(sec => {
-      sec.style.backgroundColor = sec.textContent.includes(name) ? "#c8dad3" : "#e8ecf0";
-    });
-  }
-
-  // Detect changes after initial load
-  quill.on('text-change', () => {
-    if (loaded) {
-      hasUnsavedChanges = true;
-      document.getElementById("save-status").textContent = "Not Saved";
-    }
-  });
-
-  document.getElementById("story-title").addEventListener("input", () => {
-    if (loaded) {
-      hasUnsavedChanges = true;
-      document.getElementById("save-status").textContent = "Not Saved";
-    }
-  });
-
-  // Autosave every 5 seconds if needed
-  setInterval(() => {
-    if (hasUnsavedChanges) {
-      saveDraft(false);
-    }
-  }, 5000);
 </script>
 </body>
 </html>
