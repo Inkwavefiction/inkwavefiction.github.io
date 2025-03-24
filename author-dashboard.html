@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF- />
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Author Dashboard – Inkwave</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
@@ -73,7 +73,6 @@
     .nav-link:hover {
       background-color: #1e1e1e;
     }
-
     .main {
       margin-left: 300px;
       padding: 2.5rem;
@@ -201,7 +200,6 @@
 </head>
 <body>
 
-  <!-- SIDEBAR -->
   <div class="sidebar">
     <h2>Inkwave</h2>
 
@@ -211,10 +209,37 @@
       <a href="#" class="nav-link" onclick="comingSoon()">💰 Earnings</a>
     </div>
 
-    <!-- Other Nav Items... -->
-  </div>
+    <div class="section">
+      <div class="section-title">Writing Tools</div>
+      <a href="#" class="nav-link" onclick="comingSoon()">🧠 Blurb Generator</a>
+      <a href="#" class="nav-link" onclick="comingSoon()">📝 Grammar Fixer</a>
+      <a href="#" class="nav-link" onclick="comingSoon()">📄 Story Templates</a>
+      <a href="#" class="nav-link" onclick="comingSoon()">🎛 Formatting Tools</a>
+      <a href="#" class="nav-link" onclick="comingSoon()">🏷️ Genre & Tags</a>
+    </div>
 
-  <!-- MAIN -->
+    <div class="section">
+      <div class="section-title">Testing & Feedback</div>
+      <a href="#" class="nav-link" onclick="comingSoon()">🧪 A/B Testing</a>
+      <a href="#" class="nav-link" onclick="comingSoon()">🔥 Reader Heatmap</a>
+      <a href="#" class="nav-link" onclick="comingSoon()">👥 Critique Exchange</a>
+      <a href="#" class="nav-link" onclick="comingSoon()">📢 Pitch to Readers</a>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Publishing</div>
+      <a href="#" class="nav-link" onclick="comingSoon()">✅ Checklist</a>
+      <a href="#" class="nav-link" onclick="comingSoon()">🖼️ Cover Generator</a>
+      <a href="#" class="nav-link" onclick="comingSoon()">📱 Mobile Mode</a>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Productivity</div>
+      <a href="#" class="nav-link" onclick="comingSoon()">🤖 Inky Assistant</a>
+      <a href="#" class="nav-link" onclick="comingSoon()">🎯 Daily Challenges</a>
+    </div>
+  </div>
+  <!-- MAIN CONTENT -->
   <div class="main">
     <div class="header">
       <div>
@@ -225,9 +250,18 @@
     </div>
 
     <div class="stats">
-      <div class="stat-box"><h4>Total Reads</h4><p id="total-reads">0</p></div>
-      <div class="stat-box"><h4>Total Likes</h4><p id="total-likes">0</p></div>
-      <div class="stat-box"><h4>Total Earnings</h4><p id="total-earnings">$0.00</p></div>
+      <div class="stat-box">
+        <h4>Total Reads</h4>
+        <p id="total-reads">0</p>
+      </div>
+      <div class="stat-box">
+        <h4>Total Likes</h4>
+        <p id="total-likes">0</p>
+      </div>
+      <div class="stat-box">
+        <h4>Total Earnings</h4>
+        <p id="total-earnings">$0.00</p>
+      </div>
     </div>
 
     <table>
@@ -246,7 +280,7 @@
     </table>
   </div>
 
-  <!-- Firebase -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
