@@ -17,6 +17,7 @@
       --white: #ffffff;
       --border: #ddd;
     }
+
     body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
@@ -25,6 +26,7 @@
       display: flex;
       height: 100vh;
     }
+
     .container {
       display: flex;
       flex: 1;
@@ -32,6 +34,7 @@
       gap: 2rem;
       overflow: hidden;
     }
+
     .form-area {
       flex: 1;
       background: var(--white);
@@ -40,19 +43,23 @@
       border-radius: 8px;
       overflow-y: auto;
     }
+
     .form-area h1 {
       font-family: 'Playfair Display', serif;
       font-size: 2rem;
       margin-bottom: 1.5rem;
     }
+
     .form-group {
       margin-bottom: 1.25rem;
     }
+
     label {
       display: block;
       font-weight: 600;
       margin-bottom: 0.5rem;
     }
+
     input[type="text"],
     textarea,
     select {
@@ -62,22 +69,51 @@
       border-radius: 4px;
       font-size: 1rem;
     }
+
     textarea {
       resize: vertical;
       height: 120px;
     }
+
+    .tag-input {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.5rem;
+    }
+
+    .tag {
+      background: #d7f0e5;
+      padding: 0.3rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      display: inline-block;
+      color: #2b7a5e;
+    }
+
+    .tag-input input {
+      border: none;
+      font-size: 1rem;
+      outline: none;
+      flex: 1;
+    }
+
     .cover-preview {
       max-width: 100%;
       margin-top: 0.5rem;
       border-radius: 6px;
       border: 1px solid var(--border);
     }
+
     .toggle {
       display: flex;
       align-items: center;
       gap: 1rem;
       margin-top: 0.5rem;
     }
+
     .publish-btn {
       background-color: var(--accent);
       color: white;
@@ -96,6 +132,12 @@
       border: 1px solid var(--border);
       border-radius: 8px;
       overflow-y: auto;
+    }
+
+    .preview-note {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
     }
 
     .story-card {
@@ -133,35 +175,13 @@
       border-radius: 12px;
       font-size: 0.8rem;
       margin-bottom: 1rem;
+      margin-right: 6px;
     }
 
     .story-card-blurb {
       color: var(--muted);
       font-size: 1rem;
       line-height: 1.5;
-    }
-
-    .section-nav {
-      margin-top: 2.5rem;
-    }
-
-    .section-nav button {
-      margin-right: 0.5rem;
-      padding: 0.3rem 0.8rem;
-      border: 1px solid var(--border);
-      background: #f0f1f2;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-
-    .section-content {
-      background: #fdfdfd;
-      border: 1px solid #ccc;
-      padding: 1rem;
-      border-radius: 6px;
-      margin-top: 1rem;
-      white-space: pre-wrap;
     }
 
     .preview-button {
@@ -186,10 +206,12 @@
         <label>Title</label>
         <input type="text" id="story-title" readonly />
       </div>
+
       <div class="form-group">
         <label>Blurb</label>
         <textarea id="story-blurb"></textarea>
       </div>
+
       <div class="form-group">
         <label>Genre</label>
         <select id="story-genre">
@@ -201,11 +223,20 @@
           <option>Drama</option>
         </select>
       </div>
+
+      <div class="form-group">
+        <label>Tags</label>
+        <div class="tag-input" id="tag-input-container">
+          <input type="text" id="tag-input" placeholder="Type a tag and press Enter" />
+        </div>
+      </div>
+
       <div class="form-group">
         <label>Cover</label>
         <input type="file" id="cover-upload" accept="image/*" />
         <img id="cover-preview" class="cover-preview" style="display:none;" />
       </div>
+
       <div class="form-group">
         <label>Status</label>
         <div class="toggle">
@@ -213,21 +244,20 @@
           <label><input type="radio" name="status" value="published" /> Publish</label>
         </div>
       </div>
+
       <button class="publish-btn" onclick="publishStory()">Publish Story</button>
     </div>
 
     <div class="preview-area">
+      <div class="preview-note">This is your story card — what readers will see before they click on your story.</div>
       <div class="story-card">
         <img id="preview-cover" style="display:none;" />
         <div class="story-card-content">
           <h2 id="preview-title" class="story-card-title">Title Preview</h2>
-          <div id="preview-tags" class="story-card-tag">Genre</div>
+          <div id="preview-tags"></div>
           <p id="preview-blurb" class="story-card-blurb">Blurb preview will appear here...</p>
         </div>
       </div>
-
-      <div class="section-nav" id="section-nav"></div>
-      <div class="section-content" id="section-content">(No content)</div>
 
       <button class="preview-button" id="viewFullPreview">🔍 View Full Story Preview</button>
     </div>
@@ -241,11 +271,12 @@
     messagingSenderId: "1084811926133",
     appId: "1:1084811926133:web:auto-generated"
   };
+
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
   let currentUser;
   let sections = {};
-  let currentSection = "";
+  let currentTags = [];
   const storyId = new URLSearchParams(window.location.search).get("storyId");
 
   firebase.auth().onAuthStateChanged(async user => {
@@ -272,42 +303,71 @@
       document.querySelector('input[value="published"]').checked = true;
     }
 
+    if (Array.isArray(data.tags)) {
+      currentTags = data.tags;
+      renderTags();
+    }
+
     sections = data.sections || {};
     updatePreview();
-    renderSections();
-    const keys = Object.keys(sections);
-    if (keys.length) switchSection(keys[0]);
   });
 
   function updatePreview() {
     document.getElementById("preview-title").textContent = document.getElementById("story-title").value || "Untitled";
     document.getElementById("preview-blurb").textContent = document.getElementById("story-blurb").value || "No blurb yet.";
     const genre = document.getElementById("story-genre").value;
-    document.getElementById("preview-tags").textContent = genre || "Genre";
-  }
 
-  function renderSections() {
-    const nav = document.getElementById("section-nav");
-    nav.innerHTML = "";
-    Object.keys(sections).forEach(name => {
-      const btn = document.createElement("button");
-      btn.textContent = name;
-      btn.onclick = () => switchSection(name);
-      nav.appendChild(btn);
+    const tagContainer = document.getElementById("preview-tags");
+    tagContainer.innerHTML = "";
+    if (genre) {
+      const genreTag = document.createElement("span");
+      genreTag.className = "story-card-tag";
+      genreTag.textContent = genre;
+      tagContainer.appendChild(genreTag);
+    }
+    currentTags.forEach(tag => {
+      const tagEl = document.createElement("span");
+      tagEl.className = "story-card-tag";
+      tagEl.textContent = tag;
+      tagContainer.appendChild(tagEl);
     });
   }
 
-  function switchSection(name) {
-    currentSection = name;
-    document.getElementById("section-content").innerHTML = sections[name]?.content || "(Empty)";
+  function renderTags() {
+    const container = document.getElementById("tag-input-container");
+    const input = document.getElementById("tag-input");
+    const tagEls = container.querySelectorAll(".tag");
+    tagEls.forEach(el => el.remove());
+
+    currentTags.forEach(tag => {
+      const tagEl = document.createElement("span");
+      tagEl.className = "tag";
+      tagEl.textContent = tag;
+      container.insertBefore(tagEl, input);
+    });
+
+    updatePreview();
   }
+
+  document.getElementById("tag-input").addEventListener("keydown", e => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const val = e.target.value.trim();
+      if (val && !currentTags.includes(val)) {
+        currentTags.push(val);
+        renderTags();
+      }
+      e.target.value = "";
+    }
+  });
 
   function publishStory() {
     const updates = {
       blurb: document.getElementById("story-blurb").value,
       genre: document.getElementById("story-genre").value,
       cover: document.getElementById("cover-preview").src || "",
-      status: document.querySelector('input[name="status"]:checked').value
+      status: document.querySelector('input[name="status"]:checked').value,
+      tags: currentTags
     };
     db.collection("users").doc(currentUser.uid).collection("stories").doc(storyId).update(updates)
       .then(() => {
@@ -320,7 +380,6 @@
       });
   }
 
-  // Live updates
   document.getElementById("story-blurb").addEventListener("input", updatePreview);
   document.getElementById("story-genre").addEventListener("change", updatePreview);
   document.getElementById("cover-upload").addEventListener("change", e => {
@@ -337,7 +396,6 @@
     reader.readAsDataURL(file);
   });
 
-  // View Full Preview button
   document.getElementById("viewFullPreview").addEventListener("click", () => {
     window.location.href = `preview-story.html?storyId=${storyId}`;
   });
