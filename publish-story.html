@@ -112,6 +112,7 @@
       width: 100%;
       height: 300px;
       object-fit: cover;
+      display: block;
     }
 
     .story-card-content {
@@ -162,6 +163,19 @@
       margin-top: 1rem;
       white-space: pre-wrap;
     }
+
+    .preview-button {
+      display: inline-block;
+      margin-top: 2rem;
+      padding: 0.6rem 1.2rem;
+      background-color: var(--accent);
+      color: #fff;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -179,81 +193,154 @@
       <div class="form-group">
         <label>Genre</label>
         <select id="story-genre">
-          <option value="">Select a genre</
-      document.getElementById("story-genre").value = data.genre || "";
-      if (data.cover) {
-        document.getElementById("cover-preview").src = data.cover;
-        document.getElementById("cover-preview").style.display = "block";
-        document.getElementById("preview-cover").src = data.cover;
-        document.getElementById("preview-cover").style.display = "block";
-      }
-      if (data.status === "published") {
-        document.querySelector('input[value="published"]').checked = true;
-      }
+          <option value="">Select a genre</option>
+          <option>Fantasy</option>
+          <option>Romance</option>
+          <option>Thriller</option>
+          <option>Science Fiction</option>
+          <option>Drama</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Cover</label>
+        <input type="file" id="cover-upload" accept="image/*" />
+        <img id="cover-preview" class="cover-preview" style="display:none;" />
+      </div>
+      <div class="form-group">
+        <label>Status</label>
+        <div class="toggle">
+          <label><input type="radio" name="status" value="draft" checked /> Draft</label>
+          <label><input type="radio" name="status" value="published" /> Publish</label>
+        </div>
+      </div>
+      <button class="publish-btn" onclick="publishStory()">Publish Story</button>
+    </div>
 
-      sections = data.sections || {};
-      updatePreview();
-      renderSections();
-      const keys = Object.keys(sections);
-      if (keys.length) switchSection(keys[0]);
-    });
+    <div class="preview-area">
+      <div class="story-card">
+        <img id="preview-cover" style="display:none;" />
+        <div class="story-card-content">
+          <h2 id="preview-title" class="story-card-title">Title Preview</h2>
+          <div id="preview-tags" class="story-card-tag">Genre</div>
+          <p id="preview-blurb" class="story-card-blurb">Blurb preview will appear here...</p>
+        </div>
+      </div>
 
-    function updatePreview() {
-      document.getElementById("preview-title").textContent = document.getElementById("story-title").value;
-      document.getElementById("preview-blurb").textContent = document.getElementById("story-blurb").value;
-      const genre = document.getElementById("story-genre").value;
-      document.getElementById("preview-tags").textContent = genre || "Genre";
+      <div class="section-nav" id="section-nav"></div>
+      <div class="section-content" id="section-content">(No content)</div>
+
+      <button class="preview-button" id="viewFullPreview">🔍 View Full Story Preview</button>
+    </div>
+  </div>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+    authDomain: "inkwave-549c0.firebaseapp.com",
+    projectId: "inkwave-549c0",
+    storageBucket: "inkwave-549c0.appspot.com",
+    messagingSenderId: "1084811926133",
+    appId: "1:1084811926133:web:auto-generated"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  let currentUser;
+  let sections = {};
+  let currentSection = "";
+  const storyId = new URLSearchParams(window.location.search).get("storyId");
+
+  firebase.auth().onAuthStateChanged(async user => {
+    if (!user) return alert("Login required.");
+    currentUser = user;
+
+    if (!storyId) return alert("Missing storyId.");
+    const doc = await db.collection("users").doc(user.uid).collection("stories").doc(storyId).get();
+    if (!doc.exists) return alert("Story not found.");
+
+    const data = doc.data();
+    document.getElementById("story-title").value = data.title || "";
+    document.getElementById("story-blurb").value = data.blurb || "";
+    document.getElementById("story-genre").value = data.genre || "";
+
+    if (data.cover) {
+      document.getElementById("cover-preview").src = data.cover;
+      document.getElementById("cover-preview").style.display = "block";
+      document.getElementById("preview-cover").src = data.cover;
+      document.getElementById("preview-cover").style.display = "block";
     }
 
-    function renderSections() {
-      const nav = document.getElementById("section-nav");
-      nav.innerHTML = "";
-      Object.keys(sections).forEach(name => {
-        const btn = document.createElement("button");
-        btn.textContent = name;
-        btn.onclick = () => switchSection(name);
-        nav.appendChild(btn);
+    if (data.status === "published") {
+      document.querySelector('input[value="published"]').checked = true;
+    }
+
+    sections = data.sections || {};
+    updatePreview();
+    renderSections();
+    const keys = Object.keys(sections);
+    if (keys.length) switchSection(keys[0]);
+  });
+
+  function updatePreview() {
+    document.getElementById("preview-title").textContent = document.getElementById("story-title").value || "Untitled";
+    document.getElementById("preview-blurb").textContent = document.getElementById("story-blurb").value || "No blurb yet.";
+    const genre = document.getElementById("story-genre").value;
+    document.getElementById("preview-tags").textContent = genre || "Genre";
+  }
+
+  function renderSections() {
+    const nav = document.getElementById("section-nav");
+    nav.innerHTML = "";
+    Object.keys(sections).forEach(name => {
+      const btn = document.createElement("button");
+      btn.textContent = name;
+      btn.onclick = () => switchSection(name);
+      nav.appendChild(btn);
+    });
+  }
+
+  function switchSection(name) {
+    currentSection = name;
+    document.getElementById("section-content").innerHTML = sections[name]?.content || "(Empty)";
+  }
+
+  function publishStory() {
+    const updates = {
+      blurb: document.getElementById("story-blurb").value,
+      genre: document.getElementById("story-genre").value,
+      cover: document.getElementById("cover-preview").src || "",
+      status: document.querySelector('input[name="status"]:checked').value
+    };
+    db.collection("users").doc(currentUser.uid).collection("stories").doc(storyId).update(updates)
+      .then(() => {
+        alert("Story published!");
+        window.location.href = "author-dashboard.html";
+      })
+      .catch(err => {
+        console.error("Publish failed:", err);
+        alert("Failed to publish.");
       });
-    }
+  }
 
-    function switchSection(name) {
-      currentSection = name;
-      document.getElementById("section-content").innerHTML = sections[name]?.content || "(Empty)";
-    }
+  // Live updates
+  document.getElementById("story-blurb").addEventListener("input", updatePreview);
+  document.getElementById("story-genre").addEventListener("change", updatePreview);
+  document.getElementById("cover-upload").addEventListener("change", e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const url = e.target.result;
+      document.getElementById("cover-preview").src = url;
+      document.getElementById("preview-cover").src = url;
+      document.getElementById("cover-preview").style.display = "block";
+      document.getElementById("preview-cover").style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  });
 
-    function publishStory() {
-      const updates = {
-        blurb: document.getElementById("story-blurb").value,
-        genre: document.getElementById("story-genre").value,
-        cover: document.getElementById("cover-preview").src || "",
-        status: document.querySelector('input[name="status"]:checked').value
-      };
-      db.collection("users").doc(currentUser.uid).collection("stories").doc(storyId).update(updates)
-        .then(() => {
-          alert("Story published!");
-          window.location.href = "author-dashboard.html";
-        })
-        .catch(err => {
-          console.error("Publish failed:", err);
-          alert("Failed to publish.");
-        });
-    }
-
-    document.getElementById("story-blurb").addEventListener("input", updatePreview);
-    document.getElementById("story-genre").addEventListener("change", updatePreview);
-    document.getElementById("cover-upload").addEventListener("change", e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = e => {
-        const url = e.target.result;
-        document.getElementById("cover-preview").src = url;
-        document.getElementById("preview-cover").src = url;
-        document.getElementById("cover-preview").style.display = "block";
-        document.getElementById("preview-cover").style.display = "block";
-      };
-      reader.readAsDataURL(file);
-    });
-  </script>
+  // View Full Preview button
+  document.getElementById("viewFullPreview").addEventListener("click", () => {
+    window.location.href = `preview-story.html?storyId=${storyId}`;
+  });
+</script>
 </body>
 </html>
