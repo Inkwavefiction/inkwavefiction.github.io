@@ -1,3 +1,4 @@
+<!-- CLEANED VERSION -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,9 +9,6 @@
   <!-- Quill -->
   <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet" />
   <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
-
-  <!-- Google Fonts Loader -->
-  <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js"></script>
 
   <style>
     :root {
@@ -141,53 +139,6 @@
       background-color: var(--accent);
       color: white;
     }
-
-    .font-modal {
-      position: fixed;
-      top: 10%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: white;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 1rem 1.5rem;
-      width: 500px;
-      height: 400px;
-      overflow-y: auto;
-      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-      z-index: 999;
-      display: none;
-    }
-
-    .font-modal h4 {
-      margin-bottom: 0.8rem;
-    }
-
-    .font-option {
-      padding: 0.4rem 0;
-      cursor: pointer;
-      border-bottom: 1px solid #eee;
-    }
-
-    .font-option:hover {
-      background-color: #f9f9f9;
-    }
-
-    .font-modal-close {
-      float: right;
-      font-size: 1.2rem;
-      cursor: pointer;
-    }
-
-    .more-fonts-btn {
-      margin-left: 1rem;
-      font-size: 0.95rem;
-      background: none;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 0.2rem 0.6rem;
-      cursor: pointer;
-    }
   </style>
 </head>
 <body>
@@ -211,20 +162,12 @@
         <option value="2">H2</option>
       </select>
 
-      <select class="ql-font" id="font-selector">
-        <option value="poppins" selected>Poppins</option>
-        <option value="playfair-display">Playfair</option>
-        <option value="lora">Lora</option>
-      </select>
-
       <button class="ql-bold"></button>
       <button class="ql-italic"></button>
       <button class="ql-underline"></button>
       <button class="ql-strike"></button>
       <button class="ql-link"></button>
       <button class="ql-clean"></button>
-
-      <button class="more-fonts-btn" onclick="toggleFontModal()">More Fonts</button>
     </div>
 
     <!-- Editor -->
@@ -237,34 +180,9 @@
     </div>
   </div>
 
-  <!-- Font Picker Modal -->
-  <div class="font-modal" id="font-modal">
-    <div>
-      <span class="font-modal-close" onclick="toggleFontModal()">✕</span>
-      <h4>Select a Font</h4>
-    </div>
-    <div id="font-list"></div>
-  </div>
 <script>
   const sectionData = {};
   let currentSection = null;
-
-  const fontList = [
-    'Roboto', 'Open Sans', 'Lato', 'Merriweather', 'Poppins',
-    'Playfair Display', 'Lora', 'Raleway', 'Quicksand', 'Inter',
-    'Caveat', 'Permanent Marker', 'Comfortaa', 'Satisfy', 'Bitter',
-    'Dancing Script', 'DM Serif Display', 'Fira Sans', 'Libre Baskerville'
-  ];
-
-  WebFont.load({
-    google: {
-      families: fontList
-    }
-  });
-
-  const Font = Quill.import('formats/font');
-  Font.whitelist = fontList.map(f => f.toLowerCase().replace(/\s+/g, '-'));
-  Quill.register(Font, true);
 
   const quill = new Quill('#editor', {
     theme: 'snow',
@@ -285,11 +203,6 @@
 
   function goToPublish() {
     alert("This will go to the publishing flow soon!");
-  }
-
-  function toggleFontModal() {
-    const modal = document.getElementById("font-modal");
-    modal.style.display = modal.style.display === "block" ? "none" : "block";
   }
 
   function addSection(name = null) {
@@ -326,28 +239,6 @@
       section.style.backgroundColor = section.textContent.trim().includes(name) ? '#c8dad3' : '#e8ecf0';
     });
   }
-
-  const fontListDiv = document.getElementById('font-list');
-  fontList.forEach(font => {
-    const div = document.createElement('div');
-    div.className = 'font-option';
-    div.style.fontFamily = font;
-    div.textContent = font;
-    div.onclick = () => {
-      const val = font.toLowerCase().replace(/\s+/g, '-');
-      const select = document.getElementById('font-selector');
-      if (![...select.options].some(o => o.value === val)) {
-        const opt = document.createElement('option');
-        opt.value = val;
-        opt.innerText = font;
-        select.appendChild(opt);
-      }
-      select.value = val;
-      quill.format('font', val);
-      toggleFontModal();
-    };
-    fontListDiv.appendChild(div);
-  });
 
   // Initialize with one section
   addSection('Introduction');
