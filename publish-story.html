@@ -1,322 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Publish Story - Inkwave</title>
-    <style>
-        /* CSS Styles */
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f5f7;
-        }
-
-        .publish-container {
-            display: flex;
-            max-width: 1200px;
-            margin: 0 auto;
-            background-color: white;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            min-height: 100vh;
-        }
-
-        .story-config {
-            width: 35%;
-            padding: 30px;
-            background-color: #f9fafc;
-            border-right: 1px solid #e1e4e8;
-        }
-
-        .story-preview {
-            width: 65%;
-            padding: 30px;
-            overflow-y: auto;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #d1d5da;
-            border-radius: 4px;
-        }
-
-        .form-group textarea {
-            min-height: 120px;
-            resize: vertical;
-        }
-
-        .publish-actions {
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .publish-actions button {
-            padding: 12px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        #save-draft-btn {
-            background-color: #f0f3f6;
-            color: #24292e;
-        }
-
-        #publish-btn {
-            background-color: #2ea44f;
-            color: white;
-        }
-
-        .section-tabs {
-            display: flex;
-            border-bottom: 1px solid #e1e4e8;
-            margin-bottom: 20px;
-        }
-
-        .section-tab {
-            padding: 10px 15px;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-        }
-
-        .section-tab.active {
-            border-bottom-color: #2ea44f;
-        }
-
-        .section-content {
-            line-height: 1.6;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Publish Story – Inkwave</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --accent: #789a91;
+      --white: #ffffff;
+      --border: #ddd;
+    }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+    }
+    .container {
+      display: flex;
+      flex: 1;
+      padding: 2rem;
+      gap: 2rem;
+      overflow: hidden;
+    }
+    .form-area {
+      flex: 1;
+      background: var(--white);
+      padding: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow-y: auto;
+      max-height: 100%;
+    }
+    .form-area h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    input[type="text"],
+    textarea,
+    select {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    textarea {
+      resize: vertical;
+      height: 120px;
+    }
+    .cover-preview {
+      max-width: 100%;
+      height: auto;
+      margin-top: 0.5rem;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .toggle {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+    .publish-btn {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 1.5rem;
+    }
+    .preview-area {
+      flex: 2;
+      background: #fff;
+      padding: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+    .preview-cover {
+      max-width: 100%;
+      border-radius: 6px;
+      margin-bottom: 1rem;
+      border: 1px solid var(--border);
+    }
+    .preview-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin-bottom: 0.3rem;
+    }
+    .preview-tags {
+      margin-bottom: 1rem;
+    }
+    .tag {
+      display: inline-block;
+      background: #eef3f1;
+      color: #333;
+      padding: 0.3rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      margin-right: 0.5rem;
+    }
+    .preview-blurb {
+      font-size: 1rem;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+    }
+    .preview-nav {
+      margin-bottom: 1rem;
+    }
+    .preview-nav button {
+      margin-right: 0.5rem;
+      padding: 0.3rem 0.8rem;
+      border: 1px solid var(--border);
+      background: #f0f1f2;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+    .preview-section-content {
+      background: #fdfdfd;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      border-radius: 6px;
+      white-space: pre-wrap;
+    }
+  </style>
 </head>
 <body>
-    <div class="publish-container">
-        <!-- LEFT SIDE: Story Configuration -->
-        <div class="story-config">
-            <h2>Finalize Your Story</h2>
-            
-            <div class="form-group">
-                <label for="story-blurb">Story Blurb</label>
-                <textarea id="story-blurb" placeholder="Write a compelling blurb for your story"></textarea>
-            </div>
 
-            <div class="form-group">
-                <label for="story-genre">Genre</label>
-                <select id="story-genre">
-                    <option value="">Select Genre</option>
-                    <option value="Science Fiction">Science Fiction</option>
-                    <option value="Fantasy">Fantasy</option>
-                    <option value="Romance">Romance</option>
-                    <option value="Mystery">Mystery</option>
-                    <option value="Thriller">Thriller</option>
-                    <option value="Historical Fiction">Historical Fiction</option>
-                    <option value="Literary Fiction">Literary Fiction</option>
-                </select>
-            </div>
+  <div class="container">
+    <div class="form-area">
+      <h1>Publish Your Story</h1>
 
-            <div class="form-group">
-                <label for="story-tags">Tags</label>
-                <input type="text" id="story-tags" placeholder="Add tags (comma separated)">
-                <small>Example: adventure, coming-of-age, dystopian</small>
-            </div>
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="story-title" readonly />
+      </div>
 
-            <div class="form-group">
-                <label for="story-cover">Cover Image</label>
-                <input type="file" id="story-cover-upload" accept="image/*">
-                <img id="story-cover-preview" src="" alt="Cover Preview" style="display:none; max-width: 200px;">
-            </div>
+      <div class="form-group">
+        <label>Blurb</label>
+        <textarea id="story-blurb" placeholder="Write a short summary of your story..."></textarea>
+      </div>
 
-            <div class="publish-actions">
-                <button id="save-draft-btn">Save Draft</button>
-                <button id="publish-btn">Publish Story</button>
-            </div>
+      <div class="form-group">
+        <label>Genre / Tags</label>
+        <select id="story-genre">
+          <option value="">Select a genre</option>
+          <option>Fantasy</option>
+          <option>Romance</option>
+          <option>Thriller</option>
+          <option>Science Fiction</option>
+          <option>Drama</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Cover Image</label>
+        <input type="file" id="cover-upload" accept="image/*" />
+        <img id="cover-preview" class="cover-preview" style="display:none;" />
+      </div>
+
+      <div class="form-group">
+        <label>Status</label>
+        <div class="toggle">
+          <label><input type="radio" name="status" value="draft" checked /> Draft</label>
+          <label><input type="radio" name="status" value="published" /> Publish</label>
         </div>
+      </div>
 
-        <!-- RIGHT SIDE: Story Preview -->
-        <div class="story-preview">
-            <div class="preview-header">
-                <h1 id="preview-title">Story Title</h1>
-                <p id="preview-blurb">Story Blurb</p>
-            </div>
-
-            <div class="preview-sections">
-                <div class="section-tabs" id="section-tabs">
-                    <!-- Sections will be dynamically populated -->
-                </div>
-                <div class="section-content" id="section-content">
-                    <!-- Selected section content will be displayed here -->
-                </div>
-            </div>
-        </div>
+      <button class="publish-btn" onclick="publishStory()">Publish Story</button>
     </div>
 
-    <!-- Firebase Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+    <div class="preview-area">
+      <img id="preview-cover" class="preview-cover" style="display:none;" />
+      <h2 id="preview-title" class="preview-title">Title Preview</h2>
+      <div id="preview-tags" class="preview-tags"></div>
+      <p id="preview-blurb" class="preview-blurb">Blurb preview will appear here...</p>
 
-    <script>
-        // Firebase Configuration (replace with your actual config)
-        const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID"
-        };
-        firebase.initializeApp(firebaseConfig);
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const storyId = new URLSearchParams(window.location.search).get('storyId');
-            
-            if (!storyId) {
-                alert('No story ID provided');
-                window.location.href = 'author-dashboard.html';
-                return;
-            }
-
-            const elements = {
-                blurb: document.getElementById('story-blurb'),
-                genre: document.getElementById('story-genre'),
-                tags: document.getElementById('story-tags'),
-                coverUpload: document.getElementById('story-cover-upload'),
-                coverPreview: document.getElementById('story-cover-preview'),
-                previewTitle: document.getElementById('preview-title'),
-                previewBlurb: document.getElementById('preview-blurb'),
-                sectionTabs: document.getElementById('section-tabs'),
-                sectionContent: document.getElementById('section-content'),
-                saveDraftBtn: document.getElementById('save-draft-btn'),
-                publishBtn: document.getElementById('publish-btn')
-            };
-
-            // Cover Image Preview
-            elements.coverUpload.addEventListener('change', (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        elements.coverPreview.src = event.target.result;
-                        elements.coverPreview.style.display = 'block';
-                    };
-                    reader.readAsDataURL(file);
-                }
-            });
-
-            // Load Draft Story
-            async function loadDraftStory() {
-                try {
-                    const user = firebase.auth().currentUser;
-                    const storyDoc = await firebase.firestore()
-                        .collection('users')
-                        .doc(user.uid)
-                        .collection('stories')
-                        .doc(storyId)
-                        .get();
-
-                    const storyData = storyDoc.data();
-                    elements.blurb.value = storyData.blurb || '';
-                    elements.genre.value = storyData.genre || '';
-                    elements.tags.value = (storyData.tags || []).join(', ');
-                    elements.previewTitle.textContent = storyData.title || 'Untitled Story';
-
-                    // Load Sections
-                    const sectionsSnapshot = await firebase.firestore()
-                        .collection('users')
-                        .doc(user.uid)
-                        .collection('stories')
-                        .doc(storyId)
-                        .collection('sections')
-                        .orderBy('createdAt')
-                        .get();
-
-                    elements.sectionTabs.innerHTML = '';
-                    sectionsSnapshot.docs.forEach((sectionDoc, index) => {
-                        const sectionData = sectionDoc.data();
-                        const tabElement = document.createElement('div');
-                        tabElement.classList.add('section-tab');
-                        tabElement.textContent = sectionData.name || `Section ${index + 1}`;
-                        tabElement.dataset.sectionId = sectionDoc.id;
-
-                        tabElement.addEventListener('click', () => {
-                            document.querySelectorAll('.section-tab').forEach(tab => 
-                                tab.classList.remove('active')
-                            );
-                            tabElement.classList.add('active');
-                            elements.sectionContent.innerHTML = sectionData.content || 'No content';
-                        });
-
-                        elements.sectionTabs.appendChild(tabElement);
-                    });
-
-                    // Auto-select first section
-                    elements.sectionTabs.firstChild?.click();
-
-                } catch (error) {
-                    console.error('Error loading draft:', error);
-                    alert('Could not load draft story');
-                }
-            }
-
-            // Save Draft
-            elements.saveDraftBtn.addEventListener('click', async () => {
-                try {
-                    const user = firebase.auth().currentUser;
-                    await firebase.firestore()
-                        .collection('users')
-                        .doc(user.uid)
-                        .collection('stories')
-                        .doc(storyId)
-                        .update({
-                            blurb: elements.blurb.value,
-                            genre: elements.genre.value,
-                            tags: elements.tags.value.split(',').map(tag => tag.trim())
-                        });
-                    alert('Draft saved successfully');
-                } catch (error) {
-                    console.error('Save draft error:', error);
-                    alert('Failed to save draft');
-                }
-            });
-
-            // Publish Story
-            elements.publishBtn.addEventListener('click', async () => {
-                try {
-                    const user = firebase.auth().currentUser;
-                    await firebase.firestore()
-                        .collection('users')
-                        .doc(user.uid)
-                        .collection('stories')
-                        .doc(storyId)
-                        .update({
-                            status: 'published',
-                            blurb: elements.blurb.value,
-                            genre: elements.genre.value,
-                            tags: elements.tags.value.split(',').map(tag => tag.trim()),
-                            publishedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                    
-                    window.location.href = 'author-dashboard.html';
-                } catch (error) {
-                    console.error('Publish error:', error);
-                    alert('Failed to publish story');
-                }
-            });
-
-            // Initial Load
-            loadDraftStory();
-        });
-    </script>
-</body>
-</html>
+      <div id="section-nav" class="preview-nav"></div>
+      <div id="section-content"
+::contentReference[oaicite:0]{index=0}
+ 
