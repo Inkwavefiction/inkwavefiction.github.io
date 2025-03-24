@@ -215,7 +215,11 @@
     }).then(() => {
       hasUnsavedChanges = false;
       document.getElementById("save-status").textContent = "Saved ✓";
-      if (manual) alert("Draft saved!");
+      if (manual) {
+  localStorage.removeItem("currentStoryId");
+  window.location.href = "author-dashboard.html";
+}
+
     }).catch(err => {
       console.error("Save error", err);
       alert("Failed to save.");
