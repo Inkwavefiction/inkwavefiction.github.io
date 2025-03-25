@@ -4,397 +4,128 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Author Dashboard – Inkwave</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #f5f8f7;
-      --text: #1e1e1e;
-      --muted: #6a6a6a;
-      --accent: #789a91;
-      --white: #ffffff;
-      --border: #e0e0e0;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
     body {
       font-family: 'Poppins', sans-serif;
-      background-color: var(--bg);
-      color: var(--text);
+      background-color: #e4ede7;
+      color: #333;
+      padding: 2rem;
       display: flex;
-    }
-
-    .sidebar {
-      width: 300px;
-      background: #111;
-      color: #fff;
-      padding: 2rem 1.5rem;
-      height: 100vh;
-      position: fixed;
-      overflow-y: auto;
-    }
-
-    .sidebar h2 {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.8rem;
-      margin-bottom: 2rem;
-      font-weight: 600;
-    }
-
-    .sidebar .section {
-      margin-bottom: 2rem;
-    }
-
-    .section-title {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #aaa;
-      margin-bottom: 0.6rem;
-      font-weight: 600;
-    }
-
-    .nav-link {
-      display: block;
-      margin: 0.5rem 0;
-      color: #e0e0e0;
-      text-decoration: none;
-      font-size: 1rem;
-      padding: 0.4rem 0.6rem;
-      border-radius: 4px;
-      font-weight: 500;
-      transition: background 0.2s;
-    }
-
-    .nav-link:hover {
-      background-color: #1e1e1e;
-    }
-
-    .main {
-      margin-left: 300px;
-      padding: 2.5rem;
-      flex: 1;
-    }
-
-    .header {
-      display: flex;
-      justify-content: space-between;
+      justify-content: center;
       align-items: center;
-      margin-bottom: 2rem;
+      min-height: 100vh;
     }
-
+    .card {
+      background: white;
+      padding: 2.5rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+    }
     h1 {
       font-family: 'Playfair Display', serif;
-      font-size: 2.4rem;
-      font-weight: 600;
-      margin-bottom: 0.3rem;
+      margin-bottom: 0.5rem;
     }
-
-    .new-btn {
-      background-color: var(--accent);
+    .status-msg {
+      font-size: 1.1rem;
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 6px;
+      font-weight: 500;
+    }
+    .approved {
+      background-color: #e0f5ea;
+      color: #1e7f4f;
+    }
+    .pending {
+      background-color: #fff6e5;
+      color: #b16c00;
+    }
+    .denied {
+      background-color: #fce5e5;
+      color: #a33c3c;
+    }
+    .tools {
+      margin-top: 2rem;
+      padding: 1rem;
+      border-top: 1px solid #ccc;
+    }
+    button {
+      margin-top: 1rem;
+      padding: 0.6rem 1rem;
+      background-color: #789a91;
       color: white;
       border: none;
-      padding: 0.6rem 1.2rem;
       border-radius: 4px;
-      font-size: 1rem;
       cursor: pointer;
     }
-
-    .new-btn:hover {
+    button:hover {
       background-color: #5f7f76;
-    }
-
-    .stats {
-      display: flex;
-      gap: 1.5rem;
-      margin-bottom: 2.5rem;
-    }
-
-    .stat-box {
-      flex: 1;
-      background: var(--white);
-      padding: 1.25rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-    }
-
-    .stat-box h4 {
-      font-size: 1rem;
-      color: var(--accent);
-      margin-bottom: 0.25rem;
-      font-weight: 500;
-    }
-
-    .stat-box p {
-      font-size: 1.6rem;
-      font-weight: 600;
-    }
-
-    table {
-      width: 100%;
-      background-color: var(--white);
-      border: 1px solid var(--border);
-      border-collapse: collapse;
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    th, td {
-      text-align: left;
-      padding: 0.85rem 1rem;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.95rem;
-    }
-
-    th {
-      background-color: #eef3f1;
-      color: #555;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      font-size: 0.8rem;
-    }
-
-    tr:hover {
-      background-color: #f9f9f9;
-    }
-
-    .story-link {
-      color: var(--accent);
-      text-decoration: none;
-      font-weight: 500;
-    }
-
-    .story-link:hover {
-      text-decoration: underline;
-    }
-
-    .badge {
-      font-size: 0.75rem;
-      font-weight: 500;
-      padding: 0.3rem 0.6rem;
-      border-radius: 12px;
-      display: inline-block;
-    }
-
-    .badge.published {
-      background-color: #d7f0e5;
-      color: #2b7a5e;
-    }
-
-    .badge.draft {
-      background-color: #e8e8e8;
-      color: #555;
-    }
-
-    .no-stories {
-      text-align: center;
-      color: var(--muted);
-      padding: 2rem 0;
-      font-style: italic;
-    }
-
-    .delete-btn {
-      background: none;
-      border: none;
-      color: #b44;
-      font-size: 1.1rem;
-      cursor: pointer;
-      margin-left: 0.5rem;
-    }
-
-    .delete-btn:hover {
-      color: #e00;
     }
   </style>
 </head>
 <body>
 
-  <div class="sidebar">
-    <h2>Inkwave</h2>
+<div class="card">
+  <h1>Welcome to your Author Dashboard</h1>
+  <div id="status" class="status-msg">Checking your application status...</div>
 
-    <div class="section">
-      <div class="section-title">Core</div>
-      <a href="author-dashboard.html" class="nav-link">🏠 Dashboard</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">💰 Earnings</a>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Writing Tools</div>
-      <a href="#" class="nav-link" onclick="comingSoon()">🧠 Blurb Generator</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">📝 Grammar Fixer</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">📄 Story Templates</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">🎛 Formatting Tools</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">🏷️ Genre & Tags</a>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Testing & Feedback</div>
-      <a href="#" class="nav-link" onclick="comingSoon()">🧪 A/B Testing</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">🔥 Reader Heatmap</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">👥 Critique Exchange</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">📢 Pitch to Readers</a>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Publishing</div>
-      <a href="#" class="nav-link" onclick="comingSoon()">✅ Checklist</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">🖼️ Cover Generator</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">📱 Mobile Mode</a>
-    </div>
-
-    <div class="section">
-      <div class="section-title">Productivity</div>
-      <a href="#" class="nav-link" onclick="comingSoon()">🤖 Inky Assistant</a>
-      <a href="#" class="nav-link" onclick="comingSoon()">🎯 Daily Challenges</a>
-    </div>
+  <div id="author-tools" class="tools" style="display: none;">
+    <p>🎉 Your application is approved!</p>
+    <p>Start sharing your stories with the world.</p>
+    <button onclick="window.location.href='author-dashboard.html'">➕ Go to Homepage</button>
   </div>
+</div>
 
-  <div class="main">
-    <div class="header">
-      <div>
-        <h1>Dashboard</h1>
-        <p style="color: var(--muted); margin-top: 0.3rem;">Welcome back, Author!</p>
-      </div>
-      <button class="new-btn" onclick="createNewStory()">+ New Story</button>
-    </div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    <div class="stats">
-      <div class="stat-box">
-        <h4>Total Reads</h4>
-        <p id="total-reads">0</p>
-      </div>
-      <div class="stat-box">
-        <h4>Total Likes</h4>
-        <p id="total-likes">0</p>
-      </div>
-      <div class="stat-box">
-        <h4>Total Earnings</h4>
-        <p id="total-earnings">$0.00</p>
-      </div>
-    </div>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+    authDomain: "inkwave-549c0.firebaseapp.com",
+    projectId: "inkwave-549c0",
+    storageBucket: "inkwave-549c0.firebasestorage.app",
+    messagingSenderId: "1084811926133",
+    appId: "1:1084811926133:web:f1656fce68d5c4d697363c",
+    measurementId: "G-LKJX3HJ8JX"
+  };
 
-    <table>
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Reads</th>
-          <th>Likes</th>
-          <th>Revenue</th>
-          <th>Status</th>
-<th></th>
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-        </tr>
-      </thead>
-      <tbody id="story-table">
-        <tr><td colspan="5" class="no-stories">Loading your stories...</td></tr>
-      </tbody>
-    </table>
-  </div>
+  const statusBox = document.getElementById("status");
+  const toolsBox = document.getElementById("author-tools");
 
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
-      authDomain: "inkwave-549c0.firebaseapp.com",
-      projectId: "inkwave-549c0",
-      storageBucket: "inkwave-549c0.appspot.com",
-      messagingSenderId: "1084811926133",
-      appId: "1:1084811926133:web:auto-generated"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
-    function comingSoon() {
-      alert("This feature is coming soon!");
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      statusBox.textContent = "You are not logged in.";
+      statusBox.classList.add("denied");
+      return;
     }
 
-    function createNewStory() {
-      const newId = "story-" + Date.now();
-      localStorage.setItem("currentStoryId", newId);
-      window.location.href = "new-story.html";
+    const docRef = doc(db, "authors", user.uid);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      statusBox.textContent = "No application found.";
+      statusBox.classList.add("denied");
+      return;
     }
 
-    function openStory(storyId) {
-      localStorage.setItem("currentStoryId", storyId);
-      window.location.href = "new-story.html";
-    }
+    const status = docSnap.data().status;
 
-    function deleteStory(storyId) {
-      if (!confirm("Are you sure you want to delete this story? This cannot be undone.")) return;
-
-      const user = firebase.auth().currentUser;
-      if (!user) return alert("You must be logged in.");
-
-      db.collection("users").doc(user.uid).collection("stories").doc(storyId).delete()
-        .then(() => {
-          alert("Story deleted.");
-          window.location.reload();
-        })
-        .catch(err => {
-          console.error("Delete failed", err);
-          alert("Could not delete story.");
-        });
-    }
-
-    firebase.auth().onAuthStateChanged(user => {
-      if (!user) {
-        alert("Please log in.");
-        return;
-      }
-
-      const storiesRef = db.collection("users").doc(user.uid).collection("stories");
-
-      storiesRef.get().then(snapshot => {
-        const table = document.getElementById("story-table");
-        table.innerHTML = "";
-
-        if (snapshot.empty) {
-          table.innerHTML = '<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>';
-          return;
-        }
-
-        let totalReads = 0, totalLikes = 0, totalEarnings = 0;
-
-        snapshot.forEach(doc => {
-          const s = doc.data();
-          const title = s.title || "(Untitled)";
-          const reads = s.reads ?? "—";
-          const likes = s.likes ?? "—";
-          const revenue = s.revenue ? `$${s.revenue.toFixed(2)}` : "—";
-          const status = s.status || "draft";
-
-          if (!isNaN(s.reads)) totalReads += s.reads;
-          if (!isNaN(s.likes)) totalLikes += s.likes;
-          if (!isNaN(s.revenue)) totalEarnings += s.revenue;
-
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td>
-              <a href="#" class="story-link" onclick="openStory('${doc.id}')">${title}</a>
-            </td>
-            <td>${reads}</td>
-            <td>${likes}</td>
-            <td>${revenue}</td>
-            <td><span class="badge ${status === 'published' ? 'published' : 'draft'}">${status.charAt(0).toUpperCase() + status.slice(1)}</span></td>
-            <td><button class="delete-btn" onclick="deleteStory('${doc.id}')">🗑️</button></td>
-          `;
-          table.appendChild(tr);
-        });
-
-        document.getElementById("total-reads").textContent = totalReads;
-        document.getElementById("total-likes").textContent = totalLikes;
-        document.getElementById("total-earnings").textContent = `$${totalEarnings.toFixed(2)}`;
-      });
-    });
-  </script>
-</body>
-</html>
+    if (status === "approved") {
+      statusBox.textContent = "✅ Approved – You now have full author access!";
+      statusBox.classList.add("approved");
+      toolsBox.style.display = "block";
+    } else if (status === "pending") {
+      statusBox.textContent = "⏳ Your application is still pending review. Please check back soon.";
+      statusBox.classList.add("pending");
+    } else if (status === "denied") {
+      statusBox.textContent = "❌
