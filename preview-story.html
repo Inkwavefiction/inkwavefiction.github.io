@@ -12,17 +12,14 @@
     body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
-      background-color: #f4f4f4;
+      background-color: #fafafa;
       color: #222;
     }
 
-    .reader-container {
-      max-width: 800px;
-      margin: 3rem auto;
-      background: white;
-      padding: 2.5rem;
-      border-radius: 10px;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+    main {
+      max-width: 700px;
+      margin: 4rem auto;
+      padding: 0 1.5rem;
     }
 
     .cover {
@@ -88,10 +85,24 @@
     .back-link:hover {
       text-decoration: underline;
     }
+
+    #publishBtn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background-color: #789a91;
+      color: white;
+      border: none;
+      padding: 0.8rem 1.6rem;
+      border-radius: 50px;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
   </style>
 </head>
 <body>
-  <div class="reader-container">
+  <main>
     <img id="cover" class="cover" style="display:none" />
     <h1 id="title">Loading...</h1>
     <div class="blurb" id="blurb"></div>
@@ -105,7 +116,9 @@
     </div>
 
     <a href="publish-story.html" class="back-link">← Back to edit</a>
-  </div>
+  </main>
+
+  <button id="publishBtn">Publish</button>
 
   <script>
     const firebaseConfig = {
@@ -130,6 +143,7 @@
     const sectionContentEl = document.getElementById("section-content");
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
+    const publishBtn = document.getElementById("publishBtn");
 
     let sectionKeys = [];
     let currentIndex = 0;
@@ -155,6 +169,15 @@
         currentIndex++;
         renderSection(currentIndex);
       }
+    };
+
+    publishBtn.onclick = async () => {
+      if (!auth.currentUser) return alert("You must be logged in.");
+      await db.collection("users").doc(auth.currentUser.uid)
+        .collection("stories").doc(storyId)
+        .update({ status: "published" });
+      alert("Story published!");
+      window.location.href = "author-dashboard.html";
     };
 
     auth.onAuthStateChanged(async user => {
