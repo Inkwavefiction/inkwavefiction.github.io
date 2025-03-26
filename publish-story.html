@@ -255,7 +255,6 @@
 
   let currentUser;
   let currentTags = [];
-  let sections = {};
   let coverImageFile = null;
   const storyId = new URLSearchParams(window.location.search).get("storyId");
 
@@ -277,14 +276,13 @@
       renderTags();
     }
 
-     const coverUrl = data.coverUrl || data.cover;
-  if (coverUrl) {
-    document.getElementById("cover-preview").src = coverUrl;
-    document.getElementById("preview-cover").src = coverUrl;
-    document.getElementById("cover-preview").style.display = "block";
-    document.getElementById("preview-cover").style.display = "block";
-  }
-
+    const coverUrl = data.coverUrl || data.cover;
+    if (coverUrl) {
+      document.getElementById("cover-preview").src = coverUrl;
+      document.getElementById("preview-cover").src = coverUrl;
+      document.getElementById("cover-preview").style.display = "block";
+      document.getElementById("preview-cover").style.display = "block";
+    }
 
     if (data.status === "published") {
       document.querySelector('input[value="published"]').checked = true;
@@ -365,7 +363,6 @@
     const docRef = db.collection("users").doc(currentUser.uid).collection("stories").doc(storyId);
     let coverUrl = document.getElementById("preview-cover").src;
 
-    // Upload new cover image if user changed it
     if (coverImageFile && !coverUrl.startsWith("https://")) {
       const storageRef = storage.ref(`covers/${currentUser.uid}/${storyId}`);
       const snapshot = await storageRef.put(coverImageFile);
@@ -380,39 +377,37 @@
       status: document.querySelector('input[name="status"]:checked').value
     };
 
-    await docRef.update(updates);
-    alert("Story published!");
-    window.location.href = "author-dashboard.html";
+    try {
+      await docRef.update(updates);
+      alert("Story published!");
+      window.location.href = "author-dashboard.html";
+    } catch (err) {
+      console.error("Publish failed:", err);
+      alert("Failed to publish your story.");
+    }
   }
 
-document.getElementById("saveAndPreview").addEventListener("click", async () => {
-  const updates = {
-    blurb: document.getElementById("story-blurb").value,
-    genre: document.getElementById("story-genre").value,
-    tags: currentTags,
-    status: document.querySelector('input[name="status"]:checked').value,
-  };
+  // SAVE + PREVIEW BUTTON
+  document.getElementById("saveAndPreview").addEventListener("click", async () => {
+    const docRef = db.collection("users").doc(currentUser.uid).collection("stories").doc(storyId);
+    const cover = document.getElementById("preview-cover").src;
 
-  const cover = document.getElementById("cover-preview").src;
-  if (cover && cover.startsWith("data:image")) {
-    updates.coverUrl = cover;
-  }
+    const updates = {
+      blurb: document.getElementById("story-blurb").value,
+      genre: document.getElementById("story-genre").value,
+      tags: currentTags,
+      status: document.querySelector('input[name="status"]:checked').value,
+      coverUrl: cover
+    };
 
-  try {
-    await db
-      .collection("users")
-      .doc(currentUser.uid)
-      .collection("stories")
-      .doc(storyId)
-      .update(updates);
-
-    window.location.href = `preview-story.html?storyId=${storyId}`;
-  } catch (err) {
-    console.error("Failed to save before preview:", err);
-    alert("Something went wrong saving your story.");
-  }
-});
-
+    try {
+      await docRef.update(updates);
+      window.location.href = `preview-story.html?storyId=${storyId}`;
+    } catch (err) {
+      console.error("Preview save failed:", err);
+      alert("Something went wrong saving your story.");
+    }
+  });
 </script>
 </body>
 </html>
