@@ -5,27 +5,45 @@
   <title>Inkwave - Story Templates</title>
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    /* Global Styles */
+    :root {
+      --accent-color: #9DBE9B; /* Sage Green Accent */
+      --background-color: #f4f6f8;
+      --card-background: #fff;
+      --text-color: #333;
+      --font-family: 'Roboto', sans-serif;
+    }
     body {
-      font-family: 'Roboto', sans-serif;
-      background: #f4f6f8;
+      font-family: var(--font-family);
+      background: var(--background-color);
       margin: 0;
       padding: 0;
-      color: #333;
+      color: var(--text-color);
     }
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 30px 0;
+      background: var(--accent-color);
+      color: #fff;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 2.5em;
+    }
+    .header p {
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
+    /* Main Container */
     .container {
       max-width: 1100px;
-      margin: 40px auto;
-      background: #fff;
+      margin: 30px auto;
+      background: var(--card-background);
       padding: 30px;
       border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    h2, h3 {
-      margin: 0 0 15px;
-      color: #222;
-    }
-    /* Tabs Header */
+    /* Tabs Styling */
     .tabs {
       display: flex;
       flex-wrap: wrap;
@@ -49,8 +67,8 @@
       background: #dce3ea;
     }
     .tab-link.active {
-      background: #fff;
-      border-bottom: 2px solid #fff;
+      background: var(--card-background);
+      border-bottom: 3px solid var(--accent-color);
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
     .tab-link.dynamic .close-tab {
@@ -61,7 +79,7 @@
       cursor: pointer;
       color: #999;
     }
-    /* Tabs Content */
+    /* Tab Content */
     .tab-content {
       display: none;
     }
@@ -96,7 +114,7 @@
     }
     button.choose-template {
       padding: 10px 20px;
-      background: #4285f4;
+      background: var(--accent-color);
       color: #fff;
       border: none;
       border-radius: 4px;
@@ -105,11 +123,15 @@
       transition: background 0.3s;
     }
     button.choose-template:hover {
-      background: #357ae8;
+      background: #7cae7a;
     }
   </style>
 </head>
 <body>
+  <div class="header">
+    <h1>Inkwave Story Templates</h1>
+    <p>Your ultimate toolkit for crafting brilliant narratives</p>
+  </div>
   <div class="container">
     <!-- Tabs Navigation -->
     <div class="tabs" id="tabsContainer">
@@ -151,26 +173,27 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // --- Fixed Tab Switching Logic ---
-    document.querySelectorAll('.tab-link').forEach(btn => {
-      btn.addEventListener('click', function(e) {
-        // For dynamic tabs, if close button is clicked, don't trigger tab switch.
-        if (this.classList.contains('dynamic') && e.target.classList.contains('close-tab')) return;
-        switchTab(this.getAttribute('data-tab'));
-      });
+    // Use event delegation on the tabs container for tab clicks
+    document.getElementById('tabsContainer').addEventListener('click', function(e) {
+      const tabButton = e.target.closest('.tab-link');
+      if (!tabButton) return;
+      // Ignore click if the close button was clicked
+      if (e.target.classList.contains('close-tab')) return;
+      const tabId = tabButton.getAttribute('data-tab');
+      switchTab(tabId);
     });
 
     function switchTab(tabId) {
-      // Deactivate all fixed tabs and contents
-      document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active'));
+      // Deactivate fixed tabs and their content
+      document.querySelectorAll('.tab-link:not(.dynamic)').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      // Activate fixed tab button and content if exists
-      const fixedTab = document.querySelector(`.tab-link[data-tab="${tabId}"]`);
+      // Activate the fixed tab button and content
+      const fixedTab = document.querySelector(`.tab-link:not(.dynamic)[data-tab="${tabId}"]`);
       if (fixedTab) fixedTab.classList.add('active');
       const fixedContent = document.getElementById(tabId);
       if (fixedContent) fixedContent.classList.add('active');
 
-      // Deactivate any dynamic tabs if switching to a fixed tab
+      // Also deactivate any dynamic tabs
       document.querySelectorAll('.tab-link.dynamic').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.dynamic-content').forEach(el => el.classList.remove('active'));
     }
@@ -190,7 +213,7 @@
         if (e.target.classList.contains('close-tab')) return;
         switchDynamicTab(tabId);
       });
-      // Add close functionality for the close button
+      // Add close functionality
       tabButton.querySelector('.close-tab').addEventListener('click', function(e) {
         e.stopPropagation();
         removeDynamicTab(tabId);
@@ -247,8 +270,6 @@
     function deactivateAllTabs() {
       document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-link.dynamic').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.dynamic-content').forEach(el => el.classList.remove('active'));
     }
 
     // --- Pre-made Templates Data ---
@@ -373,7 +394,7 @@ Culture:
 Map It Out:
 - (List regions, key cities, strongholds, secret places, sacred locations, etc.)`
       }
-      // ... include additional templates as needed
+      // ... additional templates can be added here
     ];
 
     // Render pre-made templates in the All Templates tab
