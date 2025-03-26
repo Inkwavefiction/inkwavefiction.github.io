@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Explore Stories - Inkwave</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins:wght@300&display=swap" rel="stylesheet">
@@ -14,19 +14,16 @@
       text-align: center;
       padding: 30px;
     }
-
     .navbar {
       background: #2c3e50;
       padding: 15px;
     }
-
     .navbar a {
       color: white;
       text-decoration: none;
       margin-right: 15px;
       font-size: 18px;
     }
-
     .container {
       max-width: 1000px;
       background: white;
@@ -36,23 +33,19 @@
       margin: auto;
       margin-top: 30px;
     }
-
     .search-container {
       display: flex;
       justify-content: flex-end;
       margin-bottom: 15px;
     }
-
     .search-box {
       display: none;
       transition: all 0.3s ease;
       width: 200px;
     }
-
     .search-box.active {
       display: block;
     }
-
     .search-icon {
       cursor: pointer;
       background: #2c3e50;
@@ -60,14 +53,12 @@
       padding: 8px 12px;
       border-radius: 5px;
     }
-
     .filter-container {
       display: flex;
       justify-content: flex-end;
       gap: 10px;
       margin-bottom: 20px;
     }
-
     .story-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -75,7 +66,6 @@
       justify-content: center;
       padding-top: 20px;
     }
-
     .story-card {
       background: white;
       padding: 20px;
@@ -84,11 +74,9 @@
       text-align: left;
       transition: transform 0.3s ease-in-out;
     }
-
     .story-card:hover {
       transform: scale(1.03);
     }
-
     .story-card img {
       width: 100%;
       height: 180px;
@@ -96,13 +84,11 @@
       border-radius: 6px;
       margin-bottom: 12px;
     }
-
     .story-card h3 {
       font-family: 'Playfair Display', serif;
       font-size: 1.5rem;
       margin-bottom: 0.5rem;
     }
-
     .story-card-tag {
       display: inline-block;
       background: #eef3f1;
@@ -112,14 +98,12 @@
       font-size: 0.75rem;
       margin: 0.25rem 6px 0.5rem 0;
     }
-
     .story-description {
       font-size: 0.95rem;
       color: #666;
       margin-top: 0.5rem;
       margin-bottom: 1rem;
     }
-
     .btn-primary {
       background-color: #0056b3;
       color: white;
@@ -127,17 +111,14 @@
       font-size: 14px;
       transition: 0.3s ease-in-out;
     }
-
     .btn-primary:hover {
       background-color: #004494;
     }
-
     h1 {
       font-family: 'Playfair Display', serif;
       font-size: 36px;
       color: #1e3a5f;
     }
-
     p {
       font-size: 18px;
       color: #444;
@@ -180,7 +161,6 @@
     <div class="story-grid" id="storyGrid"></div>
   </div>
 
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
@@ -193,61 +173,65 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-
     const storyGrid = document.getElementById("storyGrid");
 
-    db.collectionGroup("stories").where("status", "==", "published").get().then(snapshot => {
-      snapshot.forEach(doc => {
-        const data = doc.data();
-
-        const card = document.createElement("div");
-        card.className = "story-card";
-
-        if (data.cover) {
-          const img = document.createElement("img");
-          img.src = data.cover;
-          img.alt = "Story Cover";
-          card.appendChild(img);
+    db.collectionGroup("stories").where("status", "==", "published").get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          storyGrid.innerHTML = "<p>No stories published yet.</p>";
+          return;
         }
 
-        const title = document.createElement("h3");
-        title.className = "story-title";
-        title.textContent = data.title || "Untitled";
-        card.appendChild(title);
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const card = document.createElement("div");
+          card.className = "story-card";
 
-        if (data.genre) {
-          const genreTag = document.createElement("span");
-          genreTag.className = "story-card-tag";
-          genreTag.textContent = data.genre;
-          card.appendChild(genreTag);
-        }
+          if (data.cover) {
+            const img = document.createElement("img");
+            img.src = data.cover;
+            img.alt = "Cover image";
+            card.appendChild(img);
+          }
 
-        if (Array.isArray(data.tags)) {
-          data.tags.forEach(tag => {
-            const tagEl = document.createElement("span");
-            tagEl.className = "story-card-tag";
-            tagEl.textContent = tag;
-            card.appendChild(tagEl);
-          });
-        }
+          const title = document.createElement("h3");
+          title.textContent = data.title || "Untitled";
+          card.appendChild(title);
 
-        const blurb = document.createElement("p");
-        blurb.className = "story-description";
-        blurb.textContent = data.blurb || "No description available.";
-        card.appendChild(blurb);
+          if (data.genre) {
+            const genreTag = document.createElement("span");
+            genreTag.className = "story-card-tag";
+            genreTag.textContent = data.genre;
+            card.appendChild(genreTag);
+          }
 
-        const btn = document.createElement("button");
-        btn.className = "btn btn-primary";
-        btn.textContent = "Read More";
-        // Optional: link to a full reader page
-        // btn.onclick = () => window.location.href = `story.html?storyId=${doc.id}`;
-        card.appendChild(btn);
+          if (Array.isArray(data.tags)) {
+            data.tags.forEach(tag => {
+              const tagEl = document.createElement("span");
+              tagEl.className = "story-card-tag";
+              tagEl.textContent = tag;
+              card.appendChild(tagEl);
+            });
+          }
 
-        storyGrid.appendChild(card);
+          const blurb = document.createElement("p");
+          blurb.className = "story-description";
+          blurb.textContent = data.blurb || "No description available.";
+          card.appendChild(blurb);
+
+          const btn = document.createElement("button");
+          btn.className = "btn btn-primary";
+          btn.textContent = "Read More";
+          // btn.onclick = () => window.location.href = `story.html?storyId=${doc.id}`;
+          card.appendChild(btn);
+
+          storyGrid.appendChild(card);
+        });
+      })
+      .catch(error => {
+        console.error("Error loading stories:", error);
+        storyGrid.innerHTML = "<p>Failed to load stories.</p>";
       });
-    }).catch(err => {
-      console.error("Failed to load stories:", err);
-    });
 
     function toggleSearch() {
       document.getElementById('searchBar').classList.toggle('active');
@@ -257,9 +241,9 @@
       const query = document.getElementById('searchBar').value.toLowerCase();
       const cards = document.querySelectorAll('.story-card');
       cards.forEach(card => {
-        const title = card.querySelector('.story-title').innerText.toLowerCase();
-        const blurb = card.querySelector('.story-description')?.innerText.toLowerCase() || '';
-        card.style.display = (title.includes(query) || blurb.includes(query)) ? 'block' : 'none';
+        const title = card.querySelector('h3').innerText.toLowerCase();
+        const blurb = card.querySelector('.story-description').innerText.toLowerCase();
+        card.style.display = (title.includes(query) || blurb.includes(query)) ? "block" : "none";
       });
     }
   </script>
