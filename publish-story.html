@@ -277,12 +277,14 @@
       renderTags();
     }
 
-    if (data.coverUrl) {
-      document.getElementById("cover-preview").src = data.coverUrl;
-      document.getElementById("preview-cover").src = data.coverUrl;
-      document.getElementById("cover-preview").style.display = "block";
-      document.getElementById("preview-cover").style.display = "block";
-    }
+     const coverUrl = data.coverUrl || data.cover;
+  if (coverUrl) {
+    document.getElementById("cover-preview").src = coverUrl;
+    document.getElementById("preview-cover").src = coverUrl;
+    document.getElementById("cover-preview").style.display = "block";
+    document.getElementById("preview-cover").style.display = "block";
+  }
+
 
     if (data.status === "published") {
       document.querySelector('input[value="published"]').checked = true;
