@@ -7,6 +7,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -17,7 +18,6 @@
       --white: #ffffff;
       --border: #ddd;
     }
-
     body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
@@ -26,7 +26,6 @@
       display: flex;
       height: 100vh;
     }
-
     .container {
       display: flex;
       flex: 1;
@@ -34,7 +33,6 @@
       gap: 2rem;
       overflow: hidden;
     }
-
     .form-area {
       flex: 1;
       background: var(--white);
@@ -43,23 +41,19 @@
       border-radius: 8px;
       overflow-y: auto;
     }
-
     .form-area h1 {
       font-family: 'Playfair Display', serif;
       font-size: 2rem;
       margin-bottom: 1.5rem;
     }
-
     .form-group {
       margin-bottom: 1.25rem;
     }
-
     label {
       display: block;
       font-weight: 600;
       margin-bottom: 0.5rem;
     }
-
     input[type="text"],
     textarea,
     select {
@@ -69,12 +63,10 @@
       border-radius: 4px;
       font-size: 1rem;
     }
-
     textarea {
       resize: vertical;
       height: 120px;
     }
-
     .tag-input {
       display: flex;
       flex-wrap: wrap;
@@ -83,37 +75,31 @@
       border-radius: 4px;
       padding: 0.5rem;
     }
-
     .tag {
       background: #d7f0e5;
       padding: 0.3rem 0.6rem;
       border-radius: 12px;
       font-size: 0.8rem;
-      display: inline-block;
       color: #2b7a5e;
     }
-
     .tag-input input {
       border: none;
       font-size: 1rem;
       outline: none;
       flex: 1;
     }
-
     .cover-preview {
       max-width: 100%;
       margin-top: 0.5rem;
       border-radius: 6px;
       border: 1px solid var(--border);
     }
-
     .toggle {
       display: flex;
       align-items: center;
       gap: 1rem;
       margin-top: 0.5rem;
     }
-
     .publish-btn {
       background-color: var(--accent);
       color: white;
@@ -124,7 +110,6 @@
       cursor: pointer;
       margin-top: 1.5rem;
     }
-
     .preview-area {
       flex: 2;
       background: #fff;
@@ -133,13 +118,11 @@
       border-radius: 8px;
       overflow-y: auto;
     }
-
     .preview-note {
       font-size: 0.95rem;
       color: var(--muted);
       margin-bottom: 1rem;
     }
-
     .story-card {
       max-width: 500px;
       margin: auto;
@@ -149,24 +132,20 @@
       box-shadow: 0 6px 16px rgba(0,0,0,0.05);
       border: 1px solid #eaeaea;
     }
-
     .story-card img {
       width: 100%;
       height: 300px;
       object-fit: cover;
       display: block;
     }
-
     .story-card-content {
       padding: 1.25rem;
     }
-
     .story-card-title {
       font-family: 'Playfair Display', serif;
       font-size: 1.8rem;
       margin-bottom: 0.3rem;
     }
-
     .story-card-tag {
       display: inline-block;
       background: #eef3f1;
@@ -177,13 +156,11 @@
       margin-bottom: 1rem;
       margin-right: 6px;
     }
-
     .story-card-blurb {
       color: var(--muted);
       font-size: 1rem;
       line-height: 1.5;
     }
-
     .preview-button {
       display: inline-block;
       margin-top: 2rem;
@@ -245,7 +222,7 @@
         </div>
       </div>
 
-    
+      <button class="publish-btn" onclick="publishStory()">Publish Story</button>
     </div>
 
     <div class="preview-area">
@@ -258,8 +235,7 @@
           <p id="preview-blurb" class="story-card-blurb">Blurb preview will appear here...</p>
         </div>
       </div>
-
-      <button class="preview-button" id="viewFullPreview"> View Full Story Preview</button>
+      <button class="preview-button" id="viewFullPreview">View Full Story Preview</button>
     </div>
   </div>
 <script>
@@ -273,29 +249,38 @@
   };
 
   firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
   const db = firebase.firestore();
+  const storage = firebase.storage();
+
   let currentUser;
-  let sections = {};
   let currentTags = [];
+  let sections = {};
+  let coverImageFile = null;
   const storyId = new URLSearchParams(window.location.search).get("storyId");
 
-  firebase.auth().onAuthStateChanged(async user => {
+  // AUTH + LOAD STORY
+  auth.onAuthStateChanged(async user => {
     if (!user) return alert("Login required.");
     currentUser = user;
 
-    if (!storyId) return alert("Missing storyId.");
-    const doc = await db.collection("users").doc(user.uid).collection("stories").doc(storyId).get();
-    if (!doc.exists) return alert("Story not found.");
+    const docRef = db.collection("users").doc(user.uid).collection("stories").doc(storyId);
+    const docSnap = await docRef.get();
+    if (!docSnap.exists) return alert("Story not found.");
 
-    const data = doc.data();
+    const data = docSnap.data();
     document.getElementById("story-title").value = data.title || "";
     document.getElementById("story-blurb").value = data.blurb || "";
     document.getElementById("story-genre").value = data.genre || "";
+    if (Array.isArray(data.tags)) {
+      currentTags = data.tags;
+      renderTags();
+    }
 
-    if (data.cover) {
-      document.getElementById("cover-preview").src = data.cover;
+    if (data.coverUrl) {
+      document.getElementById("cover-preview").src = data.coverUrl;
+      document.getElementById("preview-cover").src = data.coverUrl;
       document.getElementById("cover-preview").style.display = "block";
-      document.getElementById("preview-cover").src = data.cover;
       document.getElementById("preview-cover").style.display = "block";
     }
 
@@ -303,14 +288,12 @@
       document.querySelector('input[value="published"]').checked = true;
     }
 
-    if (Array.isArray(data.tags)) {
-      currentTags = data.tags;
-      renderTags();
-    }
-
-    sections = data.sections || {};
     updatePreview();
   });
+
+  // LIVE PREVIEW
+  document.getElementById("story-blurb").addEventListener("input", updatePreview);
+  document.getElementById("story-genre").addEventListener("change", updatePreview);
 
   function updatePreview() {
     document.getElementById("preview-title").textContent = document.getElementById("story-title").value || "Untitled";
@@ -336,8 +319,7 @@
   function renderTags() {
     const container = document.getElementById("tag-input-container");
     const input = document.getElementById("tag-input");
-    const tagEls = container.querySelectorAll(".tag");
-    tagEls.forEach(el => el.remove());
+    container.querySelectorAll(".tag").forEach(el => el.remove());
 
     currentTags.forEach(tag => {
       const tagEl = document.createElement("span");
@@ -345,7 +327,6 @@
       tagEl.textContent = tag;
       container.insertBefore(tagEl, input);
     });
-
     updatePreview();
   }
 
@@ -361,40 +342,46 @@
     }
   });
 
-  function publishStory() {
-    const updates = {
-      blurb: document.getElementById("story-blurb").value,
-      genre: document.getElementById("story-genre").value,
-      cover: document.getElementById("cover-preview").src || "",
-      status: document.querySelector('input[name="status"]:checked').value,
-      tags: currentTags
-    };
-    db.collection("users").doc(currentUser.uid).collection("stories").doc(storyId).update(updates)
-      .then(() => {
-        alert("Story published!");
-        window.location.href = "author-dashboard.html";
-      })
-      .catch(err => {
-        console.error("Publish failed:", err);
-        alert("Failed to publish.");
-      });
-  }
+  // COVER IMAGE UPLOAD
+  document.getElementById("cover-upload").addEventListener("change", async (e) => {
+    coverImageFile = e.target.files[0];
+    if (!coverImageFile) return;
 
-  document.getElementById("story-blurb").addEventListener("input", updatePreview);
-  document.getElementById("story-genre").addEventListener("change", updatePreview);
-  document.getElementById("cover-upload").addEventListener("change", e => {
-    const file = e.target.files[0];
-    if (!file) return;
     const reader = new FileReader();
-    reader.onload = e => {
+    reader.onload = (e) => {
       const url = e.target.result;
       document.getElementById("cover-preview").src = url;
       document.getElementById("preview-cover").src = url;
       document.getElementById("cover-preview").style.display = "block";
       document.getElementById("preview-cover").style.display = "block";
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(coverImageFile);
   });
+
+  // PUBLISH STORY
+  async function publishStory() {
+    const docRef = db.collection("users").doc(currentUser.uid).collection("stories").doc(storyId);
+    let coverUrl = document.getElementById("preview-cover").src;
+
+    // Upload new cover image if user changed it
+    if (coverImageFile && !coverUrl.startsWith("https://")) {
+      const storageRef = storage.ref(`covers/${currentUser.uid}/${storyId}`);
+      const snapshot = await storageRef.put(coverImageFile);
+      coverUrl = await snapshot.ref.getDownloadURL();
+    }
+
+    const updates = {
+      blurb: document.getElementById("story-blurb").value,
+      genre: document.getElementById("story-genre").value,
+      tags: currentTags,
+      coverUrl: coverUrl,
+      status: document.querySelector('input[name="status"]:checked').value
+    };
+
+    await docRef.update(updates);
+    alert("Story published!");
+    window.location.href = "author-dashboard.html";
+  }
 
   document.getElementById("viewFullPreview").addEventListener("click", () => {
     window.location.href = `preview-story.html?storyId=${storyId}`;
