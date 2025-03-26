@@ -1,10 +1,13 @@
+<!-- 🧠 This is the new corrected version of stories.html -->
+<!-- It uses .cover (not .coverUrl) and renders all expected fields -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Explore Stories – Inkwave</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins:wght@300&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -37,8 +40,8 @@
     .story-card img {
       width: 100%;
       height: auto;
-      object-fit: cover;
       max-height: 400px;
+      object-fit: cover;
     }
     .story-details {
       padding: 24px;
@@ -92,7 +95,7 @@
   </div>
 
   <div class="container" id="storyList">
-    <!-- Stories will be inserted here -->
+    <!-- Stories will be rendered here -->
   </div>
 
   <script type="module">
@@ -105,8 +108,7 @@
       projectId: "inkwave-549c0",
       storageBucket: "inkwave-549c0.appspot.com",
       messagingSenderId: "1084811926133",
-      appId: "1:1084811926133:web:f1656fce68d5c4d697363c",
-      measurementId: "G-LKJX3HJ8JX"
+      appId: "1:1084811926133:web:f1656fce68d5c4d697363c"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -127,22 +129,23 @@
         card.className = "story-card";
 
         card.innerHTML = `
-          <img src="${story.coverUrl || 'https://via.placeholder.com/800x400'}" alt="Cover image">
+          <img src="${story.cover || 'https://via.placeholder.com/800x400'}" alt="Story cover">
           <div class="story-details">
-            <h2 class="story-title">${story.title || 'Untitled Story'}</h2>
+            <h2 class="story-title">${story.title || 'Untitled'}</h2>
             <div class="tags">
-              ${story.tags?.map(tag => `<span class="tag">${tag}</span>`).join('') || ''}
+              ${(story.genre ? `<span class="tag">${story.genre}</span>` : '')}
+              ${(Array.isArray(story.tags) ? story.tags.map(tag => `<span class="tag">${tag}</span>`).join('') : '')}
             </div>
             <p class="story-blurb">${story.blurb || ''}</p>
             <a href="story.html?storyId=${storyId}&authorId=${authorId}" class="btn">Read More</a>
           </div>
         `;
+
         storyList.appendChild(card);
       });
     }
 
     loadPublishedStories();
   </script>
-
 </body>
 </html>
