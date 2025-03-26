@@ -235,7 +235,7 @@
           <p id="preview-blurb" class="story-card-blurb">Blurb preview will appear here...</p>
         </div>
       </div>
-      <button class="preview-button" id="viewFullPreview">View Full Story Preview</button>
+      <button class="preview-button" id="saveAndPreview">💾 Save & Preview</button>
     </div>
   </div>
 <script>
@@ -383,9 +383,34 @@
     window.location.href = "author-dashboard.html";
   }
 
-  document.getElementById("viewFullPreview").addEventListener("click", () => {
+document.getElementById("saveAndPreview").addEventListener("click", async () => {
+  const updates = {
+    blurb: document.getElementById("story-blurb").value,
+    genre: document.getElementById("story-genre").value,
+    tags: currentTags,
+    status: document.querySelector('input[name="status"]:checked').value,
+  };
+
+  const cover = document.getElementById("cover-preview").src;
+  if (cover && cover.startsWith("data:image")) {
+    updates.coverUrl = cover;
+  }
+
+  try {
+    await db
+      .collection("users")
+      .doc(currentUser.uid)
+      .collection("stories")
+      .doc(storyId)
+      .update(updates);
+
     window.location.href = `preview-story.html?storyId=${storyId}`;
-  });
+  } catch (err) {
+    console.error("Failed to save before preview:", err);
+    alert("Something went wrong saving your story.");
+  }
+});
+
 </script>
 </body>
 </html>
