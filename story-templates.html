@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Inkwave - All Story Templates</title>
+  <title>Inkwave - Story Templates</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #f5f8f7;
       --text: #1e1e1e;
       --muted: #6a6a6a;
-      --accent: #789a91; /* Sage Green Accent */
+      --accent: #A3C4DC; /* Haze Blue Accent */
       --white: #ffffff;
       --border: #e0e0e0;
       --sidebar-bg: #111;
@@ -27,7 +27,7 @@
       color: var(--text);
       display: flex;
     }
-    /* Sidebar (copied from the Author Dashboard) */
+    /* Sidebar (from Author Dashboard) */
     .sidebar {
       width: 300px;
       background: var(--sidebar-bg);
@@ -68,7 +68,7 @@
     .nav-link:hover {
       background-color: #1e1e1e;
     }
-    /* Main Content */
+    /* Main Content Area */
     .main {
       margin-left: 300px;
       padding: 2.5rem;
@@ -96,6 +96,49 @@
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
+    /* Tabs Styling */
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 25px;
+    }
+    .tab-link {
+      padding: 12px 24px;
+      background: #e9edf1;
+      border: none;
+      cursor: pointer;
+      margin-right: 8px;
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+      transition: background 0.3s, box-shadow 0.3s;
+      font-size: 16px;
+      font-weight: 500;
+      position: relative;
+    }
+    .tab-link:hover {
+      background: #dce3ea;
+    }
+    .tab-link.active {
+      background: var(--container-bg);
+      border-bottom: 3px solid var(--accent);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .tab-link.dynamic .close-tab {
+      position: absolute;
+      top: 4px;
+      right: 6px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #999;
+    }
+    /* Tab Content */
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
     /* Template Cards */
     .template-card {
       border: 1px solid var(--border);
@@ -110,7 +153,7 @@
       background: #f0f4f8;
       box-shadow: 0 3px 8px rgba(0,0,0,0.08);
     }
-    /* Template Preview (if you want to preview full content) */
+    /* Template Preview */
     .template-preview {
       white-space: pre-wrap;
       background: #f8f9fa;
@@ -133,7 +176,7 @@
       transition: background 0.3s;
     }
     button.choose-template:hover {
-      background: #5f7f76;
+      background: #7aa7d1;
     }
   </style>
 </head>
@@ -150,7 +193,7 @@
       <div class="section-title">Writing Tools</div>
       <a href="blurb-generator.html" class="nav-link">🧠 Blurb Generator</a>
       <a href="404.html" class="nav-link">📝 Grammar Fixer</a>
-      <a href="all-templates.html" class="nav-link">📄 Story Templates</a>
+      <a href="story-templates.html" class="nav-link">📄 Story Templates</a>
       <a href="404.html" class="nav-link">🎛 Formatting Tools</a>
       <a href="404.html" class="nav-link">🏷️ Genre & Tags</a>
     </div>
@@ -174,19 +217,152 @@
     </div>
   </div>
 
-  <!-- Main Content Area -->
+  <!-- Main Content -->
   <div class="main">
     <div class="header">
       <h1>Story Templates</h1>
       <p>Your ultimate toolkit for crafting brilliant narratives</p>
     </div>
     <div class="container">
-      <h2>All Templates</h2>
-      <div id="templatesContainer">Loading templates…</div>
+      <!-- Tabs Navigation -->
+      <div class="tabs" id="tabsContainer">
+        <button class="tab-link active" data-tab="myTemplates">My Templates</button>
+        <button class="tab-link" data-tab="allTemplates">All Templates</button>
+      </div>
+      <!-- Fixed Tab Contents -->
+      <div class="tab-content active" id="myTemplates">
+        <h2>My Templates</h2>
+        <div id="myTemplatesContainer">Loading your templates...</div>
+      </div>
+      <div class="tab-content" id="allTemplates">
+        <h2>All Templates</h2>
+        <div id="allTemplatesContainer"></div>
+      </div>
+      <!-- Dynamic Template Tabs Container -->
+      <div id="dynamicTabsContent"></div>
     </div>
   </div>
 
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
   <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0",
+      storageBucket: "inkwave-549c0.appspot.com",
+      messagingSenderId: "1084811926133",
+      appId: "1:1084811926133:web:placeholder"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    // Use event delegation for tab clicks
+    document.getElementById('tabsContainer').addEventListener('click', function(e) {
+      const tabButton = e.target.closest('.tab-link');
+      if (!tabButton) return;
+      if (e.target.classList.contains('close-tab')) return;
+      const tabId = tabButton.getAttribute('data-tab');
+      switchTab(tabId);
+    });
+
+    function switchTab(tabId) {
+      // Deactivate fixed tabs and their content
+      document.querySelectorAll('.tab-link:not(.dynamic)').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      // Activate the fixed tab button and its content
+      const fixedTab = document.querySelector(`.tab-link:not(.dynamic)[data-tab="${tabId}"]`);
+      if (fixedTab) fixedTab.classList.add('active');
+      const fixedContent = document.getElementById(tabId);
+      if (fixedContent) fixedContent.classList.add('active');
+
+      // Deactivate dynamic tabs
+      document.querySelectorAll('.tab-link.dynamic').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.dynamic-content').forEach(el => el.classList.remove('active'));
+    }
+
+    // --- Dynamic Tab Creation ---
+    let dynamicTabCounter = 0;
+    function createDynamicTab(template) {
+      dynamicTabCounter++;
+      const tabId = `dynamicTab-${dynamicTabCounter}`;
+
+      // Create dynamic tab button
+      const tabButton = document.createElement('button');
+      tabButton.className = 'tab-link dynamic';
+      tabButton.setAttribute('data-tab', tabId);
+      tabButton.innerHTML = template.title + ' <span class="close-tab">&times;</span>';
+      tabButton.addEventListener('click', function(e) {
+        if (e.target.classList.contains('close-tab')) return;
+        switchDynamicTab(tabId);
+      });
+      // Add close functionality
+      tabButton.querySelector('.close-tab').addEventListener('click', function(e) {
+        e.stopPropagation();
+        removeDynamicTab(tabId);
+      });
+      document.getElementById('tabsContainer').appendChild(tabButton);
+
+      // Create dynamic tab content container
+      const contentDiv = document.createElement('div');
+      contentDiv.className = 'tab-content dynamic-content';
+      contentDiv.id = tabId;
+
+      // Build template preview content
+      const preview = document.createElement('div');
+      preview.className = 'template-preview';
+      preview.textContent = template.content;
+
+      // "Choose This Template" button with logging
+      const chooseBtn = document.createElement('button');
+      chooseBtn.className = 'choose-template';
+      chooseBtn.textContent = 'Choose This Template';
+      chooseBtn.addEventListener('click', () => {
+        console.log('Choose Template button clicked for:', template.title);
+        alert('Template "' + template.title + '" chosen for editing.');
+      });
+
+      contentDiv.innerHTML = `<h2>${template.title}</h2>`;
+      contentDiv.appendChild(preview);
+      contentDiv.appendChild(chooseBtn);
+
+      document.getElementById('dynamicTabsContent').appendChild(contentDiv);
+
+      // Activate the new dynamic tab
+      deactivateAllTabs();
+      tabButton.classList.add('active');
+      contentDiv.classList.add('active');
+    }
+
+    function switchDynamicTab(tabId) {
+      deactivateAllTabs();
+      const dynTab = document.querySelector(`.tab-link.dynamic[data-tab="${tabId}"]`);
+      if (dynTab) dynTab.classList.add('active');
+      const dynContent = document.getElementById(tabId);
+      if (dynContent) dynContent.classList.add('active');
+    }
+
+    function removeDynamicTab(tabId) {
+      const tabButton = document.querySelector(`.tab-link.dynamic[data-tab="${tabId}"]`);
+      const tabContent = document.getElementById(tabId);
+      if (tabButton) tabButton.remove();
+      if (tabContent) tabContent.remove();
+      switchTab('allTemplates');
+    }
+
+    function deactivateAllTabs() {
+      document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab-link.dynamic').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.dynamic-content').forEach(el => el.classList.remove('active'));
+    }
+
     // Pre-made Templates Data
     const preMadeTemplates = [
       {
@@ -309,27 +485,60 @@ Culture:
 Map It Out:
 - (List regions, key cities, strongholds, secret places, sacred locations, etc.)`
       }
-      // You can add more templates here as needed.
+      // Additional templates can be added here.
     ];
 
-    // Render the pre-made templates in the container
-    function renderTemplates() {
-      const container = document.getElementById('templatesContainer');
+    function renderPreMadeTemplates() {
+      const container = document.getElementById('allTemplatesContainer');
       container.innerHTML = '';
       preMadeTemplates.forEach(template => {
         const card = document.createElement('div');
         card.className = 'template-card';
         card.innerHTML = `<h3>${template.title}</h3><p>${template.description}</p>`;
-        // For now, clicking the card just shows an alert. Replace this with your full preview/edit functionality.
         card.addEventListener('click', () => {
-          alert("Opening template: " + template.title);
+          createDynamicTab(template);
         });
         container.appendChild(card);
       });
     }
 
-    // Initialize the All Templates view
-    renderTemplates();
+    function loadUserTemplates(user) {
+      const container = document.getElementById('myTemplatesContainer');
+      container.innerHTML = '';
+      db.collection('users')
+        .doc(user.uid)
+        .collection('templates')
+        .orderBy('createdAt', 'desc')
+        .get()
+        .then(snapshot => {
+          if (snapshot.empty) {
+            container.innerHTML = '<p>No templates saved yet.</p>';
+          } else {
+            snapshot.forEach(doc => {
+              const data = doc.data();
+              const templateDiv = document.createElement('div');
+              templateDiv.className = 'template-card';
+              templateDiv.innerHTML = `<h3>${data.title}</h3><p>Type: ${data.type}</p>`;
+              container.appendChild(templateDiv);
+            });
+          }
+        })
+        .catch(err => {
+          container.innerHTML = '<p>Error loading templates.</p>';
+          console.error('Error fetching templates:', err);
+        });
+    }
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        loadUserTemplates(user);
+      } else {
+        document.getElementById('myTemplatesContainer').innerHTML = '<p>Please log in to see your templates.</p>';
+      }
+    });
+
+    // Initialize the fixed "All Templates" tab
+    renderPreMadeTemplates();
   </script>
 </body>
 </html>
