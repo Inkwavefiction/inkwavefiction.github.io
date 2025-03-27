@@ -10,7 +10,7 @@
       --bg: #f5f8f7;
       --text: #1e1e1e;
       --muted: #6a6a6a;
-      --accent: #A3C4DC; /* Haze Blue Accent */
+      --accent: #A3C4DC;
       --white: #ffffff;
       --border: #e0e0e0;
       --sidebar-bg: #111;
@@ -27,7 +27,6 @@
       color: var(--text);
       display: flex;
     }
-    /* Sidebar (from Author Dashboard) */
     .sidebar {
       width: 300px;
       background: var(--sidebar-bg);
@@ -68,7 +67,6 @@
     .nav-link:hover {
       background-color: #1e1e1e;
     }
-    /* Main Content Area */
     .main {
       margin-left: 300px;
       padding: 2.5rem;
@@ -96,7 +94,6 @@
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    /* Tabs Styling */
     .tabs {
       display: flex;
       flex-wrap: wrap;
@@ -106,15 +103,15 @@
     .tab-link {
       padding: 12px 24px;
       background: #e9edf1;
-      border: none;
-      cursor: pointer;
       margin-right: 8px;
       border-top-left-radius: 6px;
       border-top-right-radius: 6px;
-      transition: background 0.3s, box-shadow 0.3s;
       font-size: 16px;
       font-weight: 500;
       position: relative;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.3s, box-shadow 0.3s;
     }
     .tab-link:hover {
       background: #dce3ea;
@@ -124,59 +121,23 @@
       border-bottom: 3px solid var(--accent);
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    .tab-link.dynamic .close-tab {
-      position: absolute;
-      top: 4px;
-      right: 6px;
-      font-weight: bold;
-      cursor: pointer;
-      color: #999;
-    }
-    /* Tab Content */
     .tab-content {
       display: none;
     }
     .tab-content.active {
       display: block;
     }
-    /* Template Cards */
     .template-card {
       border: 1px solid var(--border);
       padding: 20px;
       margin-bottom: 15px;
       border-radius: 6px;
       background: #fdfdfd;
-      cursor: pointer;
       transition: background 0.3s, box-shadow 0.3s;
     }
     .template-card:hover {
       background: #f0f4f8;
       box-shadow: 0 3px 8px rgba(0,0,0,0.08);
-    }
-    /* Template Preview */
-    .template-preview {
-      white-space: pre-wrap;
-      background: #f8f9fa;
-      padding: 20px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      margin-bottom: 20px;
-      font-family: monospace;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-    button.choose-template {
-      padding: 10px 20px;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 15px;
-      transition: background 0.3s;
-    }
-    button.choose-template:hover {
-      background: #7aa7d1;
     }
   </style>
 </head>
@@ -227,19 +188,14 @@
       <!-- Tabs Navigation -->
       <div class="tabs" id="tabsContainer">
         <button class="tab-link active" data-tab="myTemplates">My Templates</button>
-        <button class="tab-link" data-tab="allTemplates">All Templates</button>
+        <a href="all-templates.html" class="tab-link">All Templates</a>
       </div>
-      <!-- Fixed Tab Contents -->
+
+      <!-- Only My Templates Tab is functional on this page -->
       <div class="tab-content active" id="myTemplates">
         <h2>My Templates</h2>
         <div id="myTemplatesContainer">Loading your templates...</div>
       </div>
-      <div class="tab-content" id="allTemplates">
-        <h2>All Templates</h2>
-        <div id="allTemplatesContainer"></div>
-      </div>
-      <!-- Dynamic Template Tabs Container -->
-      <div id="dynamicTabsContent"></div>
     </div>
   </div>
 
@@ -248,7 +204,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
   <script>
-    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -257,250 +212,20 @@
       messagingSenderId: "1084811926133",
       appId: "1:1084811926133:web:placeholder"
     };
-
-    // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // Use event delegation for tab clicks
+    // Simple Tab Switch for "My Templates"
     document.getElementById('tabsContainer').addEventListener('click', function(e) {
       const tabButton = e.target.closest('.tab-link');
-      if (!tabButton) return;
-      if (e.target.classList.contains('close-tab')) return;
+      if (!tabButton || tabButton.tagName === 'A') return;
       const tabId = tabButton.getAttribute('data-tab');
-      switchTab(tabId);
-    });
-
-    function switchTab(tabId) {
-      // Deactivate fixed tabs and their content
-      document.querySelectorAll('.tab-link:not(.dynamic)').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      // Activate the fixed tab button and its content
-      const fixedTab = document.querySelector(`.tab-link:not(.dynamic)[data-tab="${tabId}"]`);
-      if (fixedTab) fixedTab.classList.add('active');
-      const fixedContent = document.getElementById(tabId);
-      if (fixedContent) fixedContent.classList.add('active');
-
-      // Deactivate dynamic tabs
-      document.querySelectorAll('.tab-link.dynamic').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.dynamic-content').forEach(el => el.classList.remove('active'));
-    }
-
-    // --- Dynamic Tab Creation ---
-    let dynamicTabCounter = 0;
-    function createDynamicTab(template) {
-      dynamicTabCounter++;
-      const tabId = `dynamicTab-${dynamicTabCounter}`;
-
-      // Create dynamic tab button
-      const tabButton = document.createElement('button');
-      tabButton.className = 'tab-link dynamic';
-      tabButton.setAttribute('data-tab', tabId);
-      tabButton.innerHTML = template.title + ' <span class="close-tab">&times;</span>';
-      tabButton.addEventListener('click', function(e) {
-        if (e.target.classList.contains('close-tab')) return;
-        switchDynamicTab(tabId);
-      });
-      // Add close functionality
-      tabButton.querySelector('.close-tab').addEventListener('click', function(e) {
-        e.stopPropagation();
-        removeDynamicTab(tabId);
-      });
-      document.getElementById('tabsContainer').appendChild(tabButton);
-
-      // Create dynamic tab content container
-      const contentDiv = document.createElement('div');
-      contentDiv.className = 'tab-content dynamic-content';
-      contentDiv.id = tabId;
-
-      // Build template preview content
-      const preview = document.createElement('div');
-      preview.className = 'template-preview';
-      preview.textContent = template.content;
-
-      // "Choose This Template" button with logging
-      const chooseBtn = document.createElement('button');
-      chooseBtn.className = 'choose-template';
-      chooseBtn.textContent = 'Choose This Template';
-      chooseBtn.addEventListener('click', () => {
-        console.log('Choose Template button clicked for:', template.title);
-        alert('Template "' + template.title + '" chosen for editing.');
-      });
-
-      contentDiv.innerHTML = `<h2>${template.title}</h2>`;
-      contentDiv.appendChild(preview);
-      contentDiv.appendChild(chooseBtn);
-
-      document.getElementById('dynamicTabsContent').appendChild(contentDiv);
-
-      // Activate the new dynamic tab
-      deactivateAllTabs();
-      tabButton.classList.add('active');
-      contentDiv.classList.add('active');
-    }
-
-    function switchDynamicTab(tabId) {
-      deactivateAllTabs();
-      const dynTab = document.querySelector(`.tab-link.dynamic[data-tab="${tabId}"]`);
-      if (dynTab) dynTab.classList.add('active');
-      const dynContent = document.getElementById(tabId);
-      if (dynContent) dynContent.classList.add('active');
-    }
-
-    function removeDynamicTab(tabId) {
-      const tabButton = document.querySelector(`.tab-link.dynamic[data-tab="${tabId}"]`);
-      const tabContent = document.getElementById(tabId);
-      if (tabButton) tabButton.remove();
-      if (tabContent) tabContent.remove();
-      switchTab('allTemplates');
-    }
-
-    function deactivateAllTabs() {
       document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-link.dynamic').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.dynamic-content').forEach(el => el.classList.remove('active'));
-    }
-
-    // Pre-made Templates Data
-    const preMadeTemplates = [
-      {
-        id: "bookMasterOutline",
-        title: "Book Master Outline Template",
-        type: "book-outline",
-        description: "A comprehensive outline for your book with plot framework choices and essential narrative beats.",
-        content: `Title:  
-Genre:  
-Subgenre:  
-Series Name (if applicable):  
-Book # in Series:  
-Target Word Count:  
-Premise (Elevator Pitch):  
-Core Themes:  
-POV(s):  
-Tense:  
-Tone & Style:  
-Target Audience:
-
-Choose Your Plot Framework (Pick One):
-- Three-Act Structure
-- Save the Cat Beat Sheet
-- Hero’s Journey
-- Seven-Point Plot
-- Dan Harmon's Story Circle
-- Snowflake Method
-
-Always include:
-- Opening Hook
-- Inciting Incident
-- Point of No Return
-- Midpoint Shift
-- Climactic Confrontation
-- Character’s Final Transformation
-- Denouement / Fallout`
-      },
-      {
-        id: "ultimateCharacterTemplate",
-        title: "Ultimate Character Template",
-        type: "character-template",
-        description: "A detailed character template covering basic info, psych profile, and relational dynamics.",
-        content: `Basic Info:
-- Name:
-- Age:
-- Pronouns / Gender Identity:
-- Occupation:
-- Appearance (Key Traits):
-- Voice (Tone, Accent, Mannerisms):
-
-Psych Profile:
-- MBTI / Enneagram (if you’re into that):
-- Primary Fear:
-- Core Desire:
-- Moral Code / Ethics:
-- Darkest Secret:
-- Greatest Strength:
-- Greatest Flaw:
-- Internal Conflict:
-- External Conflict:
-- Character Arc (How do they change?):
-
-Relational Map:
-- Allies:
-- Enemies:
-- Mentor / Guide:
-- Love Interest:
-- Rivals:
-- Dependents:
-- Who do they hurt / who hurts them?
-
-Role in Story:
-- Protagonist / Antagonist / Supporting:
-- Symbolic Role (Hero, Shadow, Trickster, etc.):
-- What Theme They Represent:
-- Purpose in Plot:`
-      },
-      {
-        id: "magicTechSystemTemplate",
-        title: "Magic/Technology System Template",
-        type: "system-template",
-        description: "Outline for a magic or technology system with rules, costs, and cultural significance.",
-        content: `System Type: (Magic, Tech, Mutation, Superpower, etc.)
-Source of Power:
-Who Can Use It:
-Rules / Logic:
-Costs / Limits:
-Cultural Significance:
-Items / Tools Required:
-Types / Classifications:
-Dangers / Corruption Possibility:
-Exceptions / Anomalies:`
-      },
-      {
-        id: "worldbuildingMasterTemplate",
-        title: "Worldbuilding Master Template",
-        type: "worldbuilding-template",
-        description: "A master template for building rich worlds with setting, culture, and mapping details.",
-        content: `General Setting:
-- Time Period:
-- Region / Planet:
-- Climate / Geography:
-- Technology Level:
-- Economy:
-- Laws / Government:
-- Currency:
-- Language(s):
-- Religion / Myth:
-
-Culture:
-- Traditions / Holidays:
-- Art / Music / Food:
-- Fashion:
-- Social Hierarchy:
-- Taboos:
-- Historical Trauma or Wars:
-- Superstitions:
-- Key Places (Name + Description):
-
-Map It Out:
-- (List regions, key cities, strongholds, secret places, sacred locations, etc.)`
-      }
-      // Additional templates can be added here.
-    ];
-
-    function renderPreMadeTemplates() {
-      const container = document.getElementById('allTemplatesContainer');
-      container.innerHTML = '';
-      preMadeTemplates.forEach(template => {
-        const card = document.createElement('div');
-        card.className = 'template-card';
-        card.innerHTML = `<h3>${template.title}</h3><p>${template.description}</p>`;
-        card.addEventListener('click', () => {
-          createDynamicTab(template);
-        });
-        container.appendChild(card);
-      });
-    }
+      tabButton.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    });
 
     function loadUserTemplates(user) {
       const container = document.getElementById('myTemplatesContainer');
@@ -536,9 +261,6 @@ Map It Out:
         document.getElementById('myTemplatesContainer').innerHTML = '<p>Please log in to see your templates.</p>';
       }
     });
-
-    // Initialize the fixed "All Templates" tab
-    renderPreMadeTemplates();
   </script>
 </body>
 </html>
