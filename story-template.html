@@ -27,7 +27,7 @@
       color: var(--text);
       display: flex;
     }
-    /* Sidebar (from Author Dashboard) */
+    /* Sidebar */
     .sidebar {
       width: 300px;
       background: var(--sidebar-bg);
@@ -91,7 +91,7 @@
       font-size: 1.2rem;
       margin-top: 10px;
     }
-    /* "Main" back button in header */
+    /* "Main" Back Link */
     .back-link {
       position: absolute;
       top: 10px;
@@ -113,7 +113,7 @@
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    /* Grid for Template Cards */
+    /* Templates Grid */
     .templates-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -144,7 +144,7 @@
       font-size: 0.95rem;
       color: var(--muted);
     }
-    /* Dynamic Tab Preview (PDF-like) */
+    /* PDF-like Preview for Template */
     .pdf-preview {
       background: #fff;
       padding: 30px;
@@ -184,12 +184,7 @@
     .use-template-btn:hover {
       background: #7aa7d1;
     }
-    /* Tabs for dynamic preview (if needed) */
-    .tabs {
-      display: flex;
-      border-bottom: 2px solid var(--border);
-      margin-bottom: 25px;
-    }
+    /* Dynamic Tabs (if used) */
     .tab-link {
       padding: 12px 24px;
       background: #e9edf1;
@@ -285,7 +280,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
   <script>
-    // Firebase configuration
+    // Firebase configuration (update if needed)
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -295,12 +290,12 @@
       appId: "1:1084811926133:web:placeholder"
     };
 
-    // Initialize Firebase (if needed)
+    // Initialize Firebase (if your project requires it)
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // Render pre-made templates into the grid
+    // Pre-made Templates Data
     const preMadeTemplates = [
       {
         id: "bookMasterOutline",
@@ -427,12 +422,16 @@ Map It Out:
 
     function renderPreMadeTemplates() {
       const container = document.getElementById('allTemplatesContainer');
+      if (!container) {
+        console.error('Templates container not found');
+        return;
+      }
       container.innerHTML = '';
       preMadeTemplates.forEach(template => {
         const card = document.createElement('div');
         card.className = 'template-card';
         card.innerHTML = `<h3>${template.title}</h3><p>${template.description}</p>`;
-        // Clicking a card opens a dynamic tab with a PDF-like preview
+        // When a card is clicked, open a dynamic PDF-like preview
         card.addEventListener('click', () => {
           createDynamicTab(template);
         });
@@ -440,27 +439,15 @@ Map It Out:
       });
     }
 
-    // Dynamic Tab Functions (for PDF-like preview)
+    // Dynamic Tab Functions for PDF-like preview
     let dynamicTabCounter = 0;
     function createDynamicTab(template) {
       dynamicTabCounter++;
       const tabId = `dynamicTab-${dynamicTabCounter}`;
 
-      // Create dynamic tab button
-      const tabButton = document.createElement('button');
-      tabButton.className = 'tab-link dynamic';
-      tabButton.setAttribute('data-tab', tabId);
-      tabButton.innerHTML = template.title + ' <span class="close-tab">&times;</span>';
-      tabButton.addEventListener('click', function(e) {
-        if (e.target.classList.contains('close-tab')) return;
-        switchDynamicTab(tabId);
-      });
-      tabButton.querySelector('.close-tab').addEventListener('click', function(e) {
-        e.stopPropagation();
-        removeDynamicTab(tabId);
-      });
-      document.getElementById('tabsContainer').appendChild(tabButton);
-
+      // (Optional) Create a dynamic tab button if you want tabs visible
+      // For this grid view, we'll directly show the preview below the grid.
+      
       // Create dynamic tab content container with PDF-like preview
       const contentDiv = document.createElement('div');
       contentDiv.className = 'tab-content dynamic-content';
@@ -475,43 +462,27 @@ Map It Out:
       useBtn.textContent = 'Use This Template';
       useBtn.addEventListener('click', () => {
         console.log('Use Template clicked for:', template.title);
-        // Add functionality here to load the template into the editor and save it to the user's home page.
         alert('Template "' + template.title + '" is now loaded for editing and will be saved to your home page.');
+        // Add functionality here to load the template into your editor and save it.
       });
       
       pdfPreview.appendChild(useBtn);
       contentDiv.appendChild(pdfPreview);
       document.getElementById('dynamicTabsContent').appendChild(contentDiv);
 
+      // Hide grid view when a preview is opened (optional)
+      document.getElementById('allTemplatesContainer').style.display = 'none';
+      // Show the dynamic preview
       deactivateAllTabs();
-      tabButton.classList.add('active');
       contentDiv.classList.add('active');
     }
 
-    function switchDynamicTab(tabId) {
-      deactivateAllTabs();
-      const dynTab = document.querySelector(`.tab-link.dynamic[data-tab="${tabId}"]`);
-      if (dynTab) dynTab.classList.add('active');
-      const dynContent = document.getElementById(tabId);
-      if (dynContent) dynContent.classList.add('active');
-    }
-
-    function removeDynamicTab(tabId) {
-      const tabButton = document.querySelector(`.tab-link.dynamic[data-tab="${tabId}"]`);
-      const tabContent = document.getElementById(tabId);
-      if (tabButton) tabButton.remove();
-      if (tabContent) tabContent.remove();
-      // Optionally, you can re-activate the All Templates grid
-    }
-
     function deactivateAllTabs() {
-      document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-link.dynamic').forEach(el => el.classList.remove('active'));
       document.querySelectorAll('.dynamic-content').forEach(el => el.classList.remove('active'));
     }
 
-    // Initialize
+    // Initialize the page by rendering the templates grid
     renderPreMadeTemplates();
   </script>
 </body>
