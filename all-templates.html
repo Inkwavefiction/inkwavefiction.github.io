@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Inkwave - Template View</title>
+  <title>Inkwave - All Templates</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -16,18 +16,14 @@
       --sidebar-bg: #111;
       --container-bg: #ffffff;
     }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Poppins', sans-serif;
       background-color: var(--bg);
       color: var(--text);
       display: flex;
     }
-    /* Sidebar Styles (from Author Dashboard) */
+    /* Sidebar */
     .sidebar {
       width: 300px;
       background: var(--sidebar-bg);
@@ -43,9 +39,7 @@
       margin-bottom: 2rem;
       font-weight: 600;
     }
-    .sidebar .section {
-      margin-bottom: 2rem;
-    }
+    .sidebar .section { margin-bottom: 2rem; }
     .section-title {
       font-size: 0.8rem;
       text-transform: uppercase;
@@ -65,10 +59,8 @@
       font-weight: 500;
       transition: background 0.2s;
     }
-    .nav-link:hover {
-      background-color: #1e1e1e;
-    }
-    /* Main Content Area */
+    .nav-link:hover { background-color: #1e1e1e; }
+    /* Main Content */
     .main {
       margin-left: 300px;
       padding: 2.5rem;
@@ -81,31 +73,9 @@
       color: #fff;
       border-radius: 6px;
       margin-bottom: 30px;
-      position: relative;
     }
-    .header h1 {
-      font-size: 2.5rem;
-      margin: 0;
-    }
-    .header p {
-      font-size: 1.2rem;
-      margin-top: 10px;
-    }
-    .back-link {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      background: var(--accent);
-      color: var(--white);
-      padding: 6px 12px;
-      border-radius: 4px;
-      text-decoration: none;
-      font-size: 0.9rem;
-      transition: background 0.3s;
-    }
-    .back-link:hover {
-      background: #7aa7d1;
-    }
+    .header h1 { font-size: 2.5rem; margin: 0; }
+    .header p { font-size: 1.2rem; margin-top: 10px; }
     .container {
       background: var(--container-bg);
       padding: 30px;
@@ -129,57 +99,37 @@
       transition: background 0.3s, box-shadow 0.3s;
       font-size: 16px;
       font-weight: 500;
-      position: relative;
     }
-    .tab-link:hover {
-      background: #dce3ea;
-    }
+    .tab-link:hover { background: #dce3ea; }
     .tab-link.active {
       background: var(--container-bg);
       border-bottom: 3px solid var(--accent);
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    .tab-content {
-      display: none;
+    /* Templates Grid */
+    .templates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
     }
-    .tab-content.active {
-      display: block;
-    }
-    /* PDF-like Preview Styles */
-    .pdf-preview {
-      background: #fff;
-      padding: 30px;
+    .template-card {
       border: 1px solid var(--border);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      border-radius: 6px;
-      font-family: 'Roboto', sans-serif;
-      max-height: 70vh;
-      overflow-y: auto;
-      margin-bottom: 20px;
-    }
-    .pdf-preview pre {
-      white-space: pre-wrap;
-      font-family: monospace;
-      font-size: 1rem;
-      line-height: 1.5;
-      background: #f8f9fa;
+      background: #fdfdfd;
       padding: 20px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-    }
-    .use-template-btn {
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 4px;
-      font-size: 1rem;
+      border-radius: 6px;
+      transition: background 0.3s, box-shadow 0.3s;
       cursor: pointer;
-      transition: background 0.3s;
+      min-height: 120px; /* Long rectangle style */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
     }
-    .use-template-btn:hover {
-      background: #7aa7d1;
+    .template-card:hover {
+      background: #f0f4f8;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
     }
+    .template-card h3 { font-size: 1.2rem; margin-bottom: 8px; }
+    .template-card p { font-size: 0.95rem; color: var(--muted); }
   </style>
 </head>
 <body>
@@ -222,36 +172,35 @@
   <!-- Main Content -->
   <div class="main">
     <div class="header">
-      <a href="all-templates.html" class="back-link">Back</a>
-      <h1>Template View</h1>
-      <p>Preview and use this template to edit your story</p>
+      <h1>All Templates</h1>
+      <p>Your complete toolkit for crafting brilliant narratives</p>
     </div>
     <div class="container">
       <!-- Top Tabs -->
       <div class="tabs" id="tabsContainer">
-        <button class="tab-link active" data-tab="previewTab">Preview</button>
-        <button class="tab-link" data-tab="useTab">Use Template</button>
+        <button class="tab-link" id="myTemplatesTab">My Templates</button>
+        <button class="tab-link active" id="allTemplatesTab">All Templates</button>
       </div>
-      <!-- Tab Contents -->
-      <div class="tab-content active" id="previewTab">
-        <div class="pdf-preview" id="pdfPreview">
-          <!-- Template content will be injected here -->
+      <!-- Tab Content Area -->
+      <div id="tabContent">
+        <!-- For "My Templates" we'll redirect; for "All Templates" we show the grid -->
+        <div id="allTemplatesContent">
+          <div class="templates-grid" id="templatesGrid">
+            <!-- Template cards will be injected here -->
+          </div>
         </div>
-      </div>
-      <div class="tab-content" id="useTab">
-        <button class="use-template-btn" id="loadTemplateBtn">Load Template for Editing</button>
       </div>
     </div>
   </div>
 
   <script>
-    // Pre-made Templates Data (this should match the list used in the All Templates page)
+    // Pre-made Templates Data (add your full suite here)
     const preMadeTemplates = [
       {
         id: "bookMasterOutline",
         title: "Book Master Outline Template",
         type: "book-outline",
-        description: "A comprehensive outline for your book with plot framework choices and essential narrative beats.",
+        description: "A comprehensive outline for your book with plot framework choices and essential narrative beats. (Beefed-up with bonus options)",
         content: `Title:  
 Genre:  
 Subgenre:  
@@ -286,7 +235,7 @@ Bonus: Use whichever structure, but ALWAYS include:
         id: "ultimateCharacterTemplate",
         title: "Ultimate Character Template",
         type: "character-template",
-        description: "A detailed character template covering basic info, psych profile, and relational dynamics.",
+        description: "A detailed template covering basic info, psych profile, and relational dynamics.",
         content: `Basic Info:
 - Name:
 - Age:
@@ -367,39 +316,36 @@ Culture:
 Map It Out:
 (Draw map or list regions, key cities, strongholds, secret places, sacred locations, etc.)`
       }
-      // Add more templates as needed.
+      // Add additional templates as needed.
     ];
 
-    // Get the template id from the URL query parameter (e.g., ?template=bookMasterOutline)
-    const params = new URLSearchParams(window.location.search);
-    const templateId = params.get('template');
-
-    // Find the matching template object
-    const template = preMadeTemplates.find(t => t.id === templateId);
-
-    if (!template) {
-      document.getElementById('pdfPreview').innerHTML = '<p>Template not found.</p>';
-      document.getElementById('loadTemplateBtn').style.display = 'none';
-    } else {
-      // Inject template content into the Preview tab
-      document.getElementById('pdfPreview').innerHTML = `<h2>${template.title}</h2><pre>${template.content}</pre>`;
-      // Set up the "Load Template" button
-      document.getElementById('loadTemplateBtn').addEventListener('click', () => {
-        console.log('Load Template for Editing clicked for:', template.title);
-        alert('Template "' + template.title + '" is now loaded for editing and will be saved to your home page.');
-        // Here, add your integration to open the editor with the template content.
+    // Render the grid of template cards in the All Templates tab
+    function renderTemplates() {
+      const grid = document.getElementById('templatesGrid');
+      grid.innerHTML = '';
+      preMadeTemplates.forEach(template => {
+        const card = document.createElement('div');
+        card.className = 'template-card';
+        card.innerHTML = `<h3>${template.title}</h3><p>${template.description}</p>`;
+        // On click, navigate to the individual template view page
+        card.addEventListener('click', () => {
+          window.location.href = `template-view.html?template=${encodeURIComponent(template.id)}`;
+        });
+        grid.appendChild(card);
       });
     }
+    renderTemplates();
 
-    // Tab switching logic for top tabs
-    const tabs = document.querySelectorAll('.tab-link');
-    tabs.forEach(tab => {
-      tab.addEventListener('click', function() {
-        tabs.forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-        this.classList.add('active');
-        document.getElementById(this.getAttribute('data-tab')).classList.add('active');
-      });
+    // Set up top tab behavior
+    document.getElementById('myTemplatesTab').addEventListener('click', () => {
+      window.location.href = 'story-templates.html';
+    });
+    document.getElementById('allTemplatesTab').addEventListener('click', () => {
+      // Ensure the All Templates tab is marked active
+      document.querySelectorAll('.tab-link').forEach(tab => tab.classList.remove('active'));
+      document.getElementById('allTemplatesTab').classList.add('active');
+      // Show the grid if it was hidden
+      document.getElementById('templatesGrid').parentElement.style.display = 'block';
     });
   </script>
 </body>
