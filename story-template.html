@@ -10,7 +10,7 @@
       --bg: #f5f8f7;
       --text: #1e1e1e;
       --muted: #6a6a6a;
-      --accent: #A3C4DC; /* Haze Blue Accent */
+      --accent: #789a91; /* Sage Green Accent */
       --white: #ffffff;
       --border: #e0e0e0;
       --sidebar-bg: #111;
@@ -176,7 +176,7 @@
       transition: background 0.3s;
     }
     button.choose-template:hover {
-      background: #7aa7d1;
+      background: #5f7f76;
     }
   </style>
 </head>
@@ -193,6 +193,7 @@
       <div class="section-title">Writing Tools</div>
       <a href="blurb-generator.html" class="nav-link">🧠 Blurb Generator</a>
       <a href="404.html" class="nav-link">📝 Grammar Fixer</a>
+      <!-- This link now points to the current page -->
       <a href="story-templates.html" class="nav-link">📄 Story Templates</a>
       <a href="404.html" class="nav-link">🎛 Formatting Tools</a>
       <a href="404.html" class="nav-link">🏷️ Genre & Tags</a>
@@ -247,6 +248,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
+
   <script>
     // Firebase configuration
     const firebaseConfig = {
@@ -263,7 +265,7 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // Use event delegation for tab clicks
+    // Event delegation for tab clicks
     document.getElementById('tabsContainer').addEventListener('click', function(e) {
       const tabButton = e.target.closest('.tab-link');
       if (!tabButton) return;
@@ -302,7 +304,6 @@
         if (e.target.classList.contains('close-tab')) return;
         switchDynamicTab(tabId);
       });
-      // Add close functionality
       tabButton.querySelector('.close-tab').addEventListener('click', function(e) {
         e.stopPropagation();
         removeDynamicTab(tabId);
@@ -314,17 +315,14 @@
       contentDiv.className = 'tab-content dynamic-content';
       contentDiv.id = tabId;
 
-      // Build template preview content
       const preview = document.createElement('div');
       preview.className = 'template-preview';
       preview.textContent = template.content;
 
-      // "Choose This Template" button with logging
       const chooseBtn = document.createElement('button');
       chooseBtn.className = 'choose-template';
       chooseBtn.textContent = 'Choose This Template';
       chooseBtn.addEventListener('click', () => {
-        console.log('Choose Template button clicked for:', template.title);
         alert('Template "' + template.title + '" chosen for editing.');
       });
 
@@ -334,7 +332,6 @@
 
       document.getElementById('dynamicTabsContent').appendChild(contentDiv);
 
-      // Activate the new dynamic tab
       deactivateAllTabs();
       tabButton.classList.add('active');
       contentDiv.classList.add('active');
