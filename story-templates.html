@@ -191,7 +191,7 @@
         <a href="all-templates.html" class="tab-link">All Templates</a>
       </div>
 
-      <!-- Only My Templates Tab is functional on this page -->
+      <!-- My Templates Tab -->
       <div class="tab-content active" id="myTemplates">
         <h2>My Templates</h2>
         <div id="myTemplatesContainer">Loading your templates...</div>
@@ -216,7 +216,7 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // Simple Tab Switch for "My Templates"
+    // Tab switching logic for "My Templates"
     document.getElementById('tabsContainer').addEventListener('click', function(e) {
       const tabButton = e.target.closest('.tab-link');
       if (!tabButton || tabButton.tagName === 'A') return;
