@@ -1,4 +1,4 @@
-<!-- This is story-templates.html — now with New Template support -->
+<!-- story-templates.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -60,6 +60,7 @@
       transition: background 0.2s;
     }
     .nav-link:hover { background-color: #1e1e1e; }
+
     .main {
       margin-left: 300px;
       padding: 2.5rem;
@@ -146,11 +147,13 @@
 
   <div class="sidebar">
     <h2>Inkwave</h2>
+
     <div class="section">
       <div class="section-title">Core</div>
       <a href="author-dashboard.html" class="nav-link">🏠 Dashboard</a>
       <a href="404.html" class="nav-link">💰 Earnings</a>
     </div>
+
     <div class="section">
       <div class="section-title">Writing Tools</div>
       <a href="blurb-generator.html" class="nav-link">🧠 Blurb Generator</a>
@@ -158,6 +161,27 @@
       <a href="story-templates.html" class="nav-link">📄 Story Templates</a>
       <a href="404.html" class="nav-link">🎛 Formatting Tools</a>
       <a href="404.html" class="nav-link">🏷️ Genre & Tags</a>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Testing & Feedback</div>
+      <a href="404.html" class="nav-link">🧪 A/B Testing</a>
+      <a href="404.html" class="nav-link">🔥 Reader Heatmap</a>
+      <a href="404.html" class="nav-link">👥 Critique Exchange</a>
+      <a href="404.html" class="nav-link">📢 Pitch to Readers</a>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Publishing</div>
+      <a href="404.html" class="nav-link">✅ Checklist</a>
+      <a href="404.html" class="nav-link">🖼️ Cover Generator</a>
+      <a href="404.html" class="nav-link">📱 Mobile Mode</a>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Productivity</div>
+      <a href="404.html" class="nav-link">🤖 Inky Assistant</a>
+      <a href="404.html" class="nav-link">🎯 Daily Challenges</a>
     </div>
   </div>
 
@@ -180,7 +204,7 @@
     </div>
   </div>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
@@ -213,7 +237,7 @@
               const data = doc.data();
               const div = document.createElement('div');
               div.className = 'template-card';
-              div.innerHTML = `<h3>${data.title}</h3><p>Type: ${data.type}</p>`;
+              div.innerHTML = `<h3>${data.title}</h3><p>Type: ${data.type || 'Custom'}</p>`;
               container.appendChild(div);
             });
           }
