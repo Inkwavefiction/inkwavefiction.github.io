@@ -6,36 +6,132 @@
   <title>Inkwave - New Template</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Poppins', sans-serif;
-      background-color: #f5f8f7;
-      color: #1e1e1e;
+    :root {
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --accent: #A3C4DC;
+      --white: #ffffff;
+      --border: #e0e0e0;
+      --sidebar-bg: #111;
+      --container-bg: #ffffff;
+    }
+    * {
+      box-sizing: border-box;
       margin: 0;
       padding: 0;
-      display: flex;
-      justify-content: center;
     }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+    }
+    .sidebar {
+      width: 300px;
+      background: var(--sidebar-bg);
+      color: #fff;
+      padding: 2rem 1.5rem;
+      height: 100vh;
+      position: fixed;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      font-weight: 600;
+    }
+    .sidebar .section {
+      margin-bottom: 2rem;
+    }
+    .section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #aaa;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+    }
+    .nav-link {
+      display: block;
+      margin: 0.5rem 0;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 1rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .nav-link:hover {
+      background-color: #1e1e1e;
+    }
+
+    .main {
+      margin-left: 300px;
+      padding: 2.5rem;
+      flex: 1;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 6px;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      margin: 0;
+    }
+    .header p {
+      font-size: 1.2rem;
+      margin-top: 10px;
+    }
+
     .container {
-      width: 100%;
-      max-width: 800px;
-      background: #ffffff;
-      margin-top: 60px;
-      padding: 40px;
+      background: var(--container-bg);
+      padding: 30px;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-    h1 {
-      font-size: 2rem;
-      margin-bottom: 20px;
-      text-align: center;
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 25px;
     }
+    .tab-link {
+      padding: 12px 24px;
+      background: #e9edf1;
+      margin-right: 8px;
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+      font-size: 16px;
+      font-weight: 500;
+      position: relative;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .tab-link:hover {
+      background: #dce3ea;
+    }
+    .tab-link.active {
+      background: var(--container-bg);
+      border-bottom: 3px solid var(--accent);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
     label {
       display: block;
       margin-top: 20px;
       font-weight: 600;
     }
+
     input[type="text"],
-    select,
     textarea {
       width: 100%;
       padding: 12px;
@@ -45,13 +141,21 @@
       margin-top: 8px;
       background-color: #fdfdfd;
     }
+
     textarea {
       height: 300px;
       resize: vertical;
     }
+
+    .instructions {
+      font-size: 0.95rem;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
     .btn {
       margin-top: 30px;
-      background-color: #A3C4DC;
+      background-color: var(--accent);
       color: #fff;
       padding: 12px 24px;
       border: none;
@@ -60,9 +164,11 @@
       border-radius: 4px;
       cursor: pointer;
     }
+
     .btn:hover {
       background-color: #7aa7d1;
     }
+
     .message {
       margin-top: 20px;
       font-weight: 600;
@@ -71,34 +177,78 @@
 </head>
 <body>
 
-  <div class="container">
-    <h1>Create New Template</h1>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Inkwave</h2>
 
-    <label for="templateTitle">Title</label>
-    <input type="text" id="templateTitle" placeholder="Enter template title" />
+    <div class="section">
+      <div class="section-title">Core</div>
+      <a href="author-dashboard.html" class="nav-link">🏠 Dashboard</a>
+      <a href="404.html" class="nav-link">💰 Earnings</a>
+    </div>
 
-    <label for="templateType">Type</label>
-    <select id="templateType">
-      <option value="">Select a type</option>
-      <option value="character">Character</option>
-      <option value="worldbuilding">Worldbuilding</option>
-      <option value="scene">Scene</option>
-      <option value="outline">Outline</option>
-      <option value="custom">Custom</option>
-    </select>
+    <div class="section">
+      <div class="section-title">Writing Tools</div>
+      <a href="blurb-generator.html" class="nav-link">🧠 Blurb Generator</a>
+      <a href="404.html" class="nav-link">📝 Grammar Fixer</a>
+      <a href="story-templates.html" class="nav-link">📄 Story Templates</a>
+      <a href="404.html" class="nav-link">🎛 Formatting Tools</a>
+      <a href="404.html" class="nav-link">🏷️ Genre & Tags</a>
+    </div>
 
-    <label for="templateContent">Content</label>
-    <textarea id="templateContent" placeholder="Write your template here..."></textarea>
+    <div class="section">
+      <div class="section-title">Testing & Feedback</div>
+      <a href="404.html" class="nav-link">🧪 A/B Testing</a>
+      <a href="404.html" class="nav-link">🔥 Reader Heatmap</a>
+      <a href="404.html" class="nav-link">👥 Critique Exchange</a>
+      <a href="404.html" class="nav-link">📢 Pitch to Readers</a>
+    </div>
 
-    <button class="btn" id="saveBtn">Save Template</button>
-    <div class="message" id="message"></div>
+    <div class="section">
+      <div class="section-title">Publishing</div>
+      <a href="404.html" class="nav-link">✅ Checklist</a>
+      <a href="404.html" class="nav-link">🖼️ Cover Generator</a>
+      <a href="404.html" class="nav-link">📱 Mobile Mode</a>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Productivity</div>
+      <a href="404.html" class="nav-link">🤖 Inky Assistant</a>
+      <a href="404.html" class="nav-link">🎯 Daily Challenges</a>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="main">
+    <div class="header">
+      <h1>Create New Template</h1>
+      <p>Add a new custom template to your collection</p>
+    </div>
+
+    <div class="container">
+      <!-- Tabs -->
+      <div class="tabs">
+        <a href="story-templates.html" class="tab-link">My Templates</a>
+        <a href="all-templates.html" class="tab-link">All Templates</a>
+        <button class="tab-link active">New Template</button>
+      </div>
+
+      <label for="templateTitle">Title</label>
+      <input type="text" id="templateTitle" placeholder="Enter template title" />
+
+      <div class="instructions">Paste your copied template here!</div>
+      <label for="templateContent">Template Content</label>
+      <textarea id="templateContent" placeholder="Paste your full template here..."></textarea>
+
+      <button class="btn" id="saveBtn">Save Template</button>
+      <div class="message" id="message"></div>
+    </div>
   </div>
 
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
-
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
@@ -119,7 +269,6 @@
 
     saveBtn.addEventListener('click', () => {
       const title = document.getElementById('templateTitle').value.trim();
-      const type = document.getElementById('templateType').value.trim();
       const content = document.getElementById('templateContent').value.trim();
 
       if (!title || !content) {
@@ -140,7 +289,7 @@
           .collection('templates')
           .add({
             title,
-            type: type || "custom",
+            type: "custom",
             content,
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           })
