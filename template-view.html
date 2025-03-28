@@ -221,6 +221,10 @@
     </div>
   </div>
 
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
   <script>
     window.addEventListener('DOMContentLoaded', function() {
       // Pre-made Templates Data – must match your all-templates page
@@ -1048,7 +1052,7 @@ Notes:`
         }
       ];
 
-      // Get template id from URL query parameter
+      // Get the template id from the URL query parameter (e.g., ?template=bookMasterOutline)
       const params = new URLSearchParams(window.location.search);
       const templateId = params.get('template');
       const template = preMadeTemplates.find(t => t.id === templateId);
@@ -1063,13 +1067,34 @@ Notes:`
         const loadBtn = document.getElementById('loadTemplateBtn');
         loadBtn.addEventListener('click', function() {
           console.log('Load Template for Editing clicked for:', template.title);
-          alert('Template "' + template.title + '" is now loaded for editing and will be saved to your home page.');
-          // Simulate integration: Redirect to story-templates.html with template id in query
-          window.location.href = `story-templates.html?template=${encodeURIComponent(template.id)}`;
+          // Save the template to the user's "templates" collection in Firestore
+          auth.onAuthStateChanged(user => {
+            if (user) {
+              const templateData = {
+                title: template.title,
+                type: template.type,
+                data: { content: template.content },
+                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+              };
+              db.collection('users').doc(user.uid).collection('templates').add(templateData)
+                .then(() => {
+                  console.log("Template uploaded successfully.");
+                  alert('Template "' + template.title + '" is now loaded for editing and saved to your home page.');
+                  window.location.href = `story-templates.html?template=${encodeURIComponent(template.id)}`;
+                })
+                .catch(err => {
+                  console.error("Error uploading template:", err);
+                  alert("There was an error saving the template. Please try again.");
+                });
+            } else {
+              alert("Please log in to use this template.");
+            }
+          });
         });
       }
 
-      // Set up top tab behavior
+      // Top Tabs behavior
       document.getElementById('myTemplatesTab').addEventListener('click', () => {
         window.location.href = 'story-templates.html';
       });
