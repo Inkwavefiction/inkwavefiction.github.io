@@ -139,6 +139,11 @@
       background: #f0f4f8;
       box-shadow: 0 3px 8px rgba(0,0,0,0.08);
     }
+    #templateSavedNotice {
+      margin-top: 1rem;
+      font-weight: 600;
+      color: green;
+    }
   </style>
 </head>
 <body>
@@ -194,6 +199,9 @@
       <!-- My Templates Tab -->
       <div class="tab-content active" id="myTemplates">
         <h2>My Templates</h2>
+        <div id="templateSavedNotice" style="display: none;">
+          ✅ Template successfully added!
+        </div>
         <div id="myTemplatesContainer">Loading your templates...</div>
       </div>
     </div>
@@ -216,7 +224,7 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // Tab switching logic for "My Templates"
+    // Tab logic (My Templates)
     document.getElementById('tabsContainer').addEventListener('click', function(e) {
       const tabButton = e.target.closest('.tab-link');
       if (!tabButton || tabButton.tagName === 'A') return;
@@ -227,6 +235,7 @@
       document.getElementById(tabId).classList.add('active');
     });
 
+    // Load user templates
     function loadUserTemplates(user) {
       const container = document.getElementById('myTemplatesContainer');
       container.innerHTML = '';
@@ -254,6 +263,7 @@
         });
     }
 
+    // Check login & load templates
     auth.onAuthStateChanged(user => {
       if (user) {
         loadUserTemplates(user);
@@ -261,6 +271,11 @@
         document.getElementById('myTemplatesContainer').innerHTML = '<p>Please log in to see your templates.</p>';
       }
     });
+
+    // Check for saved query param
+    if (window.location.search.includes('saved=true')) {
+      document.getElementById('templateSavedNotice').style.display = 'block';
+    }
   </script>
 </body>
 </html>
