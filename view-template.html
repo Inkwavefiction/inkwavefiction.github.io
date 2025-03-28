@@ -245,8 +245,8 @@
     </div>
   </div>
 
-  <!-- Pre-made Templates Data – must match your all-templates page -->
   <script>
+    // Pre-made Templates Data – must match your all-templates page
     const preMadeTemplates = [
       {
         id: "bookMasterOutline",
@@ -645,6 +645,13 @@ Notes:`
     } else {
       // Inject the template content into the PDF-like preview area
       document.getElementById('pdfPreview').innerHTML = `<h2>${template.title}</h2><pre>${template.content}</pre>`;
+      // Set up the "Use Template" button to load this template for editing (simulate navigation)
+      document.getElementById('useTemplateBtn').addEventListener('click', () => {
+        console.log('Use Template clicked for:', template.title);
+        alert('Template "' + template.title + '" is now loaded for editing and will be saved to your home page.');
+        // Redirect to the My Templates (story-templates) page with the template ID in the query string (simulate pre-loading)
+        window.location.href = `story-templates.html?template=${encodeURIComponent(template.id)}`;
+      });
     }
 
     // Set up top tab behavior – for "My Templates" and "All Templates" we redirect to their respective pages.
@@ -653,59 +660,6 @@ Notes:`
     });
     document.getElementById('allTemplatesTab').addEventListener('click', () => {
       window.location.href = 'all-templates.html';
-    });
-  </script>
-
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
-  <script>
-    // Initialize Firebase
-    const firebaseConfig = {
-      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
-      authDomain: "inkwave-549c0.firebaseapp.com",
-      projectId: "inkwave-549c0",
-      storageBucket: "inkwave-549c0.appspot.com",
-      messagingSenderId: "1084811926133",
-      appId: "1:1084811926133:web:placeholder"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-
-    // Modified "Use Template" button to copy the template into the user's Firebase collection
-    document.getElementById('useTemplateBtn').addEventListener('click', () => {
-      // Ensure a template was found
-      if (!template) return;
-
-      const user = auth.currentUser;
-      if (!user) {
-        alert("Please log in to use templates.");
-        return;
-      }
-
-      // Create a new document in the user's templates subcollection with the template data
-      db.collection('users')
-        .doc(user.uid)
-        .collection('templates')
-        .add({
-          title: template.title,
-          type: template.type,
-          description: template.description,
-          content: template.content,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-          originalTemplateId: template.id
-        })
-        .then(docRef => {
-          alert('Template "' + template.title + '" is now loaded for editing and has been saved to your home page.');
-          // Redirect to the My Templates page with the new template's document id
-          window.location.href = `story-templates.html?template=${encodeURIComponent(docRef.id)}`;
-        })
-        .catch(error => {
-          console.error("Error adding template: ", error);
-          alert("There was an error saving your template. Please try again.");
-        });
     });
   </script>
 </body>
