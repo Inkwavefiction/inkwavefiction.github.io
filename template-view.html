@@ -10,7 +10,7 @@
       --bg: #f5f8f7;
       --text: #1e1e1e;
       --muted: #6a6a6a;
-      --accent: #A3C4DC;
+      --accent: #A3C4DC; /* Haze Blue */
       --white: #ffffff;
       --border: #e0e0e0;
       --sidebar-bg: #111;
@@ -27,6 +27,7 @@
       color: var(--text);
       display: flex;
     }
+    /* Sidebar (from Author Dashboard) */
     .sidebar {
       width: 300px;
       background: var(--sidebar-bg);
@@ -67,6 +68,7 @@
     .nav-link:hover {
       background-color: #1e1e1e;
     }
+    /* Main Content Area */
     .main {
       margin-left: 300px;
       padding: 2.5rem;
@@ -110,6 +112,7 @@
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
+    /* Top Tabs */
     .tabs {
       display: flex;
       border-bottom: 2px solid var(--border);
@@ -141,6 +144,7 @@
     .tab-content.active {
       display: block;
     }
+    /* PDF-like Template Preview */
     .pdf-preview {
       background: #fff;
       padding: 30px;
@@ -178,11 +182,486 @@
   </style>
 </head>
 <body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Inkwave</h2>
+    <div class="section">
+      <div class="section-title">Core</div>
+      <a href="author-dashboard.html" class="nav-link">🏠 Dashboard</a>
+      <a href="404.html" class="nav-link">💰 Earnings</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Writing Tools</div>
+      <a href="blurb-generator.html" class="nav-link">🧠 Blurb Generator</a>
+      <a href="404.html" class="nav-link">📝 Grammar Fixer</a>
+      <a href="story-templates.html" class="nav-link">📄 Story Templates</a>
+      <a href="404.html" class="nav-link">🎛 Formatting Tools</a>
+      <a href="404.html" class="nav-link">🏷️ Genre & Tags</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Testing & Feedback</div>
+      <a href="404.html" class="nav-link">🧪 A/B Testing</a>
+      <a href="404.html" class="nav-link">🔥 Reader Heatmap</a>
+      <a href="404.html" class="nav-link">👥 Critique Exchange</a>
+      <a href="404.html" class="nav-link">📢 Pitch to Readers</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Publishing</div>
+      <a href="404.html" class="nav-link">✅ Checklist</a>
+      <a href="404.html" class="nav-link">🖼️ Cover Generator</a>
+      <a href="404.html" class="nav-link">📱 Mobile Mode</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Productivity</div>
+      <a href="404.html" class="nav-link">🤖 Inky Assistant</a>
+      <a href="404.html" class="nav-link">🎯 Daily Challenges</a>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="main">
+    <div class="header">
+      <a href="all-templates.html" class="back-link">Back</a>
+      <h1>View Template</h1>
+      <p>Preview and use this template for your story</p>
+    </div>
+    <div class="container">
+      <!-- Top Tabs -->
+      <div class="tabs" id="tabsContainer">
+        <button class="tab-link" id="myTemplatesTab">My Templates</button>
+        <button class="tab-link" id="allTemplatesTab">All Templates</button>
+        <button class="tab-link active" id="currentTemplateTab">Current Template</button>
+      </div>
+      <!-- Tab Content -->
+      <div id="tabContent">
+        <!-- Current Template Content (active by default) -->
+        <div class="tab-content active" id="currentTemplateContent">
+          <div class="pdf-preview" id="pdfPreview">
+            <!-- Template content will be injected here -->
+          </div>
+          <button class="use-template-btn" id="useTemplateBtn">Use Template</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pre-made Templates Data – must match your all-templates page -->
+  <script>
+    const preMadeTemplates = [
+      {
+        id: "bookMasterOutline",
+        title: "Book Master Outline Template",
+        type: "book-outline",
+        description: "A comprehensive outline for novels with bonus plot framework options.",
+        content: `Title:
+Genre:
+Subgenre:
+Series Name (if applicable):
+Book # in Series:
+Target Word Count:
+Premise (Elevator Pitch):
+Core Themes:
+POV(s):
+Tense:
+Tone & Style:
+Target Audience:
+
+Choose Your Plot Framework (Pick One):
+- Three-Act Structure
+- Save the Cat Beat Sheet
+- Hero’s Journey
+- Seven-Point Plot
+- Dan Harmon's Story Circle
+- Snowflake Method
+
+Bonus: ALWAYS include:
+- Opening Hook
+- Inciting Incident
+- Point of No Return
+- Midpoint Shift
+- Climactic Confrontation
+- Character’s Final Transformation
+- Denouement / Fallout`
+      },
+      {
+        id: "ultimateCharacterTemplate",
+        title: "Ultimate Character Template",
+        type: "character-template",
+        description: "A detailed template covering basic info, psych profile, and relational dynamics.",
+        content: `Basic Info:
+Name:
+Age:
+Pronouns / Gender Identity:
+Occupation:
+Appearance (Key Traits Only):
+Voice (Tone, Accent, Mannerisms):
+
+Psych Profile:
+MBTI / Enneagram:
+Primary Fear:
+Core Desire:
+Moral Code / Ethics:
+Darkest Secret:
+Greatest Strength:
+Greatest Flaw:
+Internal Conflict:
+External Conflict:
+Character Arc (How do they change?)
+
+Relational Map:
+Allies:
+Enemies:
+Mentor / Guide:
+Love Interest:
+Rivals:
+Dependents:
+Who do they hurt / who hurts them?
+
+Role in Story:
+Protagonist / Antagonist / Supporting?
+Symbolic Role (Hero, Shadow, Trickster, etc)?
+What Theme They Represent?
+Purpose in Plot?`
+      },
+      {
+        id: "magicTechSystemTemplate",
+        title: "Magic/Technology System Template",
+        type: "system-template",
+        description: "Outline for designing a magic or tech system with rules, limits, and cultural significance.",
+        content: `System Type: (Magic, Tech, Mutation, Superpower, etc)
+Source of Power:
+Who Can Use It:
+Rules / Logic:
+Costs / Limits:
+Cultural Significance:
+Items / Tools Required:
+Types / Classifications:
+Dangers / Corruption Possibility:
+Exceptions / Anomalies:`
+      },
+      {
+        id: "worldbuildingMasterTemplate",
+        title: "Worldbuilding Master Template",
+        type: "worldbuilding-template",
+        description: "A template for building a rich world with detailed setting, culture, and key locations.",
+        content: `General Setting:
+Time Period:
+Region / Planet:
+Climate / Geography:
+Technology Level:
+Economy:
+Laws / Government:
+Currency:
+Language(s):
+Religion / Myth:
+
+Culture:
+Traditions / Holidays:
+Art / Music / Food:
+Fashion:
+Social Hierarchy:
+Taboos:
+Historical Trauma or Wars:
+Superstitions:
+Key Places (Name + Description):
+
+Map It Out:
+(List regions, key cities, strongholds, secret places, sacred locations, etc.)`
+      },
+      {
+        id: "chapterPlanningTemplate",
+        title: "Chapter Planning Template (Expanded)",
+        type: "chapter-planning",
+        description: "An expanded template for detailed chapter planning.",
+        content: `Chapter #:
+Title (if applicable):
+POV Character:
+Word Count Target:
+Scene 1 Summary:
+- Goal:
+- Conflict:
+- Outcome:
+Scene 2 (if applicable):
+- Repeat structure as needed
+Cliffhanger / Hook:
+Foreshadowing Elements:
+Character Moments:
+Ties to Subplots:`
+      },
+      {
+        id: "scenePlanningTemplate",
+        title: "Scene Planning Template (Drill-down)",
+        type: "scene-planning",
+        description: "A drill-down template for planning individual scenes in detail.",
+        content: `Scene #:
+Chapter:
+Scene Purpose (Advancing plot, revealing character, worldbuilding, etc):
+Characters Involved:
+Tension Source:
+Start State → End State:
+Setting Description Highlights:
+Dialogue Focus (Subtext / Power Play):
+Sensory Layering:
+Scene Hook:`
+      },
+      {
+        id: "themeSymbolismMap",
+        title: "Theme & Symbolism Map",
+        type: "theme-symbolism",
+        description: "A grid template to map themes and symbolism across your narrative.",
+        content: `Theme:
+How It Appears:
+Characters Tied:
+Key Scenes:
+Additional Notes:`
+      },
+      {
+        id: "foreshadowingTracker",
+        title: "Foreshadowing Tracker",
+        type: "foreshadowing",
+        description: "A tracker for managing setup and payoff of foreshadowing elements.",
+        content: `Setup Scene:
+Payoff Scene:
+Detail Foreshadowed:
+Subtle or Obvious:
+Notes:`
+      },
+      {
+        id: "revisionChecklistTemplate",
+        title: "Revision Checklist Template",
+        type: "revision-checklist",
+        description: "A comprehensive checklist to ensure consistency and quality in your manuscript.",
+        content: `Global Checks:
+- Theme consistency
+- Complete character arcs
+- Effective tension curve
+- Filled worldbuilding gaps
+- Consistent timeline
+
+Chapter-Level:
+- Clear scene purpose
+- Tight, in-character dialogue
+- No POV slips
+- Effective sensory details
+- Every scene has conflict`
+      },
+      {
+        id: "shortStoryOutlineTemplate",
+        title: "Short Story Outline Template",
+        type: "short-story-outline",
+        description: "An outline template designed specifically for short stories.",
+        content: `Title:
+Genre:
+Theme:
+Character (Name, Goal, Flaw):
+Conflict:
+Inciting Incident:
+Climax / Turn:
+Resolution:
+Word Count Limit:
+Twist or Punch (if any):
+Mood / Style Notes:`
+      },
+      {
+        id: "shortStoryChecklist",
+        title: "Short Story Checklist",
+        type: "short-story-checklist",
+        description: "A checklist ensuring your short story is concise and impactful.",
+        content: `- Open with a hook in the first sentence/paragraph
+- Establish clear conflict by paragraph 3
+- Every word counts (no fluff)
+- One core emotion/theme runs throughout
+- Ending ties back to the beginning or subverts expectations
+- Language fits the tone (tight, poetic, brutal, etc.)`
+      },
+      {
+        id: "flashFictionSnapshotPlanner",
+        title: "Flash Fiction Snapshot Planner",
+        type: "flash-fiction",
+        description: "A planner for crafting flash fiction pieces under 1,000 words.",
+        content: `Prompt:
+Core Image or Moment:
+Character:
+Implied Backstory:
+Twist or Turn:
+Final Line Impact:`
+      },
+      {
+        id: "fantasyWorldBuilding",
+        title: "Fantasy World Building",
+        type: "worldbuilding",
+        description: "A template for creating detailed and immersive fantasy worlds.",
+        content: `World Overview:
+Geography & Climate:
+Cultures & Traditions:
+Mythology & Religion:
+Political Structure:
+Key Landmarks & Locations:
+Notes:`
+      },
+      {
+        id: "magicSystemBlueprint",
+        title: "Magic System Blueprint",
+        type: "magic-system",
+        description: "A blueprint to design your magic system, including rules, limitations, and lore.",
+        content: `System Name:
+Type of Magic:
+Rules and Limitations:
+Cost/Consequences:
+Cultural Impact:
+Key Figures or Artifacts:
+Notes:`
+      },
+      {
+        id: "kingdomFaction",
+        title: "Kingdom/Faction Template",
+        type: "faction",
+        description: "A template for designing kingdoms or factions within your narrative.",
+        content: `Name:
+Ruler/Leader:
+Political Structure:
+Key Characteristics:
+Conflicts/Alliances:
+Notable Figures:
+Notes:`
+      },
+      {
+        id: "prophecyTemplate",
+        title: "Prophecy Template",
+        type: "prophecy",
+        description: "A template to create impactful prophecies to drive your narrative.",
+        content: `Prophecy Text:
+Key Figures Involved:
+Fulfillment Conditions:
+Consequences:
+Historical Context:
+Notes:`
+      },
+      {
+        id: "fantasyHeroCharacter",
+        title: "Fantasy Hero Character Template",
+        type: "character",
+        description: "A template for designing a fantasy hero with depth and nuance.",
+        content: `Name:
+Background:
+Quest/Mission:
+Strengths & Flaws:
+Key Relationships:
+Character Arc:
+Notes:`
+      },
+      {
+        id: "fantasyCreatureBuilder",
+        title: "Fantasy Creature Builder",
+        type: "creature",
+        description: "A template for creating unique fantasy creatures with distinct traits.",
+        content: `Creature Name:
+Habitat:
+Abilities:
+Weaknesses:
+Role in Story:
+Notes:`
+      },
+      {
+        id: "fantasyPlotStructure",
+        title: "Fantasy Plot Structure",
+        type: "plot-structure",
+        description: "A template outlining a classic fantasy plot structure with key beats.",
+        content: `Act 1: Setup
+Act 2: Confrontation
+Act 3: Resolution
+Key Plot Points:
+Notes:`
+      },
+      {
+        id: "magicSchoolGuild",
+        title: "Magic School/Guild Template",
+        type: "institution",
+        description: "A template for designing a magic school or guild, including structure and hierarchy.",
+        content: `Institution Name:
+Founding History:
+Structure & Hierarchy:
+Notable Members:
+Key Conflicts:
+Notes:`
+      },
+      {
+        id: "magicDuelCombat",
+        title: "Magic Duel/Combat Template",
+        type: "combat",
+        description: "A template for planning magic duels or combat scenes with dynamic turns.",
+        content: `Duel Setup:
+Key Spells/Techniques:
+Turning Points:
+Outcome:
+Notes:`
+      },
+      {
+        id: "artifactRelicTemplate",
+        title: "Artifact/Relic Template",
+        type: "artifact",
+        description: "A template for creating significant artifacts or relics in your narrative.",
+        content: `Artifact Name:
+Origin:
+Powers:
+Limitations:
+Role in Story:
+Notes:`
+      },
+      {
+        id: "sideQuestGenerator",
+        title: "Side Quest Generator",
+        type: "side-quest",
+        description: "A generator template to brainstorm and structure side quests.",
+        content: `Quest Title:
+Objective:
+Key Characters:
+Rewards:
+Notes:`
+      },
+      {
+        id: "fantasyDialogueEnhancer",
+        title: "Fantasy Dialogue Flavor Enhancer",
+        type: "dialogue",
+        description: "A template to add authentic, flavorful dialogue to your fantasy narrative.",
+        content: `Tone & Style:
+Key Vocabulary:
+Cultural References:
+Signature Phrases:
+Notes:`
+      }
+    ];
+
+    // Get the template ID from the URL query parameter, e.g., ?template=bookMasterOutline
+    const params = new URLSearchParams(window.location.search);
+    const templateId = params.get('template');
+
+    // Find the matching template object
+    const template = preMadeTemplates.find(t => t.id === templateId);
+
+    if (!template) {
+      document.getElementById('pdfPreview').innerHTML = '<p>Template not found.</p>';
+      document.getElementById('useTemplateBtn').style.display = 'none';
+    } else {
+      // Inject the template content into the PDF-like preview area
+      document.getElementById('pdfPreview').innerHTML = `<h2>${template.title}</h2><pre>${template.content}</pre>`;
+    }
+
+    // Set up top tab behavior – for "My Templates" and "All Templates" we redirect to their respective pages.
+    document.getElementById('myTemplatesTab').addEventListener('click', () => {
+      window.location.href = 'story-templates.html';
+    });
+    document.getElementById('allTemplatesTab').addEventListener('click', () => {
+      window.location.href = 'all-templates.html';
+    });
+  </script>
+
   <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
   <script>
+    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -194,57 +673,39 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
-  </script>
 
-  <script>
-    // Full list of templates — paste the entire array here
-    const preMadeTemplates = [/* FULL ARRAY FROM EARLIER MESSAGE */];
+    // Modified "Use Template" button to copy the template into the user's Firebase collection
+    document.getElementById('useTemplateBtn').addEventListener('click', () => {
+      // Ensure a template was found
+      if (!template) return;
 
-    // Get template ID from URL
-    const params = new URLSearchParams(window.location.search);
-    const templateId = params.get('template');
-    const template = preMadeTemplates.find(t => t.id === templateId);
+      const user = auth.currentUser;
+      if (!user) {
+        alert("Please log in to use templates.");
+        return;
+      }
 
-    if (!template) {
-      document.getElementById('pdfPreview').innerHTML = '<p>Template not found.</p>';
-      document.getElementById('useTemplateBtn').style.display = 'none';
-    } else {
-      document.getElementById('pdfPreview').innerHTML = `<h2>${template.title}</h2><pre>${template.content}</pre>`;
-
-      document.getElementById('useTemplateBtn').addEventListener('click', () => {
-        auth.onAuthStateChanged(user => {
-          if (!user) {
-            alert('Please log in to use templates.');
-            return;
-          }
-
-          db.collection('users')
-            .doc(user.uid)
-            .collection('templates')
-            .add({
-              title: template.title,
-              type: template.type,
-              content: template.content,
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            })
-            .then(() => {
-              alert(`Template "${template.title}" added to your templates.`);
-              window.location.href = 'story-templates.html?saved=true';
-            })
-            .catch(err => {
-              console.error('Error saving template:', err);
-              alert('Something went wrong while saving the template.');
-            });
+      // Create a new document in the user's templates subcollection with the template data
+      db.collection('users')
+        .doc(user.uid)
+        .collection('templates')
+        .add({
+          title: template.title,
+          type: template.type,
+          description: template.description,
+          content: template.content,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          originalTemplateId: template.id
+        })
+        .then(docRef => {
+          alert('Template "' + template.title + '" is now loaded for editing and has been saved to your home page.');
+          // Redirect to the My Templates page with the new template's document id
+          window.location.href = `story-templates.html?template=${encodeURIComponent(docRef.id)}`;
+        })
+        .catch(error => {
+          console.error("Error adding template: ", error);
+          alert("There was an error saving your template. Please try again.");
         });
-      });
-    }
-
-    document.getElementById('myTemplatesTab').addEventListener('click', () => {
-      window.location.href = 'story-templates.html';
-    });
-
-    document.getElementById('allTemplatesTab').addEventListener('click', () => {
-      window.location.href = 'all-templates.html';
     });
   </script>
 </body>
