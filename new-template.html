@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Inkwave - New Template</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <!-- ✅ Correct Firebase (compat mode) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
   <style>
     :root {
       --bg: #f5f8f7;
@@ -159,45 +165,35 @@
   <!-- Sidebar -->
   <div class="sidebar">
     <h2>Inkwave</h2>
-
-    <div class="section">
-      <div class="section-title">Core</div>
+    <div class="section"><div class="section-title">Core</div>
       <a href="author-dashboard.html" class="nav-link">🏠 Dashboard</a>
       <a href="404.html" class="nav-link">💰 Earnings</a>
     </div>
-
-    <div class="section">
-      <div class="section-title">Writing Tools</div>
+    <div class="section"><div class="section-title">Writing Tools</div>
       <a href="blurb-generator.html" class="nav-link">🧠 Blurb Generator</a>
       <a href="404.html" class="nav-link">📝 Grammar Fixer</a>
       <a href="story-templates.html" class="nav-link">📄 Story Templates</a>
       <a href="404.html" class="nav-link">🎛 Formatting Tools</a>
       <a href="404.html" class="nav-link">🏷️ Genre & Tags</a>
     </div>
-
-    <div class="section">
-      <div class="section-title">Testing & Feedback</div>
+    <div class="section"><div class="section-title">Testing & Feedback</div>
       <a href="404.html" class="nav-link">🧪 A/B Testing</a>
       <a href="404.html" class="nav-link">🔥 Reader Heatmap</a>
       <a href="404.html" class="nav-link">👥 Critique Exchange</a>
       <a href="404.html" class="nav-link">📢 Pitch to Readers</a>
     </div>
-
-    <div class="section">
-      <div class="section-title">Publishing</div>
+    <div class="section"><div class="section-title">Publishing</div>
       <a href="404.html" class="nav-link">✅ Checklist</a>
       <a href="404.html" class="nav-link">🖼️ Cover Generator</a>
       <a href="404.html" class="nav-link">📱 Mobile Mode</a>
     </div>
-
-    <div class="section">
-      <div class="section-title">Productivity</div>
+    <div class="section"><div class="section-title">Productivity</div>
       <a href="404.html" class="nav-link">🤖 Inky Assistant</a>
       <a href="404.html" class="nav-link">🎯 Daily Challenges</a>
     </div>
   </div>
 
-  <!-- Main Content -->
+  <!-- Main -->
   <div class="main">
     <div class="header">
       <h1>Create New Template</h1>
@@ -205,7 +201,6 @@
     </div>
 
     <div class="container">
-      <!-- Tabs -->
       <div class="tabs">
         <a href="story-templates.html" class="tab-link">My Templates</a>
         <a href="all-templates.html" class="tab-link">All Templates</a>
@@ -225,12 +220,6 @@
     </div>
   </div>
 
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-auth.js"></script>
-
-  <!-- Script for saving -->
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
@@ -238,55 +227,57 @@
       projectId: "inkwave-549c0",
       storageBucket: "inkwave-549c0.appspot.com",
       messagingSenderId: "1084811926133",
-      appId: "1:1084811926133:web:placeholder"
+      appId: "1:1084811926133:web:auto-generated"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth();
 
-    // Force sign in (for now)
-    auth.signInAnonymously()
-      .then(() => console.log("✅ Signed in anonymously"))
-      .catch(err => console.error("❌ Sign-in failed", err));
+    firebase.auth().onAuthStateChanged(user => {
+      if (!user) {
+        firebase.auth().signInAnonymously().then(() => {
+          console.log("✅ Signed in anonymously");
+        }).catch(err => {
+          console.error("❌ Firebase sign-in error:", err);
+        });
+      }
+    });
 
     document.getElementById("saveBtn").addEventListener("click", () => {
       const title = document.getElementById("templateTitle").value.trim();
       const content = document.getElementById("templateContent").value.trim();
       const message = document.getElementById("message");
+      const user = firebase.auth().currentUser;
 
       if (!title || !content) {
         message.style.color = 'red';
-        message.textContent = 'Please enter both a title and some content.';
+        message.textContent = "Please enter both a title and content.";
         return;
       }
 
-      const user = firebase.auth().currentUser;
       if (!user) {
         message.style.color = 'red';
-        message.textContent = 'You must be signed in.';
+        message.textContent = "Not signed in.";
         return;
       }
 
-      db.collection("users")
-        .doc(user.uid)
-        .collection("templates")
-        .add({
-          title,
-          type: "custom",
-          content,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        })
-        .then(() => {
-          console.log("✅ Template saved.");
+      db.collection("users").doc(user.uid).collection("templates").add({
+        title,
+        type: "custom",
+        content,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        message.style.color = 'green';
+        message.textContent = "✅ Template saved!";
+        setTimeout(() => {
           window.location.href = "story-templates.html?saved=true";
-        })
-        .catch(err => {
-          console.error("❌ Error saving:", err);
-          message.style.color = 'red';
-          message.textContent = 'Something went wrong while saving.';
-        });
+        }, 800);
+      }).catch(err => {
+        console.error("❌ Error saving:", err);
+        message.style.color = 'red';
+        message.textContent = "Error saving template.";
+      });
     });
   </script>
-
 </body>
 </html>
