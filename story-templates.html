@@ -1,3 +1,4 @@
+<!-- This is story-templates.html — now with New Template support -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -16,11 +17,7 @@
       --sidebar-bg: #111;
       --container-bg: #ffffff;
     }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Poppins', sans-serif;
       background-color: var(--bg);
@@ -42,9 +39,7 @@
       margin-bottom: 2rem;
       font-weight: 600;
     }
-    .sidebar .section {
-      margin-bottom: 2rem;
-    }
+    .sidebar .section { margin-bottom: 2rem; }
     .section-title {
       font-size: 0.8rem;
       text-transform: uppercase;
@@ -64,9 +59,7 @@
       font-weight: 500;
       transition: background 0.2s;
     }
-    .nav-link:hover {
-      background-color: #1e1e1e;
-    }
+    .nav-link:hover { background-color: #1e1e1e; }
     .main {
       margin-left: 300px;
       padding: 2.5rem;
@@ -80,14 +73,8 @@
       border-radius: 6px;
       margin-bottom: 30px;
     }
-    .header h1 {
-      font-size: 2.5rem;
-      margin: 0;
-    }
-    .header p {
-      font-size: 1.2rem;
-      margin-top: 10px;
-    }
+    .header h1 { font-size: 2.5rem; margin: 0; }
+    .header p { font-size: 1.2rem; margin-top: 10px; }
     .container {
       background: var(--container-bg);
       padding: 30px;
@@ -113,20 +100,15 @@
       color: inherit;
       transition: background 0.3s, box-shadow 0.3s;
     }
-    .tab-link:hover {
-      background: #dce3ea;
-    }
+    .tab-link:hover { background: #dce3ea; }
     .tab-link.active {
       background: var(--container-bg);
       border-bottom: 3px solid var(--accent);
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
-    .tab-content {
-      display: none;
-    }
-    .tab-content.active {
-      display: block;
-    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
     .template-card {
       border: 1px solid var(--border);
       padding: 20px;
@@ -144,10 +126,24 @@
       font-weight: 600;
       color: green;
     }
+
+    .new-template-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    .new-template-btn:hover {
+      background: #7aa7d1;
+    }
   </style>
 </head>
 <body>
-  <!-- Sidebar -->
+
   <div class="sidebar">
     <h2>Inkwave</h2>
     <div class="section">
@@ -163,45 +159,22 @@
       <a href="404.html" class="nav-link">🎛 Formatting Tools</a>
       <a href="404.html" class="nav-link">🏷️ Genre & Tags</a>
     </div>
-    <div class="section">
-      <div class="section-title">Testing & Feedback</div>
-      <a href="404.html" class="nav-link">🧪 A/B Testing</a>
-      <a href="404.html" class="nav-link">🔥 Reader Heatmap</a>
-      <a href="404.html" class="nav-link">👥 Critique Exchange</a>
-      <a href="404.html" class="nav-link">📢 Pitch to Readers</a>
-    </div>
-    <div class="section">
-      <div class="section-title">Publishing</div>
-      <a href="404.html" class="nav-link">✅ Checklist</a>
-      <a href="404.html" class="nav-link">🖼️ Cover Generator</a>
-      <a href="404.html" class="nav-link">📱 Mobile Mode</a>
-    </div>
-    <div class="section">
-      <div class="section-title">Productivity</div>
-      <a href="404.html" class="nav-link">🤖 Inky Assistant</a>
-      <a href="404.html" class="nav-link">🎯 Daily Challenges</a>
-    </div>
   </div>
 
-  <!-- Main Content -->
   <div class="main">
     <div class="header">
       <h1>Story Templates</h1>
       <p>Your ultimate toolkit for crafting brilliant narratives</p>
     </div>
     <div class="container">
-      <!-- Tabs Navigation -->
       <div class="tabs" id="tabsContainer">
         <button class="tab-link active" data-tab="myTemplates">My Templates</button>
         <a href="all-templates.html" class="tab-link">All Templates</a>
       </div>
 
-      <!-- My Templates Tab -->
       <div class="tab-content active" id="myTemplates">
-        <h2>My Templates</h2>
-        <div id="templateSavedNotice" style="display: none;">
-          ✅ Template successfully added!
-        </div>
+        <button class="new-template-btn" onclick="window.location.href='new-template.html'">➕ New Template</button>
+        <div id="templateSavedNotice" style="display: none;">✅ Template successfully added!</div>
         <div id="myTemplatesContainer">Loading your templates...</div>
       </div>
     </div>
@@ -224,18 +197,6 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // Tab logic (My Templates)
-    document.getElementById('tabsContainer').addEventListener('click', function(e) {
-      const tabButton = e.target.closest('.tab-link');
-      if (!tabButton || tabButton.tagName === 'A') return;
-      const tabId = tabButton.getAttribute('data-tab');
-      document.querySelectorAll('.tab-link').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      tabButton.classList.add('active');
-      document.getElementById(tabId).classList.add('active');
-    });
-
-    // Load user templates
     function loadUserTemplates(user) {
       const container = document.getElementById('myTemplatesContainer');
       container.innerHTML = '';
@@ -250,10 +211,10 @@
           } else {
             snapshot.forEach(doc => {
               const data = doc.data();
-              const templateDiv = document.createElement('div');
-              templateDiv.className = 'template-card';
-              templateDiv.innerHTML = `<h3>${data.title}</h3><p>Type: ${data.type}</p>`;
-              container.appendChild(templateDiv);
+              const div = document.createElement('div');
+              div.className = 'template-card';
+              div.innerHTML = `<h3>${data.title}</h3><p>Type: ${data.type}</p>`;
+              container.appendChild(div);
             });
           }
         })
@@ -263,7 +224,6 @@
         });
     }
 
-    // Check login & load templates
     auth.onAuthStateChanged(user => {
       if (user) {
         loadUserTemplates(user);
@@ -272,7 +232,6 @@
       }
     });
 
-    // Check for saved query param
     if (window.location.search.includes('saved=true')) {
       document.getElementById('templateSavedNotice').style.display = 'block';
     }
