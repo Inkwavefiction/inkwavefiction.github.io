@@ -1,3 +1,4 @@
+<!-- Skipping header/doctype for brevity -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -10,17 +11,13 @@
       --bg: #f5f8f7;
       --text: #1e1e1e;
       --muted: #6a6a6a;
-      --accent: #A3C4DC; /* ✅ BLUE ACCENT */
+      --accent: #A3C4DC;
       --white: #ffffff;
       --border: #e0e0e0;
       --container-bg: #ffffff;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Poppins', sans-serif;
@@ -46,9 +43,7 @@
       font-weight: 600;
     }
 
-    .sidebar .section {
-      margin-bottom: 2rem;
-    }
+    .section { margin-bottom: 2rem; }
 
     .section-title {
       font-size: 0.8rem;
@@ -160,6 +155,7 @@
       border-radius: 6px;
       background: #fdfdfd;
       transition: background 0.3s, box-shadow 0.3s;
+      position: relative;
     }
 
     .template-card:hover {
@@ -173,6 +169,21 @@
       font-size: 0.9rem;
       color: #333;
       margin-top: 1rem;
+    }
+
+    .delete-btn {
+      position: absolute;
+      left: 10px;
+      top: 18px;
+      background: transparent;
+      border: none;
+      font-size: 1rem;
+      color: #999;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      color: red;
     }
 
     .success-msg {
@@ -238,16 +249,14 @@
 
       <button class="btn" onclick="window.location.href='new-template.html'">➕ New Template</button>
 
-      <div id="myTemplatesContainer">
-        Loading your templates...
-      </div>
+      <div id="myTemplatesContainer">Loading your templates...</div>
     </div>
   </div>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
     const firebaseConfig = {
@@ -281,7 +290,8 @@
               const div = document.createElement('div');
               div.className = 'template-card';
               div.innerHTML = `
-                <h3>${data.title}</h3>
+                <button class="delete-btn" onclick="deleteTemplate('${doc.id}')">🗑</button>
+                <h3 style="padding-left: 28px;">${data.title}</h3>
                 <p>Type: ${data.type || 'Custom'}</p>
                 <pre>${data.content}</pre>
               `;
@@ -292,6 +302,27 @@
         .catch(err => {
           console.error("Failed to load templates:", err);
           container.innerHTML = '<p>Error loading templates.</p>';
+        });
+    }
+
+    function deleteTemplate(templateId) {
+      const user = firebase.auth().currentUser;
+      if (!user) return alert("You must be logged in.");
+
+      if (!confirm("Delete this template?")) return;
+
+      db.collection("users")
+        .doc(user.uid)
+        .collection("templates")
+        .doc(templateId)
+        .delete()
+        .then(() => {
+          alert("Deleted.");
+          loadUserTemplates(user); // reload templates
+        })
+        .catch(err => {
+          console.error("Error deleting template:", err);
+          alert("Failed to delete.");
         });
     }
 
