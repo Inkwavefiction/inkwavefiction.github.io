@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inkwave - Financial Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --accent: #4f8dc0; /* New accent for financial dashboard */
+      --white: #ffffff;
+      --border: #e0e0e0;
+      --sidebar-bg: #111;
+      --container-bg: #ffffff;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+    /* Original Sidebar */
+    .sidebar {
+      width: 300px;
+      background: var(--sidebar-bg);
+      color: var(--white);
+      padding: 2rem 1.5rem;
+      height: 100vh;
+      position: fixed;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      font-weight: 600;
+    }
+    .sidebar .section {
+      margin-bottom: 2rem;
+    }
+    .section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #aaa;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+    }
+    .nav-link {
+      display: block;
+      margin: 0.5rem 0;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 1rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .nav-link:hover {
+      background-color: #1e1e1e;
+    }
+    /* Main Content Area */
+    .main {
+      margin-left: 300px;
+      padding: 2.5rem;
+      flex: 1;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background: var(--accent);
+      color: var(--white);
+      border-radius: 6px;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      margin: 0;
+    }
+    .header p {
+      font-size: 1rem;
+      margin-top: 5px;
+    }
+    .container {
+      background: var(--container-bg);
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    /* Earnings Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 15px;
+    }
+    table, th, td {
+      border: 1px solid var(--border);
+    }
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+    th {
+      background: var(--accent);
+      color: var(--white);
+    }
+    /* Sections */
+    section {
+      margin-bottom: 2rem;
+    }
+    section h2 {
+      font-family: 'Playfair Display', serif;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 0.5rem;
+      font-size: 1.5rem;
+    }
+    /* Cash Out Button */
+    .cash-out-btn {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--white);
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .cash-out-btn:hover {
+      background: #3c7ba3;
+    }
+    .beta-note {
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+    hr {
+      border: 0;
+      border-top: 1px solid var(--border);
+      margin: 20px 0;
+    }
+    /* Business Plan Tables */
+    .plan-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 15px;
+    }
+    .plan-table, .plan-table th, .plan-table td {
+      border: 1px solid var(--border);
+    }
+    .plan-table th, .plan-table td {
+      padding: 8px;
+      text-align: left;
+    }
+    .plan-table th {
+      background: var(--accent);
+      color: var(--white);
+    }
+    ul {
+      margin-left: 20px;
+      list-style-type: disc;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Original Sidebar -->
+  <div class="sidebar">
+    <h2>Inkwave</h2>
+    <div class="section">
+      <div class="section-title">Core</div>
+      <a href="author-dashboard.html" class="nav-link">🏠 Dashboard</a>
+      <a href="404.html" class="nav-link">💰 Earnings</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Writing Tools</div>
+      <a href="blurb-generator.html" class="nav-link">🧠 Blurb Generator</a>
+      <a href="404.html" class="nav-link">📝 Grammar Fixer</a>
+      <a href="story-templates.html" class="nav-link">📄 Story Templates</a>
+      <a href="404.html" class="nav-link">🎛 Formatting Tools</a>
+      <a href="404.html" class="nav-link">🏷️ Genre & Tags</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Testing & Feedback</div>
+      <a href="404.html" class="nav-link">🧪 A/B Testing</a>
+      <a href="404.html" class="nav-link">🔥 Reader Heatmap</a>
+      <a href="404.html" class="nav-link">👥 Critique Exchange</a>
+      <a href="404.html" class="nav-link">📢 Pitch to Readers</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Publishing</div>
+      <a href="404.html" class="nav-link">✅ Checklist</a>
+      <a href="404.html" class="nav-link">🖼️ Cover Generator</a>
+      <a href="404.html" class="nav-link">📱 Mobile Mode</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Productivity</div>
+      <a href="404.html" class="nav-link">🤖 Inky Assistant</a>
+      <a href="404.html" class="nav-link">🎯 Daily Challenges</a>
+    </div>
+  </div>
+  
+  <!-- Main Content Area -->
+  <div class="main">
+    <div class="header">
+      <h1>Financial Dashboard</h1>
+      <p>Your Earnings and Payouts</p>
+    </div>
+    <div class="container">
+      <!-- Earnings Summary Section -->
+      <section id="earnings-summary">
+        <h2>Your Earnings</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Story Title</th>
+              <th>Views</th>
+              <th>Earnings</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Story 1</td>
+              <td>10,000</td>
+              <td>$500</td>
+            </tr>
+            <tr>
+              <td>Story 2</td>
+              <td>5,000</td>
+              <td>$200</td>
+            </tr>
+            <tr>
+              <td>Story 3</td>
+              <td>2,000</td>
+              <td>$50</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><strong>Total Balance:</strong> $750</p>
+      </section>
+      
+      <!-- Cash Out Section -->
+      <section id="cash-out">
+        <h2>Cash Out</h2>
+        <button id="cashOutBtn" class="cash-out-btn">Cash Out</button>
+        <p class="beta-note">
+          Note: This platform is currently in beta testing. No funds will be exchanged until the platform goes live.
+        </p>
+      </section>
+      
+      <!-- Financial Roadmap / Business Plan Section -->
+      <section id="financial-roadmap">
+        <h2>Fiction Subscription Platform: Business Plan &amp; Financial Roadmap</h2>
+        
+        <h3>Overview</h3>
+        <ul>
+          <li><strong>Business Model:</strong> Subscription-based fiction platform where readers pay monthly, and authors earn based on story views.</li>
+          <li><strong>Revenue Streams:</strong>
+            <ul>
+              <li>📌 Reader subscriptions ($5/month)</li>
+              <li>📌 Ad revenue from views</li>
+              <li>📌 Premium story sales (optional)</li>
+              <li>📌 Paid author tools (promotions, analytics, AI editing)</li>
+            </ul>
+          </li>
+        </ul>
+        <hr>
+        
+        <h3>1️⃣ Growth &amp; Revenue Strategy</h3>
+        <h4>📈 Tiered Author Payout System (Auto-Adjusting)</h4>
+        <table class="plan-table">
+          <thead>
+            <tr>
+              <th>Story Tier</th>
+              <th>Views Required</th>
+              <th>Payout Per Story</th>
+              <th>How It Adjusts</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Top Tier</td>
+              <td>(Avg. Story Views × 2.5)</td>
+              <td>$500 - $1,000</td>
+              <td>Adjusts as average story performance improves.</td>
+            </tr>
+            <tr>
+              <td>Middle Tier</td>
+              <td>(Top Tier ÷ 2)</td>
+              <td>$200 - $500</td>
+              <td>Increases as traffic grows.</td>
+            </tr>
+            <tr>
+              <td>Low Tier</td>
+              <td>(Middle Tier ÷ 5)</td>
+              <td>$50 - $100</td>
+              <td>Ensures engagement-based earnings.</td>
+            </tr>
+            <tr>
+              <td>Tiny Tier</td>
+              <td>1 - 999 views</td>
+              <td>$1 per story</td>
+              <td>Maintains fairness for low-read stories.</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><strong>Formula:</strong></p>
+        <ul>
+          <li>New Top Tier Views = (Average Views Per Story) × 2.5</li>
+          <li>Middle Tier = (Top Tier ÷ 2)</li>
+          <li>Low Tier = (Middle Tier ÷ 5)</li>
+        </ul>
+        <hr>
+        
+        <h3>2️⃣ Financial Projections (Revenue vs. Profits)</h3>
+        <table class="plan-table">
+          <thead>
+            <tr>
+              <th>Stage</th>
+              <th>Subscribers</th>
+              <th>Monthly Views</th>
+              <th>Revenue</th>
+              <th>Payouts</th>
+              <th>Your Profit</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Early Stage</td>
+              <td>1,000</td>
+              <td>50,000</td>
+              <td>$5,500</td>
+              <td>$1,500</td>
+              <td>$4,000</td>
+            </tr>
+            <tr>
+              <td>Growing</td>
+              <td>10,000</td>
+              <td>500,000</td>
+              <td>$55,000</td>
+              <td>$11,300</td>
+              <td>$43,700</td>
+            </tr>
+            <tr>
+              <td>Scaling Up</td>
+              <td>50,000</td>
+              <td>2,500,000</td>
+              <td>$300,000</td>
+              <td>$65,000</td>
+              <td>$235,000</td>
+            </tr>
+            <tr>
+              <td>Large Platform</td>
+              <td>100,000</td>
+              <td>5,000,000</td>
+              <td>$600,000</td>
+              <td>$120,000</td>
+              <td>$480,000</td>
+            </tr>
+          </tbody>
+        </table>
+        <p>✅ Even at <strong>10K subscribers</strong>, you’re making <strong>$40K+ per month.</strong></p>
+        <p>✅ At <strong>50K subscribers</strong>, you’re hitting <strong>$200K+ monthly profit.</strong></p>
+        <p>✅ At <strong>100K subscribers</strong>, this is a <strong>multi-million-dollar business.</strong> 🚀</p>
+        <hr>
+        
+        <h3>3️⃣ How to Launch &amp; Get the First 1,000 Subscribers</h3>
+        <h4>📌 Step 1: Set Up the Platform (1-2 Months)</h4>
+        <ul>
+          <li>✅ Build the website (DIY or hire a developer).</li>
+          <li>✅ Set up payments (Stripe for subscriptions).</li>
+          <li>✅ Create submission system (email-based or form).</li>
+        </ul>
+        <h4>📌 Step 2: Get First 100 Authors (Beta Launch)</h4>
+        <ul>
+          <li>✅ Invite handpicked quality authors for exclusive launch.</li>
+          <li>✅ Offer early-access rewards (higher payouts, featured spots).</li>
+          <li>✅ Set up a Reddit/Twitter campaign to attract early writers.</li>
+        </ul>
+        <h4>📌 Step 3: Start Reader Growth (Month 3-6)</h4>
+        <ul>
+          <li>✅ Use Reddit, TikTok, and Twitter to market stories.</li>
+          <li>✅ Offer free trials for early subscribers.</li>
+          <li>✅ Run writing contests to bring in new talent.</li>
+        </ul>
+        <h4>📌 Step 4: Monetize &amp; Scale (Month 6+)</h4>
+        <ul>
+          <li>✅ Turn on subscription payments for all users.</li>
+          <li>✅ Introduce premium author tools for extra revenue.</li>
+          <li>✅ Use AI recommendations to improve story discovery.</li>
+        </ul>
+        <hr>
+        
+        <h3>4️⃣ Long-Term Monetization Plan</h3>
+        <table class="plan-table">
+          <thead>
+            <tr>
+              <th>Revenue Stream</th>
+              <th>Projected % of Revenue</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Subscriptions ($5/month)</td>
+              <td>70% (Main income source)</td>
+            </tr>
+            <tr>
+              <td>Ad Revenue</td>
+              <td>10% (Bonus income)</td>
+            </tr>
+            <tr>
+              <td>Premium Story Sales</td>
+              <td>10% (Readers pay extra for exclusive content)</td>
+            </tr>
+            <tr>
+              <td>Author Tools &amp; Promotions</td>
+              <td>10% (Boosted exposure, AI editing)</td>
+            </tr>
+          </tbody>
+        </table>
+        <p><strong>Key Strategy:</strong> Subscription revenue is stable &amp; recurring, while premium tools &amp; ads increase profits.</p>
+        <hr>
+        
+        <h3>5️⃣ Next Steps: Action Plan</h3>
+        <ul>
+          <li>✅ Pick a name &amp; register a domain (e.g., FictionHaven.com).</li>
+          <li>✅ Set up a basic website (landing page + author submission system).</li>
+          <li>✅ Start recruiting authors &amp; beta testers.</li>
+          <li>✅ Plan marketing strategy to attract early readers.</li>
+          <li>✅ Launch first 50 stories &amp; begin promotions.</li>
+        </ul>
+        <hr>
+        
+        <h3>📌 Final Thoughts</h3>
+        <ul>
+          <li>✅ This model keeps profits high while rewarding top authors.</li>
+          <li>✅ Auto-adjusting tiers prevent overpaying as traffic grows.</li>
+          <li>✅ Multiple revenue streams protect long-term sustainability.</li>
+          <li>✅ A well-executed launch can make this a $100K+/month business within 1-2 years. 🚀</li>
+        </ul>
+      </section>
+    </div>
+  </div>
+  <script>
+    // Cash Out button functionality (beta only)
+    document.getElementById('cashOutBtn').addEventListener('click', function() {
+      alert('Cash Out functionality is currently in beta. No funds will be exchanged at this time.');
+    });
+  </script>
+</body>
+</html>
