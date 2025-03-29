@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inkwave - Dictionary of Tags & Genres</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --accent: #93B0AC; /* New accent color */
+      --white: #ffffff;
+      --border: #e0e0e0;
+      --sidebar-bg: #111;
+      --container-bg: #ffffff;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: 300px;
+      background: var(--sidebar-bg);
+      color: var(--white);
+      padding: 2rem 1.5rem;
+      height: 100vh;
+      position: fixed;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      font-weight: 600;
+    }
+    .sidebar .nav-link {
+      display: block;
+      margin: 0.5rem 0;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 1rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .sidebar .nav-link:hover {
+      background-color: #1e1e1e;
+    }
+    /* Main Content Area */
+    .main {
+      margin-left: 300px;
+      padding: 2.5rem;
+      flex: 1;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background: var(--accent);
+      color: var(--white);
+      border-radius: 6px;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      margin: 0;
+    }
+    .container {
+      background: var(--container-bg);
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    /* Sections */
+    section {
+      margin-bottom: 2rem;
+    }
+    section h2 {
+      font-family: 'Playfair Display', serif;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 0.5rem;
+    }
+    .entry {
+      margin-bottom: 1.5rem;
+    }
+    .entry h3 {
+      font-size: 1.2rem;
+      margin-bottom: 0.3rem;
+      color: var(--accent);
+    }
+    .entry p {
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+    /* Subsections for Tags */
+    .subsection {
+      margin-left: 1rem;
+      margin-top: 1rem;
+    }
+    .subsection h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      color: var(--accent);
+    }
+    .subentry {
+      margin-left: 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+    }
+    .subentry strong {
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar Navigation -->
+  <div class="sidebar">
+    <h2>Inkwave</h2>
+    <a href="author-dashboard.html" class="nav-link">🏠 Dashboard</a>
+    <a href="story-templates.html" class="nav-link">📝 Templates</a>
+    <a href="dictionary.html" class="nav-link">📚 Dictionary</a>
+    <a href="contact.html" class="nav-link">✉️ Contact</a>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="main">
+    <div class="header">
+      <h1>Dictionary of Tags & Genres</h1>
+    </div>
+    <div class="container">
+      <!-- Genres Section -->
+      <section id="genres">
+        <h2>Genres</h2>
+        <div class="entry">
+          <h3>Fantasy</h3>
+          <p>How to tell: If your book has magic, made-up creatures, kingdoms, or anything that doesn’t exist in our world—fantasy. Bonus points if there’s a chosen one.</p>
+        </div>
+        <div class="entry">
+          <h3>Science Fiction (Sci-Fi)</h3>
+          <p>How to tell: If there’s futuristic tech, space travel, AI, or science-based “what if?” concepts, you're in sci-fi territory. If your world obeys fake physics, it's sci-fi.</p>
+        </div>
+        <div class="entry">
+          <h3>Horror</h3>
+          <p>How to tell: If your book is meant to scare, disturb, or creep people out, congrats—it’s horror. Doesn’t need gore, but it helps.</p>
+        </div>
+        <div class="entry">
+          <h3>Mystery</h3>
+          <p>How to tell: If someone dies, disappears, or something shady happens and the whole book is about solving it—it’s mystery. Big clue trails, red herrings, the works.</p>
+        </div>
+        <div class="entry">
+          <h3>Thriller</h3>
+          <p>How to tell: If the book moves fast and the reader’s sweating with tension, it's a thriller. Stakes are high, often life-or-death, and plot drives everything.</p>
+        </div>
+        <div class="entry">
+          <h3>Crime</h3>
+          <p>How to tell: If criminals, law enforcement, or the justice system are front and center, it’s crime fiction. Think heists, detectives, mafias.</p>
+        </div>
+        <div class="entry">
+          <h3>Romance</h3>
+          <p>How to tell: If the love story is the main plot, you’re writing romance. If they don’t kiss by the end, you’re probably writing something else.</p>
+        </div>
+        <div class="entry">
+          <h3>Historical Fiction</h3>
+          <p>How to tell: If your story is set in a real historical time/place and tries to feel accurate to that era (with made-up people), it’s historical fiction.</p>
+        </div>
+        <div class="entry">
+          <h3>Adventure</h3>
+          <p>How to tell: If your characters are constantly on the move, facing danger, and never get a break, you’ve got adventure. Plot = journey.</p>
+        </div>
+        <div class="entry">
+          <h3>Drama</h3>
+          <p>How to tell: If the plot is mostly emotional or interpersonal conflict with little external action, it’s drama. Expect crying or brooding.</p>
+        </div>
+        <div class="entry">
+          <h3>Comedy</h3>
+          <p>How to tell: If your main goal is to make the reader laugh—even if bad stuff happens—it’s comedy. Jokes per page should be high.</p>
+        </div>
+        <div class="entry">
+          <h3>Paranormal</h3>
+          <p>How to tell: If ghosts, psychics, or unexplained supernatural junk are central, but it’s not full-on fantasy—it’s paranormal.</p>
+        </div>
+        <div class="entry">
+          <h3>Western</h3>
+          <p>How to tell: If it’s set in the American frontier with cowboys, outlaws, and saloons, you’re writing a western. Gunslingers or bust.</p>
+        </div>
+        <div class="entry">
+          <h3>Dystopian</h3>
+          <p>How to tell: If society has collapsed or gone full-totalitarian and your characters are stuck surviving or rebelling—it’s dystopian.</p>
+        </div>
+        <div class="entry">
+          <h3>Post-Apocalyptic</h3>
+          <p>How to tell: If the world already ended and people are living in the ruins, scavenging, or dying from disease, you’re post-apocalyptic.</p>
+        </div>
+        <div class="entry">
+          <h3>Coming-of-Age</h3>
+          <p>How to tell: If your character starts young or immature and grows into who they’re meant to be by the end, that’s coming-of-age. Angst is required.</p>
+        </div>
+        <div class="entry">
+          <h3>Satire</h3>
+          <p>How to tell: If your book is mocking society, politics, or culture while pretending to be serious—it’s satire. Sharp wit required.</p>
+        </div>
+        <div class="entry">
+          <h3>Tragedy</h3>
+          <p>How to tell: If everything goes to hell by the end, and someone important dies or loses it all, you’re writing a tragedy. Happy endings not allowed.</p>
+        </div>
+        <div class="entry">
+          <h3>Noir</h3>
+          <p>How to tell: If your world is grimy, cynical, and full of morally grey characters, and the tone is dark and gritty—you’re writing noir. Bonus if it rains a lot.</p>
+        </div>
+        <div class="entry">
+          <h3>Slice of Life</h3>
+          <p>How to tell: If literally nothing major happens but you focus on the beauty, pain, or monotony of everyday life—slice of life. Vibes over plot.</p>
+        </div>
+        <div class="entry">
+          <h3>Urban Fiction</h3>
+          <p>How to tell: If it’s set in a modern inner-city with gritty realism, slang-heavy dialogue, and raw themes—urban fiction.</p>
+        </div>
+        <div class="entry">
+          <h3>Magical Realism</h3>
+          <p>How to tell: If your world is normal but weird magical stuff happens and no one acts like it’s weird—that’s magical realism.</p>
+        </div>
+        <div class="entry">
+          <h3>Cyberpunk</h3>
+          <p>How to tell: If your world is high-tech, full of hackers, dystopian corporations, neon lights, and social decay, welcome to cyberpunk.</p>
+        </div>
+        <div class="entry">
+          <h3>Steampunk</h3>
+          <p>How to tell: If your world is retro-futuristic with gears, steam-powered tech, airships, and Victorian aesthetics, it’s steampunk.</p>
+        </div>
+        <div class="entry">
+          <h3>Psychological</h3>
+          <p>How to tell: If the mind is the battlefield—unreliable narrators, mental breakdowns, and emotional manipulation—it’s psychological fiction.</p>
+        </div>
+        <div class="entry">
+          <h3>Surrealism</h3>
+          <p>How to tell: If your book reads like a fever dream or makes no logical sense on purpose, and you're blending reality and fantasy with symbolism—surrealism.</p>
+        </div>
+        <div class="entry">
+          <h3>Dark Fantasy</h3>
+          <p>How to tell: If it’s fantasy but grim, violent, morally twisted, or disturbing—it’s dark fantasy. Think "Game of Thrones" but darker.</p>
+        </div>
+        <div class="entry">
+          <h3>Gothic</h3>
+          <p>How to tell: If it’s creepy, old, dramatic, and drenched in mood—especially with haunted mansions or decaying aristocrats—it’s gothic.</p>
+        </div>
+        <div class="entry">
+          <h3>Fairy Tale / Mythic</h3>
+          <p>How to tell: If your story has moral lessons, archetypes, talking animals, or magical justice, and feels timeless—it’s mythic or fairy tale-inspired.</p>
+        </div>
+      </section>
+      
+      <!-- Tags Section -->
+      <section id="tags">
+        <h2>Tags</h2>
+        
+        <div class="subsection">
+          <h3>🧠 Concept / Structure Tags</h3>
+          <div class="subentry">
+            <strong>Unreliable Narrator</strong> – The person telling the story is full of it (lying, delusional, or just wrong).
+          </div>
+          <div class="subentry">
+            <strong>Nonlinear Timeline</strong> – The story jumps around in time. Flashbacks, flash-forwards, scrambled scenes.
+          </div>
+          <div class="subentry">
+            <strong>Multiple POVs</strong> – More than one character gets the spotlight. Big for ensemble casts or dual narratives.
+          </div>
+          <div class="subentry">
+            <strong>Epistolary</strong> – Told through letters, emails, journal entries, or texts. You're spying on the characters.
+          </div>
+          <div class="subentry">
+            <strong>Experimental Format</strong> – The structure breaks rules: poetry chunks, mixed media, footnotes, etc.
+          </div>
+          <div class="subentry">
+            <strong>Stream of Consciousness</strong> – The prose is raw thought. No filters, no pause, just brain vomit (in a good way).
+          </div>
+          <div class="subentry">
+            <strong>Vignette-Style</strong> – Short, snapshot scenes loosely strung together. Less plot, more mood.
+          </div>
+          <div class="subentry">
+            <strong>Framed Narrative</strong> – A story within a story. Somebody’s telling the tale from the outside.
+          </div>
+          <div class="subentry">
+            <strong>Open Ending</strong> – No real resolution. Leaves readers wondering, arguing, or crying.
+          </div>
+          <div class="subentry">
+            <strong>Plot Twist Central</strong> – The plot flips at least once hard enough to break necks. Think “WHAT JUST HAPPENED” moments.
+          </div>
+        </div>
+        
+        <div class="subsection">
+          <h3>🌍 World / Setting / Society Tags</h3>
+          <div class="subentry">
+            <strong>Isolated Setting</strong> – Characters are stuck somewhere (island, cabin, ship, apocalypse). No escape, no outside world.
+          </div>
+          <div class="subentry">
+            <strong>Closed Society</strong> – The world has strict rules, hierarchy, or surveillance. Not always dystopia, but always controlling.
+          </div>
+          <div class="subentry">
+            <strong>Utopian on the Surface</strong> – Everything looks perfect… until it isn’t. The cracks are the plot.
+          </div>
+          <div class="subentry">
+            <strong>Timeless Setting</strong> – The story could happen at any time. No phones, no references. Feels mythic or suspended in reality.
+          </div>
+          <div class="subentry">
+            <strong>Alternate History</strong> – History took a turn and now things are different but familiar.
+          </div>
+          <div class="subentry">
+            <strong>Hyper-Realism</strong> – No fantasy, no tech, no flair. Real-life drama cranked to 11.
+          </div>
+          <div class="subentry">
+            <strong>Cultural Deep-Dive</strong> – Explores a specific culture’s traditions, language, or worldview deeply. Not just a setting—it's the soul.
+          </div>
+          <div class="subentry">
+            <strong>Symbolic World</strong> – The world reflects the theme (e.g., decaying house = mental breakdown). Heavy on metaphor.
+          </div>
+        </div>
+        
+        <div class="subsection">
+          <h3>🧍‍♂️ Character-Centric Tags</h3>
+          <div class="subentry">
+            <strong>Morally Grey Protagonist</strong> – Your main character is not a good person. Readers might love or hate them, or both.
+          </div>
+          <div class="subentry">
+            <strong>Antihero Arc</strong> – Starts selfish, stays messy, maybe gets better. Maybe not.
+          </div>
+          <div class="subentry">
+            <strong>Burnout Hero</strong> – The protagonist is tired, done, and dragging themselves forward anyway. Great for gritty stories.
+          </div>
+          <div class="subentry">
+            <strong>Obsessed Character</strong> – A character’s fixated on something or someone. Plot revolves around their obsession.
+          </div>
+          <div class="subentry">
+            <strong>Secret Identity</strong> – Someone’s hiding who they really are. Could be fun, dangerous, or both.
+          </div>
+          <div class="subentry">
+            <strong>Naive Outsider</strong> – The main character is new to the world/setting and doesn’t understand the rules. Forces exposition naturally.
+          </div>
+          <div class="subentry">
+            <strong>Charismatic Villain</strong> – The villain steals every scene. Might outshine the protagonist. Might be the protagonist.
+          </div>
+          <div class="subentry">
+            <strong>Power Struggle</strong> – Between characters. Constant battle for control in relationships, politics, or survival.
+          </div>
+          <div class="subentry">
+            <strong>Internal Conflict Heavy</strong> – Most of the story’s tension comes from inside the character. Less gunfights, more existential crises.
+          </div>
+        </div>
+        
+        <div class="subsection">
+          <h3>🌫️ Tone / Mood Tags</h3>
+          <div class="subentry">
+            <strong>Bittersweet</strong> – Happy and sad at once. Endings hit you in the soul.
+          </div>
+          <div class="subentry">
+            <strong>Melancholic Vibe</strong> – A soft sadness throughout. Not full tragedy, just emotionally heavy.
+          </div>
+          <div class="subentry">
+            <strong>Claustrophobic Atmosphere</strong> – Everything feels tight, tense, or inescapable. Not always horror, but often unnerving.
+          </div>
+          <div class="subentry">
+            <strong>Hopepunk</strong> – Characters fight for good because it’s hard. Emotionally honest, idealistic, raw.
+          </div>
+          <div class="subentry">
+            <strong>Bleak and Brutal</strong> – No sugarcoating. World sucks, people suck, but you're still reading.
+          </div>
+          <div class="subentry">
+            <strong>Dreamlike</strong> – Surreal, floaty, and possibly confusing. Like wandering through a foggy memory.
+          </div>
+          <div class="subentry">
+            <strong>Tense Silence</strong> – Big moments told with restraint. The weight of what isn’t said matters more.
+          </div>
+          <div class="subentry">
+            <strong>Lyrical Prose</strong> – The writing reads like poetry. Not about what happens—about how it's told.
+          </div>
+        </div>
+        
+        <div class="subsection">
+          <h3>🧩 Theme-Driven Tags</h3>
+          <div class="subentry">
+            <strong>Identity Crisis</strong> – The main theme is about discovering who the hell you are, or being torn between selves.
+          </div>
+          <div class="subentry">
+            <strong>Cycle of Violence</strong> – The story explores how violence repeats—through families, systems, or vengeance.
+          </div>
+          <div class="subentry">
+            <strong>Grief as a Character</strong> – Loss shapes everything. It haunts the plot, drives choices, and doesn’t go away.
+          </div>
+          <div class="subentry">
+            <strong>Belonging vs Isolation</strong> – Characters either trying to fit in or break free from what defines them.
+          </div>
+          <div class="subentry">
+            <strong>Power and Corruption</strong> – A rise to power that slowly rots the person from the inside.
+          </div>
+          <div class="subentry">
+            <strong>Memory and Truth</strong> – What actually happened? What do we remember happened? Reality’s bending.
+          </div>
+          <div class="subentry">
+            <strong>Survival at Any Cost</strong> – The story is about what you’ll sacrifice to keep living—morals included.
+          </div>
+        </div>
+        
+        <div class="subsection">
+          <h3>👁️‍🗨️ Other Weird-But-Useful Tags</h3>
+          <div class="subentry">
+            <strong>Quiet Book</strong> – Low on plot, high on reflection. Calm, introspective, slow-paced.
+          </div>
+          <div class="subentry">
+            <strong>Dialogue-Heavy</strong> – People talk a lot. The tension is in the words, not the action.
+          </div>
+          <div class="subentry">
+            <strong>Concept-Driven</strong> – The whole book exists to explore one “what if?” idea. Plot’s just along for the ride.
+          </div>
+          <div class="subentry">
+            <strong>Character Study</strong> – Deep dive into one person’s psyche. Not about what happens—about them.
+          </div>
+          <div class="subentry">
+            <strong>Philosophical</strong> – The book exists to ask big questions. Answers optional.
+          </div>
+          <div class="subentry">
+            <strong>Social Commentary</strong> – The story has things to say about real-world issues, and it's not being subtle.
+          </div>
+          <div class="subentry">
+            <strong>Myth-Inspired</strong> – The story echoes ancient myths, archetypes, or legendary tales in a new skin.
+          </div>
+          <div class="subentry">
+            <strong>Literary Vibes</strong> – Character-driven, rich writing, heavy themes. The “I’m serious fiction” flex.
+          </div>
+        </div>
+        
+      </section>
+      
+    </div>
+  </div>
+</body>
+</html>
