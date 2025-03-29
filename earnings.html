@@ -182,10 +182,10 @@
             </tr>
           </thead>
           <tbody id="storiesTableBody">
-            <!-- Rows will be injected here -->
+            <!-- Rows injected dynamically -->
           </tbody>
         </table>
-        <p id="totalBalance"><strong>Total Balance:</strong> $0</p>
+        <p id="totalBalance"><strong>Total Balance:</strong> $0.00</p>
       </section>
       
       <!-- Cash Out Section -->
@@ -200,56 +200,62 @@
   </div>
   
   <script>
-    // Replace this array with your real published stories data from your backend.
-    // Each story should have a title and the actual number of views.
-    // For example:
-    // const publishedStories = [{ title: "My Real Story", views: 123, payout: 0 }, ...];
+    /******************************************************
+     * IMPORTANT: Replace the publishedStories array below *
+     * with your real published story data from your backend. *
+     * Each story object should have a title and actual view count.
+     ******************************************************/
     const publishedStories = [
-      { title: "My Journey Through Chaos", views: 150, payout: 0 },
-      { title: "Reflections of Reality", views: 90, payout: 0 },
-      { title: "Echoes in Silence", views: 65, payout: 0 },
-      { title: "Breaking the Mold", views: 40, payout: 0 }
+      // Example of real data (remove these examples when integrating):
+      // { title: "A Real Story Title", views: 120, payout: 0 },
+      // { title: "Another Real Story", views: 85, payout: 0 },
     ];
     
-    // Sample revenue parameters (replace these with your real values)
-    const totalRevenue = 1000; // Total monthly revenue
-    const payoutPercentage = 0.20; // 20% of revenue goes to payouts
-    const payoutPool = totalRevenue * payoutPercentage; // e.g., $200
-
-    // Define payout tiers per your logic:
-    // Tier 1: 100+ views, Tier 2: 81-99, Tier 3: 71-80, Tier 4: 61-70, Open Tier: 1-60 views.
+    // For demonstration only: if no real data is provided, show a warning.
+    if (publishedStories.length === 0) {
+      console.warn("No published stories data available. Please integrate your real data.");
+    }
+    
+    // Revenue parameters (replace with your actual values)
+    const totalRevenue = 1000; // Total monthly revenue in dollars
+    const payoutPercentage = 0.20; // e.g., 20% of revenue goes to payouts
+    const payoutPool = totalRevenue * payoutPercentage; // Total payout pool amount
+    
+    // Define payout tiers per your logic with exact view ranges and a 10-story maximum for tiers 1-4.
     const tiers = [
-      { name: "Tier 1", min: 100, max: Infinity, percentage: 0.30, type: "equal" },
-      { name: "Tier 2", min: 81, max: 99, percentage: 0.25, type: "equal" },
-      { name: "Tier 3", min: 71, max: 80, percentage: 0.15, type: "equal" },
-      { name: "Tier 4", min: 61, max: 70, percentage: 0.10, type: "equal" },
+      { name: "Tier 1", min: 91, max: 100, percentage: 0.30, type: "equal", maxStories: 10 },
+      { name: "Tier 2", min: 81, max: 90, percentage: 0.25, type: "equal", maxStories: 10 },
+      { name: "Tier 3", min: 71, max: 80, percentage: 0.15, type: "equal", maxStories: 10 },
+      { name: "Tier 4", min: 61, max: 70, percentage: 0.10, type: "equal", maxStories: 10 },
       { name: "Open Tier", min: 1, max: 60, percentage: 0.20, type: "proportional" }
     ];
-
-    // Initialize payout for all stories
-    publishedStories.forEach(story => {
-      story.payout = 0;
-    });
-
-    // Process each tier and calculate payouts
+    
+    // Initialize payout for all stories to zero
+    publishedStories.forEach(story => { story.payout = 0; });
+    
+    // Process each tier to calculate payouts
     tiers.forEach(tier => {
-      // Get stories that fall into this tier
-      const storiesInTier = publishedStories.filter(story => story.views >= tier.min && story.views <= tier.max);
-      if (storiesInTier.length > 0) {
-        if (tier.type === "equal") {
-          // Equal share for stories in the tier
-          const share = (payoutPool * tier.percentage) / storiesInTier.length;
-          storiesInTier.forEach(story => { story.payout = share; });
-        } else if (tier.type === "proportional") {
-          // Proportional share based on views for Open Tier
-          const totalViewsInTier = storiesInTier.reduce((sum, story) => sum + story.views, 0);
-          storiesInTier.forEach(story => {
-            story.payout = totalViewsInTier > 0 ? (story.views / totalViewsInTier) * (payoutPool * tier.percentage) : 0;
-          });
+      // Filter stories that fall within the tier's view range
+      let storiesInTier = publishedStories.filter(story => story.views >= tier.min && story.views <= tier.max);
+      
+      // For tiers with a maximum number of stories, sort descending by views and take only the top entries.
+      if (tier.type === "equal") {
+        storiesInTier.sort((a, b) => b.views - a.views);
+        if (tier.maxStories && storiesInTier.length > tier.maxStories) {
+          storiesInTier = storiesInTier.slice(0, tier.maxStories);
         }
+        // Equal share among stories in this tier
+        const share = (payoutPool * tier.percentage) / storiesInTier.length;
+        storiesInTier.forEach(story => { story.payout = share; });
+      } else if (tier.type === "proportional") {
+        // For Open Tier, distribute proportionally based on views
+        const totalViewsInTier = storiesInTier.reduce((sum, story) => sum + story.views, 0);
+        storiesInTier.forEach(story => {
+          story.payout = totalViewsInTier > 0 ? (story.views / totalViewsInTier) * (payoutPool * tier.percentage) : 0;
+        });
       }
     });
-
+    
     // Update the earnings table dynamically
     const tbody = document.getElementById("storiesTableBody");
     tbody.innerHTML = "";
@@ -267,7 +273,7 @@
       });
     }
     document.getElementById("totalBalance").innerHTML = `<strong>Total Balance:</strong> $${totalBalance.toFixed(2)}`;
-
+    
     // Cash Out button functionality (beta only)
     document.getElementById("cashOutBtn").addEventListener("click", function() {
       alert("Cash Out functionality is currently in beta. No funds will be exchanged at this time.");
