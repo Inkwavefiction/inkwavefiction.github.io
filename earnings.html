@@ -124,17 +124,6 @@
       border-top: 1px solid var(--border);
       margin: 20px 0;
     }
-    /* Payout Logic Explanation Styling */
-    .payout-logic pre {
-      background: #f8f9fa;
-      padding: 15px;
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      overflow-x: auto;
-      font-size: 0.95rem;
-      line-height: 1.5;
-      margin-bottom: 15px;
-    }
   </style>
 </head>
 <body>
@@ -207,65 +196,28 @@
           Note: This platform is currently in beta testing. No funds will be exchanged until the platform goes live.
         </p>
       </section>
-      
-      <!-- Payout Calculation & Logic Explanation Section -->
-      <section id="payout-logic">
-        <h2>Payout Calculation &amp; Logic</h2>
-        <p>
-          We believe in rewarding storytellers fairly—and that means sharing a meaningful portion of our monthly revenue with the authors who power the platform. Each month, a dedicated payout pool is distributed to stories based on performance, so the more views your story earns, the more you take home. Our tiered system ensures that top-performing stories get the biggest rewards, while even newer or smaller stories still earn based on their readership. As our subscriber base and income grow, so does the size of the payout pool—giving you the chance to earn more every single month. It’s a model built to scale with your success.
-        </p>
-        <h3>Step-by-Step Logic:</h3>
-        <pre>
-1. At end of each month:
-   total_revenue = subscription_revenue + ad_revenue + premium_sales
-   payout_pool = total_revenue * payout_percentage  # e.g. 0.15 or 0.20
-
-2. Sort all stories by views & assign to payout tiers:
-   Tier     Views         Max Stories     % of Pool
-   Tier 1   ≥ 100         10 max          30%
-   Tier 2   81 – 99       10 max          25%
-   Tier 3   71 – 80       10 max          15%
-   Tier 4   61 – 70       10 max          10%
-   Open Tier 1 – 60      Unlimited       20%
-
-3. For each tier (except Open Tier):
-   tier_pool = payout_pool * tier_percentage
-   equal_share = tier_pool / number of stories in tier
-
-4. For Open Tier:
-   open_tier_pool = payout_pool * 0.20
-   Each story’s share = (story.views / total views in Open Tier) * open_tier_pool
-
-5. Output:
-   Return a list of story payouts for distribution.
-        </pre>
-        <p>
-          The tool below uses this logic to calculate your story payouts.
-        </p>
-      </section>
     </div>
   </div>
   
   <script>
-    // IMPORTANT:
     // Replace this array with your real published stories data from your backend.
-    // Each story should have a title and the real number of views.
+    // Each story should have a title and the actual number of views.
+    // For example:
+    // const publishedStories = [{ title: "My Real Story", views: 123, payout: 0 }, ...];
     const publishedStories = [
-      // Example format:
-      // { title: "Real Story Title", views: 0, payout: 0 }
+      { title: "My Journey Through Chaos", views: 150, payout: 0 },
+      { title: "Reflections of Reality", views: 90, payout: 0 },
+      { title: "Echoes in Silence", views: 65, payout: 0 },
+      { title: "Breaking the Mold", views: 40, payout: 0 }
     ];
     
-    // For demonstration, if no real data is provided, we log a warning.
-    if(publishedStories.length === 0){
-      console.warn("No published stories data available. Please replace 'publishedStories' with your real data.");
-    }
-
-    // Sample revenue parameters (replace with your real numbers)
-    const totalRevenue = 1000; // total revenue for the month
+    // Sample revenue parameters (replace these with your real values)
+    const totalRevenue = 1000; // Total monthly revenue
     const payoutPercentage = 0.20; // 20% of revenue goes to payouts
-    const payoutPool = totalRevenue * payoutPercentage; // e.g. $200
+    const payoutPool = totalRevenue * payoutPercentage; // e.g., $200
 
-    // Tier definitions based on your step-by-step logic
+    // Define payout tiers per your logic:
+    // Tier 1: 100+ views, Tier 2: 81-99, Tier 3: 71-80, Tier 4: 61-70, Open Tier: 1-60 views.
     const tiers = [
       { name: "Tier 1", min: 100, max: Infinity, percentage: 0.30, type: "equal" },
       { name: "Tier 2", min: 81, max: 99, percentage: 0.25, type: "equal" },
@@ -281,15 +233,15 @@
 
     // Process each tier and calculate payouts
     tiers.forEach(tier => {
-      // Filter stories that qualify for this tier
+      // Get stories that fall into this tier
       const storiesInTier = publishedStories.filter(story => story.views >= tier.min && story.views <= tier.max);
-      if(storiesInTier.length > 0){
-        if(tier.type === "equal"){
-          // Divide the tier pool equally among stories in the tier
+      if (storiesInTier.length > 0) {
+        if (tier.type === "equal") {
+          // Equal share for stories in the tier
           const share = (payoutPool * tier.percentage) / storiesInTier.length;
           storiesInTier.forEach(story => { story.payout = share; });
-        } else if(tier.type === "proportional"){
-          // Distribute proportionally based on views
+        } else if (tier.type === "proportional") {
+          // Proportional share based on views for Open Tier
           const totalViewsInTier = storiesInTier.reduce((sum, story) => sum + story.views, 0);
           storiesInTier.forEach(story => {
             story.payout = totalViewsInTier > 0 ? (story.views / totalViewsInTier) * (payoutPool * tier.percentage) : 0;
@@ -300,21 +252,25 @@
 
     // Update the earnings table dynamically
     const tbody = document.getElementById("storiesTableBody");
-    tbody.innerHTML = ""; // Clear any existing rows
+    tbody.innerHTML = "";
     let totalBalance = 0;
-    publishedStories.forEach(story => {
-      totalBalance += story.payout;
-      const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${story.title}</td>
-                      <td>${story.views}</td>
-                      <td>$${story.payout.toFixed(2)}</td>`;
-      tbody.appendChild(tr);
-    });
+    if (publishedStories.length === 0) {
+      tbody.innerHTML = "<tr><td colspan='3'>No published stories found.</td></tr>";
+    } else {
+      publishedStories.forEach(story => {
+        totalBalance += story.payout;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${story.title}</td>
+                        <td>${story.views}</td>
+                        <td>$${story.payout.toFixed(2)}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
     document.getElementById("totalBalance").innerHTML = `<strong>Total Balance:</strong> $${totalBalance.toFixed(2)}`;
 
     // Cash Out button functionality (beta only)
-    document.getElementById('cashOutBtn').addEventListener('click', function() {
-      alert('Cash Out functionality is currently in beta. No funds will be exchanged at this time.');
+    document.getElementById("cashOutBtn").addEventListener("click", function() {
+      alert("Cash Out functionality is currently in beta. No funds will be exchanged at this time.");
     });
   </script>
 </body>
