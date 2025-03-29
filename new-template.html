@@ -24,8 +24,6 @@
       background-color: var(--bg);
       color: var(--text);
       display: flex;
-      height: 100vh;
-      overflow: hidden;
     }
 
     .sidebar {
@@ -33,8 +31,9 @@
       background: #111;
       color: #fff;
       padding: 2rem 1.5rem;
+      height: 100vh;
+      position: fixed;
       overflow-y: auto;
-      flex-shrink: 0;
     }
 
     .sidebar h2 {
@@ -71,9 +70,9 @@
     }
 
     .main {
-      flex: 1;
+      margin-left: 300px;
       padding: 2.5rem;
-      overflow-y: auto;
+      flex: 1;
     }
 
     .header {
@@ -112,7 +111,6 @@
       text-decoration: none;
       color: inherit;
       transition: background 0.3s, box-shadow 0.3s;
-      cursor: pointer;
     }
 
     .tab-link:hover {
@@ -167,12 +165,6 @@
       background-color: #7aa7d1;
     }
 
-    .btn-row {
-      display: flex;
-      gap: 1rem;
-      margin-top: 2rem;
-    }
-
     .message {
       margin-top: 1rem;
       font-weight: 500;
@@ -180,6 +172,13 @@
 
     .error { color: red; }
     .success { color: green; }
+
+    .warning {
+      margin-top: 1rem;
+      color: #c0392b;
+      font-size: 0.95rem;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>
@@ -223,7 +222,7 @@
   <!-- Main -->
   <div class="main">
     <div class="header">
-      <h1>New Template</h1>
+      <h1>Create New Template</h1>
       <p>Paste your copied template here!</p>
     </div>
 
@@ -240,10 +239,9 @@
       <label for="templateContent">Content</label>
       <textarea id="templateContent" placeholder="Paste the full template content here..."></textarea>
 
-      <div class="btn-row">
-        <button class="btn" onclick="saveTemplate('editable')">✏️ Save & Continue Editing</button>
-        <button class="btn" onclick="saveTemplate('final')">✅ Save Permanently</button>
-      </div>
+      <p class="warning">⚠️ Once saved, templates are finalized and cannot be edited.</p>
+
+      <button class="btn" onclick="saveTemplate()">✅ Save Template</button>
 
       <div class="message" id="saveMessage"></div>
     </div>
@@ -266,17 +264,14 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
+
     let currentUser = null;
 
     auth.onAuthStateChanged(user => {
       if (user) currentUser = user;
-      else {
-        document.getElementById("saveMessage").textContent = "You must be logged in.";
-        document.getElementById("saveMessage").className = "message error";
-      }
     });
 
-    function saveTemplate(status) {
+    function saveTemplate() {
       const title = document.getElementById("templateTitle").value.trim();
       const content = document.getElementById("templateContent").value.trim();
       const messageDiv = document.getElementById("saveMessage");
@@ -288,7 +283,7 @@
       }
 
       if (!currentUser) {
-        messageDiv.textContent = "User not authenticated.";
+        messageDiv.textContent = "You must be logged in.";
         messageDiv.className = "message error";
         return;
       }
@@ -299,8 +294,8 @@
         .add({
           title,
           content,
-          status,
           type: "custom",
+          status: "final",
           createdAt: firebase.firestore.FieldValue.serverTimestamp()
         })
         .then(() => {
