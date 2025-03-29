@@ -1,3 +1,4 @@
+<!-- This is the new-template.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,8 +16,6 @@
       --border: #e0e0e0;
       --container-bg: #ffffff;
     }
-
-    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Poppins', sans-serif;
@@ -43,7 +42,6 @@
     }
 
     .section { margin-bottom: 2rem; }
-
     .section-title {
       font-size: 0.8rem;
       text-transform: uppercase;
@@ -94,13 +92,6 @@
       margin-top: 10px;
     }
 
-    .container {
-      background: var(--container-bg);
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-
     .tabs {
       display: flex;
       flex-wrap: wrap;
@@ -133,6 +124,13 @@
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
     }
 
+    .container {
+      background: var(--container-bg);
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
     label {
       font-weight: 600;
       display: block;
@@ -154,7 +152,7 @@
     }
 
     .btn {
-      margin-top: 2rem;
+      margin-top: 1.5rem;
       background-color: var(--accent);
       color: white;
       padding: 0.8rem 1.5rem;
@@ -166,6 +164,12 @@
 
     .btn:hover {
       background-color: #7aa7d1;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 1rem;
+      margin-top: 2rem;
     }
 
     .message {
@@ -182,13 +186,11 @@
   <!-- Sidebar -->
   <div class="sidebar">
     <h2>Inkwave</h2>
-
     <div class="section">
       <div class="section-title">Core</div>
       <a href="author-dashboard.html" class="nav-link">🏠 Dashboard</a>
       <a href="404.html" class="nav-link">💰 Earnings</a>
     </div>
-
     <div class="section">
       <div class="section-title">Writing Tools</div>
       <a href="blurb-generator.html" class="nav-link">🧠 Blurb Generator</a>
@@ -197,7 +199,6 @@
       <a href="404.html" class="nav-link">🎛 Formatting Tools</a>
       <a href="404.html" class="nav-link">🏷️ Genre & Tags</a>
     </div>
-
     <div class="section">
       <div class="section-title">Testing & Feedback</div>
       <a href="404.html" class="nav-link">🧪 A/B Testing</a>
@@ -205,14 +206,12 @@
       <a href="404.html" class="nav-link">👥 Critique Exchange</a>
       <a href="404.html" class="nav-link">📢 Pitch to Readers</a>
     </div>
-
     <div class="section">
       <div class="section-title">Publishing</div>
       <a href="404.html" class="nav-link">✅ Checklist</a>
       <a href="404.html" class="nav-link">🖼️ Cover Generator</a>
       <a href="404.html" class="nav-link">📱 Mobile Mode</a>
     </div>
-
     <div class="section">
       <div class="section-title">Productivity</div>
       <a href="404.html" class="nav-link">🤖 Inky Assistant</a>
@@ -220,7 +219,7 @@
     </div>
   </div>
 
-  <!-- Main Content -->
+  <!-- Main -->
   <div class="main">
     <div class="header">
       <h1>New Template</h1>
@@ -240,7 +239,11 @@
       <label for="templateContent">Content</label>
       <textarea id="templateContent" placeholder="Paste the full template content here..."></textarea>
 
-      <button class="btn" onclick="saveTemplate()">Save Template</button>
+      <div class="btn-row">
+        <button class="btn" onclick="saveTemplate('editable')">✏️ Save & Continue Editing</button>
+        <button class="btn" onclick="saveTemplate('final')">✅ Save Permanently</button>
+      </div>
+
       <div class="message" id="saveMessage"></div>
     </div>
   </div>
@@ -249,7 +252,6 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
@@ -259,11 +261,12 @@
       messagingSenderId: "1084811926133",
       appId: "1:1084811926133:web:auto-generated"
     };
+
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    function saveTemplate() {
+    function saveTemplate(status) {
       const title = document.getElementById("templateTitle").value.trim();
       const content = document.getElementById("templateContent").value.trim();
       const messageDiv = document.getElementById("saveMessage");
@@ -285,20 +288,21 @@
           .doc(user.uid)
           .collection("templates")
           .add({
-            title: title,
-            content: content,
+            title,
+            content,
+            status,
             type: "custom",
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           })
           .then(() => {
-            messageDiv.textContent = "✅ Template successfully added!";
+            messageDiv.textContent = "✅ Template saved!";
             messageDiv.className = "message success";
             document.getElementById("templateTitle").value = "";
             document.getElementById("templateContent").value = "";
           })
           .catch(err => {
             console.error("Error saving:", err);
-            messageDiv.textContent = "Something went wrong.";
+            messageDiv.textContent = "Failed to save.";
             messageDiv.className = "message error";
           });
       });
