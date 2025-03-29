@@ -3,39 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Create New Template – Inkwave</title>
+  <title>New Template – Inkwave</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      background: #f5f7f6;
+      background-color: #f5f7f6;
       color: #1e1e1e;
-      margin: 0;
       padding: 2rem;
     }
     .container {
-      max-width: 800px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 8px;
+      max-width: 700px;
+      margin: auto;
+      background: #fff;
       padding: 2rem;
+      border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
     h1 {
       font-family: 'Playfair Display', serif;
-      font-size: 2.5rem;
+      font-size: 2.2rem;
       margin-bottom: 1rem;
     }
     label {
       font-weight: 600;
-      margin-top: 1rem;
       display: block;
+      margin-top: 1.5rem;
     }
-    input[type="text"], textarea {
+    input, textarea {
       width: 100%;
-      padding: 1rem;
-      margin-top: 0.5rem;
+      padding: 0.8rem;
       font-size: 1rem;
+      margin-top: 0.5rem;
       border: 1px solid #ccc;
       border-radius: 4px;
     }
@@ -44,13 +43,13 @@
       resize: vertical;
     }
     .btn {
-      margin-top: 1.5rem;
+      margin-top: 2rem;
       background-color: #789a91;
-      color: white;
-      border: none;
+      color: #fff;
       padding: 0.8rem 1.5rem;
-      border-radius: 4px;
       font-size: 1rem;
+      border: none;
+      border-radius: 4px;
       cursor: pointer;
     }
     .btn:hover {
@@ -59,25 +58,29 @@
     .message {
       margin-top: 1rem;
       font-weight: 500;
+      color: green;
+    }
+    .error {
+      color: red;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Create a New Template</h1>
-    <p style="margin-bottom: 1rem; color: #555;">Paste your copied template here to start customizing it as a draft!</p>
+    <h1>Create New Template</h1>
+    <p style="color:#555;">Paste your copied template here!</p>
 
-    <label for="templateTitle">Template Title</label>
-    <input type="text" id="templateTitle" placeholder="Enter a title..." />
+    <label for="templateTitle">Title</label>
+    <input type="text" id="templateTitle" placeholder="Template title..." />
 
-    <label for="templateContent">Template Content</label>
-    <textarea id="templateContent" placeholder="Paste your template content here..."></textarea>
+    <label for="templateContent">Content</label>
+    <textarea id="templateContent" placeholder="Paste the full template content here..."></textarea>
 
-    <button class="btn" onclick="saveTemplate()">Save & Open Editor</button>
+    <button class="btn" onclick="saveTemplate()">Save Template</button>
     <div class="message" id="saveMessage"></div>
   </div>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -91,7 +94,6 @@
       messagingSenderId: "1084811926133",
       appId: "1:1084811926133:web:auto-generated"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
     const auth = firebase.auth();
@@ -99,42 +101,40 @@
     function saveTemplate() {
       const title = document.getElementById("templateTitle").value.trim();
       const content = document.getElementById("templateContent").value.trim();
-      const message = document.getElementById("saveMessage");
+      const messageDiv = document.getElementById("saveMessage");
 
       if (!title || !content) {
-        message.style.color = "red";
-        message.textContent = "Please enter a title and template content.";
+        messageDiv.textContent = "Please fill out both fields.";
+        messageDiv.className = "message error";
         return;
       }
 
       auth.onAuthStateChanged(user => {
         if (!user) {
-          message.style.color = "red";
-          message.textContent = "You must be logged in to save a template.";
+          messageDiv.textContent = "You must be logged in.";
+          messageDiv.className = "message error";
           return;
         }
 
-        const storyId = "template-" + Date.now();
-        const storyData = {
-          title: title,
-          status: "draft",
-          sections: {
-            "Template": {
-              content: `<pre>${content}</pre>`
-            }
-          }
-        };
-
-        db.collection("users").doc(user.uid).collection("stories").doc(storyId)
-          .set(storyData)
+        db.collection("users")
+          .doc(user.uid)
+          .collection("templates")
+          .add({
+            title: title,
+            content: content,
+            type: "custom",
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+          })
           .then(() => {
-            localStorage.setItem("currentStoryId", storyId);
-            window.location.href = "new-story.html";
+            messageDiv.textContent = "✅ Template successfully added!";
+            messageDiv.className = "message";
+            document.getElementById("templateTitle").value = "";
+            document.getElementById("templateContent").value = "";
           })
           .catch(err => {
-            console.error("Error saving template:", err);
-            message.style.color = "red";
-            message.textContent = "Failed to save the template.";
+            console.error("Error saving:", err);
+            messageDiv.textContent = "Something went wrong.";
+            messageDiv.className = "message error";
           });
       });
     }
