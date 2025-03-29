@@ -10,7 +10,7 @@
       --bg: #f5f8f7;
       --text: #1e1e1e;
       --muted: #6a6a6a;
-      --accent: #4f8dc0; /* New accent for financial dashboard */
+      --accent: #4f8dc0; /* Accent color for financial dashboard */
       --white: #ffffff;
       --border: #e0e0e0;
       --sidebar-bg: #111;
@@ -151,7 +151,7 @@
       border-top: 1px solid var(--border);
       margin: 20px 0;
     }
-    /* Payout Calculation & Logic */
+    /* Payout Logic Explanation Styling */
     .payout-logic pre {
       background: #f8f9fa;
       padding: 15px;
@@ -161,14 +161,6 @@
       font-size: 0.95rem;
       line-height: 1.5;
       margin-bottom: 15px;
-    }
-    .dev-handoff {
-      background: #e9edf1;
-      border-left: 4px solid var(--accent);
-      padding: 15px;
-      margin-top: 20px;
-      font-size: 0.95rem;
-      color: var(--text);
     }
   </style>
 </head>
@@ -227,26 +219,11 @@
               <th>Earnings</th>
             </tr>
           </thead>
-          <tbody>
-            <!-- Real stories with view counts (even if zero) -->
-            <tr>
-              <td>The Midnight Muse</td>
-              <td>120</td>
-              <td>$320</td>
-            </tr>
-            <tr>
-              <td>Echoes of Tomorrow</td>
-              <td>85</td>
-              <td>$250</td>
-            </tr>
-            <tr>
-              <td>Silent Whispers</td>
-              <td>0</td>
-              <td>$0</td>
-            </tr>
+          <tbody id="storiesTableBody">
+            <!-- Rows will be injected here -->
           </tbody>
         </table>
-        <p><strong>Total Balance:</strong> $570</p>
+        <p id="totalBalance"><strong>Total Balance:</strong> $0</p>
       </section>
       
       <!-- Cash Out Section -->
@@ -258,7 +235,7 @@
         </p>
       </section>
       
-      <!-- Payout Calculation & Logic Section -->
+      <!-- Payout Calculation Explanation Section -->
       <section id="payout-logic">
         <h2>Payout Calculation &amp; Logic</h2>
         <p>
@@ -271,35 +248,88 @@
    payout_pool = total_revenue * payout_percentage  # e.g. 0.15 or 0.20
 
 2. Sort all stories by views & assign to payout tiers:
-   Tier     Views     Max Stories     % of Pool
-   Tier 1   100–91    10 max          30%
-   Tier 2   90–81     10 max          25%
-   Tier 3   80–71     10 max          15%
-   Tier 4   70–61     10 max          10%
-   Open Tier 60–1    Unlimited       20%
+   Tier     Views         Max Stories     % of Pool
+   Tier 1   ≥ 100         10 max          30%
+   Tier 2   81 – 99       10 max          25%
+   Tier 3   71 – 80       10 max          15%
+   Tier 4   61 – 70       10 max          10%
+   Open Tier 1 – 60      Unlimited       20%
 
-3. For each tier:
+3. For each tier (except Open Tier):
    tier_pool = payout_pool * tier_percentage
-   stories_in_tier = [stories that qualify and rank in top N slots]
-   equal_share = tier_pool / len(stories_in_tier)
+   equal_share = tier_pool / number of stories in tier
 
-4. For Open Tier (1–60 views):
+4. For Open Tier:
    open_tier_pool = payout_pool * 0.20
-   total_views = sum([story.views for story in open_tier])
-   for story in open_tier:
-       story_share = (story.views / total_views) * open_tier_pool
+   Each story’s share = (story.views / total views in Open Tier) * open_tier_pool
 
 5. Output:
    Return a list of story payouts for distribution.
         </pre>
-        <div class="dev-handoff">
-          Would you like this in a downloadable dev handoff doc (PDF or Notion format), or should I help you build a simple tool for tracking this monthly?
-        </div>
+        <p>
+          The tool below uses this logic to calculate your story payouts.
+        </p>
       </section>
     </div>
   </div>
   
   <script>
+    // Sample parameters (you can later pull these from your backend)
+    const totalRevenue = 1000; // Sample total revenue for the month
+    const payoutPercentage = 0.20; // e.g. 20%
+    const payoutPool = totalRevenue * payoutPercentage; // $200
+
+    // Tier definitions
+    // (For demonstration, we adjust Tier 1 to include any story with 100 or more views)
+    const tiers = [
+      { name: "Tier 1", min: 100, max: Infinity, percentage: 0.30, type: "equal" },
+      { name: "Tier 2", min: 81, max: 99, percentage: 0.25, type: "equal" },
+      { name: "Tier 3", min: 71, max: 80, percentage: 0.15, type: "equal" },
+      { name: "Tier 4", min: 61, max: 70, percentage: 0.10, type: "equal" },
+      { name: "Open Tier", min: 1, max: 60, percentage: 0.20, type: "proportional" }
+    ];
+
+    // Real stories with view counts
+    const stories = [
+      { title: "The Midnight Muse", views: 120, payout: 0 },
+      { title: "Echoes of Tomorrow", views: 85, payout: 0 },
+      { title: "Silent Whispers", views: 0, payout: 0 }
+    ];
+
+    // Process each tier
+    tiers.forEach(tier => {
+      // Filter stories that qualify for the tier
+      const storiesInTier = stories.filter(story => story.views >= tier.min && story.views <= tier.max);
+      if(storiesInTier.length > 0){
+        if(tier.type === "equal"){
+          const share = (payoutPool * tier.percentage) / storiesInTier.length;
+          storiesInTier.forEach(story => { story.payout = share; });
+        } else if(tier.type === "proportional"){
+          const totalViewsInTier = storiesInTier.reduce((sum, story) => sum + story.views, 0);
+          storiesInTier.forEach(story => {
+            // Avoid division by zero
+            story.payout = totalViewsInTier > 0 ? (story.views / totalViewsInTier) * (payoutPool * tier.percentage) : 0;
+          });
+        }
+      }
+    });
+
+    // For stories that don't meet any tier criteria (e.g., 0 views), payout remains 0.
+
+    // Update the earnings table dynamically
+    const tbody = document.getElementById("storiesTableBody");
+    tbody.innerHTML = ""; // Clear any existing rows
+    let totalBalance = 0;
+    stories.forEach(story => {
+      totalBalance += story.payout;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${story.title}</td>
+                      <td>${story.views}</td>
+                      <td>$${story.payout.toFixed(2)}</td>`;
+      tbody.appendChild(tr);
+    });
+    document.getElementById("totalBalance").innerHTML = `<strong>Total Balance:</strong> $${totalBalance.toFixed(2)}`;
+
     // Cash Out button functionality (beta only)
     document.getElementById('cashOutBtn').addEventListener('click', function() {
       alert('Cash Out functionality is currently in beta. No funds will be exchanged at this time.');
