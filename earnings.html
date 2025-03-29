@@ -83,6 +83,12 @@
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
+    /* Overview Paragraph */
+    #overview p {
+      font-size: 1rem;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
     /* Earnings Table */
     table {
       width: 100%;
@@ -170,6 +176,11 @@
       <p>Your Earnings and Payouts</p>
     </div>
     <div class="container">
+      <!-- Overview Paragraph -->
+      <section id="overview">
+        <p>We believe in rewarding storytellers fairly—and that means sharing a meaningful portion of our monthly revenue with the authors who power the platform. Each month, a dedicated payout pool is distributed to stories based on performance, so the more views your story earns, the more you take home. Our tiered system ensures that top-performing stories get the biggest rewards, while even newer or smaller stories still earn based on their readership. As our subscriber base and income grow, so does the size of the payout pool—giving you the chance to earn more every single month. It’s a model built to scale with your success.</p>
+      </section>
+      
       <!-- Earnings Summary Section -->
       <section id="earnings-summary">
         <h2>Your Earnings</h2>
@@ -199,80 +210,107 @@
     </div>
   </div>
   
-  <script>
-    /******************************************************
-     * IMPORTANT: Replace the publishedStories array below *
-     * with your real published story data from your backend. *
-     * Each story object should have a title and actual view count.
-     ******************************************************/
-    const publishedStories = [
-      // Example of real data (remove these examples when integrating):
-      // { title: "A Real Story Title", views: 120, payout: 0 },
-      // { title: "Another Real Story", views: 85, payout: 0 },
-    ];
+  <!-- Firebase & Dashboard Script -->
+  <script type="module">
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
     
-    // For demonstration only: if no real data is provided, show a warning.
-    if (publishedStories.length === 0) {
-      console.warn("No published stories data available. Please integrate your real data.");
+    // Firebase configuration (update if necessary)
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0",
+      storageBucket: "inkwave-549c0.appspot.com",
+      messagingSenderId: "1084811926133",
+      appId: "1:1084811926133:web:dummyAppId"  // Replace dummyAppId with your real App ID if available
+    };
+    
+    // Initialize Firebase and Firestore
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    
+    // Fetch published stories from Firestore (collection "publishedStories")
+    async function loadPublishedStories() {
+      const stories = [];
+      try {
+        const querySnapshot = await getDocs(collection(db, "publishedStories"));
+        querySnapshot.forEach(doc => {
+          const data = doc.data();
+          // Ensure your Firestore documents have "title" and "views" fields
+          stories.push({ title: data.title, views: data.views, payout: 0 });
+        });
+      } catch (error) {
+        console.error("Error fetching stories:", error);
+      }
+      return stories;
     }
     
-    // Revenue parameters (replace with your actual values)
-    const totalRevenue = 1000; // Total monthly revenue in dollars
-    const payoutPercentage = 0.20; // e.g., 20% of revenue goes to payouts
-    const payoutPool = totalRevenue * payoutPercentage; // Total payout pool amount
-    
-    // Define payout tiers per your logic with exact view ranges and a 10-story maximum for tiers 1-4.
-    const tiers = [
-      { name: "Tier 1", min: 91, max: 100, percentage: 0.30, type: "equal", maxStories: 10 },
-      { name: "Tier 2", min: 81, max: 90, percentage: 0.25, type: "equal", maxStories: 10 },
-      { name: "Tier 3", min: 71, max: 80, percentage: 0.15, type: "equal", maxStories: 10 },
-      { name: "Tier 4", min: 61, max: 70, percentage: 0.10, type: "equal", maxStories: 10 },
-      { name: "Open Tier", min: 1, max: 60, percentage: 0.20, type: "proportional" }
-    ];
-    
-    // Initialize payout for all stories to zero
-    publishedStories.forEach(story => { story.payout = 0; });
-    
-    // Process each tier to calculate payouts
-    tiers.forEach(tier => {
-      // Filter stories that fall within the tier's view range
-      let storiesInTier = publishedStories.filter(story => story.views >= tier.min && story.views <= tier.max);
+    // Update the dashboard using your tier logic
+    async function updateDashboard() {
+      const publishedStories = await loadPublishedStories();
       
-      // For tiers with a maximum number of stories, sort descending by views and take only the top entries.
-      if (tier.type === "equal") {
-        storiesInTier.sort((a, b) => b.views - a.views);
-        if (tier.maxStories && storiesInTier.length > tier.maxStories) {
-          storiesInTier = storiesInTier.slice(0, tier.maxStories);
+      // Revenue parameters (replace these with your real data)
+      const totalRevenue = 1000; // Example: $1000 total monthly revenue
+      const payoutPercentage = 0.20; // 20% of revenue allocated for payouts
+      const payoutPool = totalRevenue * payoutPercentage;
+      
+      // Define payout tiers:
+      // - Tier 1: Stories with >=100 views (max 10 stories) receive 30% of the payout pool equally.
+      // - Tier 2: Stories with 81–99 views (max 10 stories) receive 25% equally.
+      // - Tier 3: Stories with 71–80 views (max 10 stories) receive 15% equally.
+      // - Tier 4: Stories with 61–70 views (max 10 stories) receive 10% equally.
+      // - Open Tier: Stories with 1–60 views receive 20% proportionally.
+      const tiers = [
+        { name: "Tier 1", min: 100, max: Infinity, percentage: 0.30, type: "equal", maxStories: 10 },
+        { name: "Tier 2", min: 81, max: 99, percentage: 0.25, type: "equal", maxStories: 10 },
+        { name: "Tier 3", min: 71, max: 80, percentage: 0.15, type: "equal", maxStories: 10 },
+        { name: "Tier 4", min: 61, max: 70, percentage: 0.10, type: "equal", maxStories: 10 },
+        { name: "Open Tier", min: 1, max: 60, percentage: 0.20, type: "proportional" }
+      ];
+      
+      // Initialize payouts
+      publishedStories.forEach(story => { story.payout = 0; });
+      
+      // Process each tier and compute payouts
+      tiers.forEach(tier => {
+        let storiesInTier = publishedStories.filter(story => story.views >= tier.min && story.views <= tier.max);
+        if (tier.type === "equal" && storiesInTier.length > 0) {
+          // Sort by views descending and limit to maxStories if applicable
+          storiesInTier.sort((a, b) => b.views - a.views);
+          if (tier.maxStories && storiesInTier.length > tier.maxStories) {
+            storiesInTier = storiesInTier.slice(0, tier.maxStories);
+          }
+          const share = (payoutPool * tier.percentage) / storiesInTier.length;
+          storiesInTier.forEach(story => { story.payout = share; });
+        } else if (tier.type === "proportional" && storiesInTier.length > 0) {
+          const totalViewsInTier = storiesInTier.reduce((sum, story) => sum + story.views, 0);
+          storiesInTier.forEach(story => {
+            story.payout = totalViewsInTier > 0 ? (story.views / totalViewsInTier) * (payoutPool * tier.percentage) : 0;
+          });
         }
-        // Equal share among stories in this tier
-        const share = (payoutPool * tier.percentage) / storiesInTier.length;
-        storiesInTier.forEach(story => { story.payout = share; });
-      } else if (tier.type === "proportional") {
-        // For Open Tier, distribute proportionally based on views
-        const totalViewsInTier = storiesInTier.reduce((sum, story) => sum + story.views, 0);
-        storiesInTier.forEach(story => {
-          story.payout = totalViewsInTier > 0 ? (story.views / totalViewsInTier) * (payoutPool * tier.percentage) : 0;
+      });
+      
+      // Update the earnings table dynamically
+      const tbody = document.getElementById("storiesTableBody");
+      tbody.innerHTML = "";
+      let totalBalance = 0;
+      if (publishedStories.length === 0) {
+        tbody.innerHTML = "<tr><td colspan='3'>No published stories found.</td></tr>";
+      } else {
+        publishedStories.forEach(story => {
+          totalBalance += story.payout;
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${story.title}</td>
+                          <td>${story.views}</td>
+                          <td>$${story.payout.toFixed(2)}</td>`;
+          tbody.appendChild(tr);
         });
       }
-    });
-    
-    // Update the earnings table dynamically
-    const tbody = document.getElementById("storiesTableBody");
-    tbody.innerHTML = "";
-    let totalBalance = 0;
-    if (publishedStories.length === 0) {
-      tbody.innerHTML = "<tr><td colspan='3'>No published stories found.</td></tr>";
-    } else {
-      publishedStories.forEach(story => {
-        totalBalance += story.payout;
-        const tr = document.createElement("tr");
-        tr.innerHTML = `<td>${story.title}</td>
-                        <td>${story.views}</td>
-                        <td>$${story.payout.toFixed(2)}</td>`;
-        tbody.appendChild(tr);
-      });
+      document.getElementById("totalBalance").innerHTML = `<strong>Total Balance:</strong> $${totalBalance.toFixed(2)}`;
     }
-    document.getElementById("totalBalance").innerHTML = `<strong>Total Balance:</strong> $${totalBalance.toFixed(2)}`;
+    
+    updateDashboard();
     
     // Cash Out button functionality (beta only)
     document.getElementById("cashOutBtn").addEventListener("click", function() {
