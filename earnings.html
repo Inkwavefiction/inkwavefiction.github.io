@@ -114,7 +114,7 @@
       background: var(--accent);
       color: var(--white);
     }
-    /* Sections */
+    /* Section Headings */
     section {
       margin-bottom: 2rem;
     }
@@ -151,27 +151,24 @@
       border-top: 1px solid var(--border);
       margin: 20px 0;
     }
-    /* Business Plan Tables */
-    .plan-table {
-      width: 100%;
-      border-collapse: collapse;
+    /* Payout Calculation & Logic */
+    .payout-logic pre {
+      background: #f8f9fa;
+      padding: 15px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      overflow-x: auto;
+      font-size: 0.95rem;
+      line-height: 1.5;
       margin-bottom: 15px;
     }
-    .plan-table, .plan-table th, .plan-table td {
-      border: 1px solid var(--border);
-    }
-    .plan-table th, .plan-table td {
-      padding: 8px;
-      text-align: left;
-    }
-    .plan-table th {
-      background: var(--accent);
-      color: var(--white);
-    }
-    ul {
-      margin-left: 20px;
-      list-style-type: disc;
-      margin-bottom: 10px;
+    .dev-handoff {
+      background: #e9edf1;
+      border-left: 4px solid var(--accent);
+      padding: 15px;
+      margin-top: 20px;
+      font-size: 0.95rem;
+      color: var(--text);
     }
   </style>
 </head>
@@ -231,24 +228,25 @@
             </tr>
           </thead>
           <tbody>
+            <!-- Real stories with view counts (even if zero) -->
             <tr>
-              <td>Story 1</td>
-              <td>10,000</td>
-              <td>$500</td>
+              <td>The Midnight Muse</td>
+              <td>120</td>
+              <td>$320</td>
             </tr>
             <tr>
-              <td>Story 2</td>
-              <td>5,000</td>
-              <td>$200</td>
+              <td>Echoes of Tomorrow</td>
+              <td>85</td>
+              <td>$250</td>
             </tr>
             <tr>
-              <td>Story 3</td>
-              <td>2,000</td>
-              <td>$50</td>
+              <td>Silent Whispers</td>
+              <td>0</td>
+              <td>$0</td>
             </tr>
           </tbody>
         </table>
-        <p><strong>Total Balance:</strong> $750</p>
+        <p><strong>Total Balance:</strong> $570</p>
       </section>
       
       <!-- Cash Out Section -->
@@ -260,199 +258,47 @@
         </p>
       </section>
       
-      <!-- Financial Roadmap / Business Plan Section -->
-      <section id="financial-roadmap">
-        <h2>Fiction Subscription Platform: Business Plan &amp; Financial Roadmap</h2>
-        
-        <h3>Overview</h3>
-        <ul>
-          <li><strong>Business Model:</strong> Subscription-based fiction platform where readers pay monthly, and authors earn based on story views.</li>
-          <li><strong>Revenue Streams:</strong>
-            <ul>
-              <li>📌 Reader subscriptions ($5/month)</li>
-              <li>📌 Ad revenue from views</li>
-              <li>📌 Premium story sales (optional)</li>
-              <li>📌 Paid author tools (promotions, analytics, AI editing)</li>
-            </ul>
-          </li>
-        </ul>
-        <hr>
-        
-        <h3>1️⃣ Growth &amp; Revenue Strategy</h3>
-        <h4>📈 Tiered Author Payout System (Auto-Adjusting)</h4>
-        <table class="plan-table">
-          <thead>
-            <tr>
-              <th>Story Tier</th>
-              <th>Views Required</th>
-              <th>Payout Per Story</th>
-              <th>How It Adjusts</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Top Tier</td>
-              <td>(Avg. Story Views × 2.5)</td>
-              <td>$500 - $1,000</td>
-              <td>Adjusts as average story performance improves.</td>
-            </tr>
-            <tr>
-              <td>Middle Tier</td>
-              <td>(Top Tier ÷ 2)</td>
-              <td>$200 - $500</td>
-              <td>Increases as traffic grows.</td>
-            </tr>
-            <tr>
-              <td>Low Tier</td>
-              <td>(Middle Tier ÷ 5)</td>
-              <td>$50 - $100</td>
-              <td>Ensures engagement-based earnings.</td>
-            </tr>
-            <tr>
-              <td>Tiny Tier</td>
-              <td>1 - 999 views</td>
-              <td>$1 per story</td>
-              <td>Maintains fairness for low-read stories.</td>
-            </tr>
-          </tbody>
-        </table>
-        <p><strong>Formula:</strong></p>
-        <ul>
-          <li>New Top Tier Views = (Average Views Per Story) × 2.5</li>
-          <li>Middle Tier = (Top Tier ÷ 2)</li>
-          <li>Low Tier = (Middle Tier ÷ 5)</li>
-        </ul>
-        <hr>
-        
-        <h3>2️⃣ Financial Projections (Revenue vs. Profits)</h3>
-        <table class="plan-table">
-          <thead>
-            <tr>
-              <th>Stage</th>
-              <th>Subscribers</th>
-              <th>Monthly Views</th>
-              <th>Revenue</th>
-              <th>Payouts</th>
-              <th>Your Profit</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Early Stage</td>
-              <td>1,000</td>
-              <td>50,000</td>
-              <td>$5,500</td>
-              <td>$1,500</td>
-              <td>$4,000</td>
-            </tr>
-            <tr>
-              <td>Growing</td>
-              <td>10,000</td>
-              <td>500,000</td>
-              <td>$55,000</td>
-              <td>$11,300</td>
-              <td>$43,700</td>
-            </tr>
-            <tr>
-              <td>Scaling Up</td>
-              <td>50,000</td>
-              <td>2,500,000</td>
-              <td>$300,000</td>
-              <td>$65,000</td>
-              <td>$235,000</td>
-            </tr>
-            <tr>
-              <td>Large Platform</td>
-              <td>100,000</td>
-              <td>5,000,000</td>
-              <td>$600,000</td>
-              <td>$120,000</td>
-              <td>$480,000</td>
-            </tr>
-          </tbody>
-        </table>
-        <p>✅ Even at <strong>10K subscribers</strong>, you’re making <strong>$40K+ per month.</strong></p>
-        <p>✅ At <strong>50K subscribers</strong>, you’re hitting <strong>$200K+ monthly profit.</strong></p>
-        <p>✅ At <strong>100K subscribers</strong>, this is a <strong>multi-million-dollar business.</strong> 🚀</p>
-        <hr>
-        
-        <h3>3️⃣ How to Launch &amp; Get the First 1,000 Subscribers</h3>
-        <h4>📌 Step 1: Set Up the Platform (1-2 Months)</h4>
-        <ul>
-          <li>✅ Build the website (DIY or hire a developer).</li>
-          <li>✅ Set up payments (Stripe for subscriptions).</li>
-          <li>✅ Create submission system (email-based or form).</li>
-        </ul>
-        <h4>📌 Step 2: Get First 100 Authors (Beta Launch)</h4>
-        <ul>
-          <li>✅ Invite handpicked quality authors for exclusive launch.</li>
-          <li>✅ Offer early-access rewards (higher payouts, featured spots).</li>
-          <li>✅ Set up a Reddit/Twitter campaign to attract early writers.</li>
-        </ul>
-        <h4>📌 Step 3: Start Reader Growth (Month 3-6)</h4>
-        <ul>
-          <li>✅ Use Reddit, TikTok, and Twitter to market stories.</li>
-          <li>✅ Offer free trials for early subscribers.</li>
-          <li>✅ Run writing contests to bring in new talent.</li>
-        </ul>
-        <h4>📌 Step 4: Monetize &amp; Scale (Month 6+)</h4>
-        <ul>
-          <li>✅ Turn on subscription payments for all users.</li>
-          <li>✅ Introduce premium author tools for extra revenue.</li>
-          <li>✅ Use AI recommendations to improve story discovery.</li>
-        </ul>
-        <hr>
-        
-        <h3>4️⃣ Long-Term Monetization Plan</h3>
-        <table class="plan-table">
-          <thead>
-            <tr>
-              <th>Revenue Stream</th>
-              <th>Projected % of Revenue</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>Subscriptions ($5/month)</td>
-              <td>70% (Main income source)</td>
-            </tr>
-            <tr>
-              <td>Ad Revenue</td>
-              <td>10% (Bonus income)</td>
-            </tr>
-            <tr>
-              <td>Premium Story Sales</td>
-              <td>10% (Readers pay extra for exclusive content)</td>
-            </tr>
-            <tr>
-              <td>Author Tools &amp; Promotions</td>
-              <td>10% (Boosted exposure, AI editing)</td>
-            </tr>
-          </tbody>
-        </table>
-        <p><strong>Key Strategy:</strong> Subscription revenue is stable &amp; recurring, while premium tools &amp; ads increase profits.</p>
-        <hr>
-        
-        <h3>5️⃣ Next Steps: Action Plan</h3>
-        <ul>
-          <li>✅ Pick a name &amp; register a domain (e.g., FictionHaven.com).</li>
-          <li>✅ Set up a basic website (landing page + author submission system).</li>
-          <li>✅ Start recruiting authors &amp; beta testers.</li>
-          <li>✅ Plan marketing strategy to attract early readers.</li>
-          <li>✅ Launch first 50 stories &amp; begin promotions.</li>
-        </ul>
-        <hr>
-        
-        <h3>📌 Final Thoughts</h3>
-        <ul>
-          <li>✅ This model keeps profits high while rewarding top authors.</li>
-          <li>✅ Auto-adjusting tiers prevent overpaying as traffic grows.</li>
-          <li>✅ Multiple revenue streams protect long-term sustainability.</li>
-          <li>✅ A well-executed launch can make this a $100K+/month business within 1-2 years. 🚀</li>
-        </ul>
+      <!-- Payout Calculation & Logic Section -->
+      <section id="payout-logic">
+        <h2>Payout Calculation &amp; Logic</h2>
+        <p>
+          We believe in rewarding storytellers fairly—and that means sharing a meaningful portion of our monthly revenue with the authors who power the platform. Each month, a dedicated payout pool is distributed to stories based on performance, so the more views your story earns, the more you take home. Our tiered system ensures that top-performing stories get the biggest rewards, while even newer or smaller stories still earn based on their readership. As our subscriber base and income grow, so does the size of the payout pool—giving you the chance to earn more every single month. It’s a model built to scale with your success.
+        </p>
+        <h3>Step-by-Step Logic:</h3>
+        <pre>
+1. At end of each month:
+   total_revenue = subscription_revenue + ad_revenue + premium_sales
+   payout_pool = total_revenue * payout_percentage  # e.g. 0.15 or 0.20
+
+2. Sort all stories by views & assign to payout tiers:
+   Tier     Views     Max Stories     % of Pool
+   Tier 1   100–91    10 max          30%
+   Tier 2   90–81     10 max          25%
+   Tier 3   80–71     10 max          15%
+   Tier 4   70–61     10 max          10%
+   Open Tier 60–1    Unlimited       20%
+
+3. For each tier:
+   tier_pool = payout_pool * tier_percentage
+   stories_in_tier = [stories that qualify and rank in top N slots]
+   equal_share = tier_pool / len(stories_in_tier)
+
+4. For Open Tier (1–60 views):
+   open_tier_pool = payout_pool * 0.20
+   total_views = sum([story.views for story in open_tier])
+   for story in open_tier:
+       story_share = (story.views / total_views) * open_tier_pool
+
+5. Output:
+   Return a list of story payouts for distribution.
+        </pre>
+        <div class="dev-handoff">
+          Would you like this in a downloadable dev handoff doc (PDF or Notion format), or should I help you build a simple tool for tracking this monthly?
+        </div>
       </section>
     </div>
   </div>
+  
   <script>
     // Cash Out button functionality (beta only)
     document.getElementById('cashOutBtn').addEventListener('click', function() {
