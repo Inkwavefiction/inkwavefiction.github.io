@@ -6,30 +6,126 @@
   <title>New Template – Inkwave</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --accent: #A3C4DC;
+      --white: #ffffff;
+      --border: #e0e0e0;
+      --container-bg: #ffffff;
+    }
+
     body {
       font-family: 'Poppins', sans-serif;
-      background-color: #f5f7f6;
-      color: #1e1e1e;
-      padding: 2rem;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
     }
+
+    .sidebar {
+      width: 300px;
+      background: #111;
+      color: #fff;
+      padding: 2rem 1.5rem;
+      height: 100vh;
+      position: fixed;
+      overflow-y: auto;
+    }
+
+    .sidebar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      font-weight: 600;
+    }
+
+    .section {
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #aaa;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+    }
+
+    .nav-link {
+      display: block;
+      margin: 0.5rem 0;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 1rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .nav-link:hover {
+      background-color: #1e1e1e;
+    }
+
+    .main {
+      margin-left: 300px;
+      padding: 2.5rem;
+      flex: 1;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 25px;
+    }
+
+    .tab-link {
+      padding: 12px 24px;
+      background: #e9edf1;
+      margin-right: 8px;
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+      font-size: 16px;
+      font-weight: 500;
+      position: relative;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+    }
+
+    .tab-link:hover {
+      background: #dce3ea;
+    }
+
+    .tab-link.active {
+      background: var(--container-bg);
+      border-bottom: 3px solid var(--accent);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
     .container {
-      max-width: 700px;
-      margin: auto;
-      background: #fff;
+      background: var(--white);
       padding: 2rem;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
+
     h1 {
       font-family: 'Playfair Display', serif;
       font-size: 2.2rem;
       margin-bottom: 1rem;
     }
+
     label {
       font-weight: 600;
       display: block;
       margin-top: 1.5rem;
     }
+
     input, textarea {
       width: 100%;
       padding: 0.8rem;
@@ -38,46 +134,100 @@
       border: 1px solid #ccc;
       border-radius: 4px;
     }
+
     textarea {
       height: 300px;
       resize: vertical;
     }
+
     .btn {
       margin-top: 2rem;
-      background-color: #789a91;
-      color: #fff;
+      background-color: var(--accent);
+      color: white;
       padding: 0.8rem 1.5rem;
       font-size: 1rem;
       border: none;
       border-radius: 4px;
       cursor: pointer;
     }
+
     .btn:hover {
-      background-color: #5f7f76;
+      background-color: #7aa7d1;
     }
+
     .message {
       margin-top: 1rem;
       font-weight: 500;
-      color: green;
     }
+
     .error {
       color: red;
+    }
+
+    .success {
+      color: green;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Create New Template</h1>
-    <p style="color:#555;">Paste your copied template here!</p>
 
-    <label for="templateTitle">Title</label>
-    <input type="text" id="templateTitle" placeholder="Template title..." />
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2>Inkwave</h2>
+    <div class="section">
+      <div class="section-title">Core</div>
+      <a href="author-dashboard.html" class="nav-link">🏠 Dashboard</a>
+      <a href="404.html" class="nav-link">💰 Earnings</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Writing Tools</div>
+      <a href="blurb-generator.html" class="nav-link">🧠 Blurb Generator</a>
+      <a href="404.html" class="nav-link">📝 Grammar Fixer</a>
+      <a href="story-templates.html" class="nav-link">📄 Story Templates</a>
+      <a href="404.html" class="nav-link">🎛 Formatting Tools</a>
+      <a href="404.html" class="nav-link">🏷️ Genre & Tags</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Testing & Feedback</div>
+      <a href="404.html" class="nav-link">🧪 A/B Testing</a>
+      <a href="404.html" class="nav-link">🔥 Reader Heatmap</a>
+      <a href="404.html" class="nav-link">👥 Critique Exchange</a>
+      <a href="404.html" class="nav-link">📢 Pitch to Readers</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Publishing</div>
+      <a href="404.html" class="nav-link">✅ Checklist</a>
+      <a href="404.html" class="nav-link">🖼️ Cover Generator</a>
+      <a href="404.html" class="nav-link">📱 Mobile Mode</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Productivity</div>
+      <a href="404.html" class="nav-link">🤖 Inky Assistant</a>
+      <a href="404.html" class="nav-link">🎯 Daily Challenges</a>
+    </div>
+  </div>
 
-    <label for="templateContent">Content</label>
-    <textarea id="templateContent" placeholder="Paste the full template content here..."></textarea>
+  <!-- Main Content -->
+  <div class="main">
+    <div class="tabs">
+      <a href="story-templates.html" class="tab-link">My Templates</a>
+      <a href="all-templates.html" class="tab-link">All Templates</a>
+      <button class="tab-link active">New Template</button>
+    </div>
 
-    <button class="btn" onclick="saveTemplate()">Save Template</button>
-    <div class="message" id="saveMessage"></div>
+    <div class="container">
+      <h1>Create New Template</h1>
+      <p style="color:#555;">Paste your copied template here!</p>
+
+      <label for="templateTitle">Title</label>
+      <input type="text" id="templateTitle" placeholder="Template title..." />
+
+      <label for="templateContent">Content</label>
+      <textarea id="templateContent" placeholder="Paste the full template content here..."></textarea>
+
+      <button class="btn" onclick="saveTemplate()">Save Template</button>
+      <div class="message" id="saveMessage"></div>
+    </div>
   </div>
 
   <!-- Firebase -->
@@ -127,7 +277,7 @@
           })
           .then(() => {
             messageDiv.textContent = "✅ Template successfully added!";
-            messageDiv.className = "message";
+            messageDiv.className = "message success";
             document.getElementById("templateTitle").value = "";
             document.getElementById("templateContent").value = "";
           })
