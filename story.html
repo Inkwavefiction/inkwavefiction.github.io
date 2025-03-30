@@ -52,7 +52,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script>
-    // Firebase configuration – replace with your complete config details
+    // Firebase configuration – update with your full config if necessary
     var firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -64,39 +64,61 @@
     firebase.initializeApp(firebaseConfig);
     var db = firebase.firestore();
 
-    // Helper function to get query parameters
+    // Helper to get query parameter by name
     function getQueryParam(param) {
       var params = new URLSearchParams(window.location.search);
       return params.get(param);
     }
 
-    // Get both storyId and authorId from the URL
+    // Get storyId and authorId from URL (authorId is optional)
     var storyId = getQueryParam("storyId");
     var authorId = getQueryParam("authorId");
 
-    if (!storyId || !authorId) {
-      document.getElementById("storyDetails").innerHTML = "<p>Missing story or author ID in URL.</p>";
-    } else {
-      // Query the specific story document using the known path: users/{authorId}/stories/{storyId}
+    if (!storyId) {
+      document.getElementById("storyDetails").innerHTML = "<p>No story ID provided.</p>";
+    } else if (authorId) {
+      // If both storyId and authorId are provided, query directly
       db.collection("users").doc(authorId).collection("stories").doc(storyId).get()
         .then(function(doc) {
           if (!doc.exists) {
             document.getElementById("storyDetails").innerHTML = "<p>Story not found.</p>";
             return;
           }
-          var data = doc.data();
-          var html = "";
-          if (data.cover) {
-            html += '<img class="cover" src="' + data.cover + '" alt="Cover image">';
-          }
-          html += '<h1>' + (data.title || "Untitled") + '</h1>';
-          html += '<div class="story-content">' + (data.content || data.blurb || "No content available.") + '</div>';
-          document.getElementById("storyDetails").innerHTML = html;
+          displayStory(doc.data());
         })
         .catch(function(error) {
           console.error("Error loading story:", error);
           document.getElementById("storyDetails").innerHTML = "<p>Failed to load story details.</p>";
         });
+    } else {
+      // If only storyId is provided, use a collectionGroup query
+      db.collectionGroup("stories")
+        .where(firebase.firestore.FieldPath.documentId(), "==", storyId)
+        .get()
+        .then(function(snapshot) {
+          if (snapshot.empty) {
+            document.getElementById("storyDetails").innerHTML = "<p>Story not found.</p>";
+            return;
+          }
+          // Assume storyId is unique and take the first match
+          snapshot.forEach(function(doc) {
+            displayStory(doc.data());
+          });
+        })
+        .catch(function(error) {
+          console.error("Error loading story:", error);
+          document.getElementById("storyDetails").innerHTML = "<p>Failed to load story details.</p>";
+        });
+    }
+
+    function displayStory(data) {
+      var html = "";
+      if (data.cover) {
+        html += '<img class="cover" src="' + data.cover + '" alt="Cover image">';
+      }
+      html += '<h1>' + (data.title || "Untitled") + '</h1>';
+      html += '<div class="story-content">' + (data.content || data.blurb || "No content available.") + '</div>';
+      document.getElementById("storyDetails").innerHTML = html;
     }
   </script>
 </body>
