@@ -10,7 +10,7 @@
       --bg: #f5f8f7;
       --text: #1e1e1e;
       --muted: #6a6a6a;
-      --accent: #4f8dc0;
+      --accent: #4f8dc0; /* Accent color for financial dashboard */
       --white: #ffffff;
       --border: #e0e0e0;
       --sidebar-bg: #111;
@@ -24,7 +24,7 @@
       display: flex;
       min-height: 100vh;
     }
-    /* Original Sidebar */
+    /* Sidebar (Original Style) */
     .sidebar {
       width: 300px;
       background: var(--sidebar-bg);
@@ -133,7 +133,7 @@
   </style>
 </head>
 <body>
-  <!-- Original Sidebar -->
+  <!-- Sidebar -->
   <div class="sidebar">
     <h2>Inkwave</h2>
     <div class="section">
@@ -210,32 +210,36 @@
     </div>
   </div>
   
-  <!-- Firebase & Dashboard Script -->
+  <!-- Firebase, Auth & Dashboard Script -->
   <script type="module">
+    // Import Firebase modules
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
-    import { getFirestore, collectionGroup, getDocs } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
     
+    // Firebase configuration – update with your actual config details
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
       projectId: "inkwave-549c0",
       storageBucket: "inkwave-549c0.appspot.com",
       messagingSenderId: "1084811926133",
-      appId: "1:1084811926133:web:dummyAppId" // Replace dummyAppId with your actual App ID if available
+      appId: "1:1084811926133:web:f1656fce68d5c4d697363c"
     };
     
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+    // Initialize Firebase and services
+    const appFirebase = initializeApp(firebaseConfig);
+    const db = getFirestore(appFirebase);
+    const auth = getAuth(appFirebase);
     
-    // Load published stories from all "stories" subcollections under "users"
-    async function loadPublishedStories() {
+    // Function to load published stories for the current user from their "stories" subcollection
+    async function loadPublishedStories(currentUserId) {
       const stories = [];
       try {
-        // Use collectionGroup to fetch from all subcollections named "stories"
-        const querySnapshot = await getDocs(collectionGroup(db, "stories"));
+        const querySnapshot = await getDocs(collection(db, "users", currentUserId, "stories"));
         querySnapshot.forEach(doc => {
           const data = doc.data();
-          // Try to use 'reads' first, then 'views'; fallback to 0.
+          // Check for "reads" first, then "views", defaulting to 0 if not found.
           const readCount = data.reads || data.views || 0;
           stories.push({ title: data.title, reads: readCount, payout: 0 });
         });
@@ -245,17 +249,17 @@
       return stories;
     }
     
-    // Tier logic: adjust these ranges and percentages as needed.
-    async function updateDashboard() {
-      const publishedStories = await loadPublishedStories();
+    // Tier logic to calculate payouts (revenue is currently 0, so payouts will be 0)
+    async function updateDashboard(currentUserId) {
+      const publishedStories = await loadPublishedStories(currentUserId);
       
-      // Revenue parameters (replace with your actual numbers)
-      const totalRevenue = 1000; // Total monthly revenue in dollars
-      const payoutPercentage = 0.20; // 20% of revenue allocated for payouts
+      // Revenue parameters – currently 0 revenue, update these values when you have readers.
+      const totalRevenue = 0; // Currently no revenue.
+      const payoutPercentage = 0.20; // 20% of revenue allocated for payouts.
       const payoutPool = totalRevenue * payoutPercentage;
       
       // Define tiers:
-      // Tier 1: 91–100+ reads, Tier 2: 81–90 reads, Tier 3: 71–80 reads, Tier 4: 61–70 reads, Open Tier: 1–60 reads.
+      // Tier 1: 91+ reads, Tier 2: 81–90 reads, Tier 3: 71–80 reads, Tier 4: 61–70 reads, Open Tier: 1–60 reads.
       const tiers = [
         { name: "Tier 1", min: 91, max: Infinity, percentage: 0.30, type: "equal", maxStories: 10 },
         { name: "Tier 2", min: 81, max: 90, percentage: 0.25, type: "equal", maxStories: 10 },
@@ -264,14 +268,14 @@
         { name: "Open Tier", min: 1, max: 60, percentage: 0.20, type: "proportional" }
       ];
       
-      // Initialize payouts
+      // Initialize payouts for each story
       publishedStories.forEach(story => { story.payout = 0; });
       
-      // Calculate payouts for each tier
+      // Compute payouts per tier
       tiers.forEach(tier => {
         let storiesInTier = publishedStories.filter(story => story.reads >= tier.min && story.reads <= tier.max);
         if (tier.type === "equal" && storiesInTier.length > 0) {
-          // Sort descending by reads and limit to maxStories if needed
+          // Sort descending by reads and limit to tier.maxStories if necessary.
           storiesInTier.sort((a, b) => b.reads - a.reads);
           if (tier.maxStories && storiesInTier.length > tier.maxStories) {
             storiesInTier = storiesInTier.slice(0, tier.maxStories);
@@ -286,7 +290,7 @@
         }
       });
       
-      // Update earnings table
+      // Update the earnings table dynamically
       const tbody = document.getElementById("storiesTableBody");
       tbody.innerHTML = "";
       let totalBalance = 0;
@@ -305,7 +309,15 @@
       document.getElementById("totalBalance").innerHTML = `<strong>Total Balance:</strong> $${totalBalance.toFixed(2)}`;
     }
     
-    updateDashboard();
+    // Listen for authentication state changes and update the dashboard for the current user
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        updateDashboard(user.uid);
+      } else {
+        console.log("No user signed in.");
+        // Optionally, redirect to a login page or show a login form.
+      }
+    });
     
     // Cash Out button functionality (beta mode)
     document.getElementById("cashOutBtn").addEventListener("click", function() {
