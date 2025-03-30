@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Story Details - Inkwave</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Poppins:wght@300&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #f5f8f7;
+      color: #222;
+      padding: 30px;
+    }
+    .container {
+      max-width: 800px;
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      margin: auto;
+      margin-top: 30px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      color: #1e3a5f;
+      margin-bottom: 20px;
+    }
+    .story-content {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-top: 20px;
+    }
+    img.cover {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="storyDetails">
+      <p>Loading story...</p>
+    </div>
+  </div>
+
+  <!-- Firebase App and Firestore (compat versions) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    // Your Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0"
+      // Include other fields if necessary (storageBucket, messagingSenderId, appId, etc.)
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Get the storyId from the URL query parameter
+    const urlParams = new URLSearchParams(window.location.search);
+    const storyId = urlParams.get("storyId");
+
+    // Query for the story using a collection group query
+    db.collectionGroup("stories")
+      .where(firebase.firestore.FieldPath.documentId(), "==", storyId)
+      .get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          document.getElementById("storyDetails").innerHTML = "<p>Story not found.</p>";
+          return;
+        }
+        // Assuming the storyId is unique across all "stories" subcollections
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          let html = "";
+          if (data.cover) {
+            html += `<img class="cover" src="${data.cover}" alt="Cover image">`;
+          }
+          html += `<h1>${data.title || "Untitled"}</h1>`;
+          html += `<div class="story-content">${data.content || data.blurb || "No content available."}</div>`;
+          document.getElementById("storyDetails").innerHTML = html;
+        });
+      })
+      .catch(error => {
+        console.error("Error loading story:", error);
+        document.getElementById("storyDetails").innerHTML = "<p>Failed to load story details.</p>";
+      });
+  </script>
+</body>
+</html>
+
