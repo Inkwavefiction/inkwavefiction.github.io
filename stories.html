@@ -175,7 +175,10 @@
     const db = firebase.firestore();
     const storyGrid = document.getElementById("storyGrid");
 
-    db.collectionGroup("stories").where("status", "==", "published").get()
+    // Query for published stories
+    db.collectionGroup("stories")
+      .where("status", "==", "published")
+      .get()
       .then(snapshot => {
         if (snapshot.empty) {
           storyGrid.innerHTML = "<p>No stories published yet.</p>";
@@ -222,7 +225,8 @@
           const btn = document.createElement("button");
           btn.className = "btn btn-primary";
           btn.textContent = "Read More";
-          // btn.onclick = () => window.location.href = `story.html?storyId=${doc.id}`;
+          // Redirect to story details page when clicked.
+          btn.onclick = () => window.location.href = `story.html?storyId=${doc.id}`;
           card.appendChild(btn);
 
           storyGrid.appendChild(card);
