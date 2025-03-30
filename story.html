@@ -52,7 +52,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script>
-    // Firebase configuration – please verify these match your project
+    // Firebase configuration – ensure these match your project
     var firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -64,7 +64,7 @@
     firebase.initializeApp(firebaseConfig);
     var db = firebase.firestore();
 
-    // Helper: Get query parameter from URL
+    // Helper to get query parameters
     function getQueryParam(param) {
       var params = new URLSearchParams(window.location.search);
       return params.get(param);
@@ -76,24 +76,24 @@
     if (!storyId) {
       document.getElementById("storyDetails").innerHTML = "<p>No story ID provided.</p>";
     } else {
-      // Query for the story document using collectionGroup query
-      db.collectionGroup("stories")
-        .where(firebase.firestore.FieldPath.documentId(), "==", storyId)
-        .get()
-        .then(function(snapshot) {
-          console.log("Snapshot size:", snapshot.size);
-          if (snapshot.empty) {
-            document.getElementById("storyDetails").innerHTML = "<p>Story not found.</p>";
-            return;
-          }
-          snapshot.forEach(function(doc) {
+      // Use a collectionGroup query to get all stories and manually filter by doc.id
+      db.collectionGroup("stories").get().then(function(snapshot) {
+        console.log("Total stories fetched:", snapshot.size);
+        var found = false;
+        snapshot.forEach(function(doc) {
+          console.log("Found doc with ID:", doc.id);
+          if (doc.id === storyId) {
+            found = true;
             displayStory(doc.data());
-          });
-        })
-        .catch(function(error) {
-          console.error("Error loading story:", error);
-          document.getElementById("storyDetails").innerHTML = "<p>Failed to load story details.</p>";
+          }
         });
+        if (!found) {
+          document.getElementById("storyDetails").innerHTML = "<p>Story not found.</p>";
+        }
+      }).catch(function(error) {
+        console.error("Error loading story:", error);
+        document.getElementById("storyDetails").innerHTML = "<p>Failed to load story details.</p>";
+      });
     }
 
     function displayStory(data) {
