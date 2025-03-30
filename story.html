@@ -14,14 +14,16 @@
       font-family: 'Poppins', sans-serif;
       background-color: #fafafa;
       color: #222;
+      line-height: 1.6;
     }
-
     main {
       max-width: 700px;
       margin: 4rem auto;
       padding: 0 1.5rem;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-
     .cover {
       width: 100%;
       max-height: 400px;
@@ -29,37 +31,32 @@
       border-radius: 6px;
       margin-bottom: 2rem;
     }
-
     h1 {
       font-family: 'Playfair Display', serif;
       font-size: 2.5rem;
       margin-bottom: 0.5rem;
+      color: #1e3a5f;
     }
-
     .blurb {
       font-size: 1.1rem;
       color: #555;
       margin-bottom: 2rem;
     }
-
     .section-title {
       font-size: 1.6rem;
       color: #789a91;
       margin-bottom: 1rem;
       font-weight: 600;
     }
-
     .section-content {
       font-size: 1.1rem;
-      line-height: 1.8;
+      margin-bottom: 2rem;
     }
-
     .nav-buttons {
       display: flex;
-      justify-content: space-between;
-      margin-top: 2.5rem;
+      justify-content: flex-end;
+      margin-bottom: 2rem;
     }
-
     .nav-buttons button {
       padding: 0.6rem 1.2rem;
       font-size: 1rem;
@@ -68,42 +65,27 @@
       border: none;
       border-radius: 6px;
       cursor: pointer;
+      margin-left: 10px;
+      transition: background 0.3s;
     }
-
-    .nav-buttons button:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
+    .nav-buttons button:hover {
+      background-color: #637f73;
     }
-
     .back-link {
       display: inline-block;
-      margin-top: 2rem;
+      margin-bottom: 2rem;
       color: #555;
       text-decoration: none;
+      font-size: 1rem;
     }
-
     .back-link:hover {
       text-decoration: underline;
-    }
-
-    #publishBtn {
-      position: fixed;
-      bottom: 30px;
-      right: 30px;
-      background-color: #789a91;
-      color: white;
-      border: none;
-      padding: 0.8rem 1.6rem;
-      border-radius: 50px;
-      font-size: 1rem;
-      cursor: pointer;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
   </style>
 </head>
 <body>
   <main>
-    <img id="cover" class="cover" style="display:none" />
+    <img id="cover" class="cover" style="display:none" alt="Cover Image" />
     <h1 id="title">Loading...</h1>
     <div class="blurb" id="blurb"></div>
 
@@ -115,13 +97,12 @@
       <button id="nextBtn">Next →</button>
     </div>
 
-    <a href="publish-story.html" class="back-link">← Back to edit</a>
+    <!-- Back link goes to the stories list page -->
+    <a href="stories.html" class="back-link">← Back to stories</a>
   </main>
 
-  <button id="publishBtn">Publish</button>
-
   <script>
-    // Firebase configuration (update if needed)
+    // Firebase configuration – update if needed
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -135,10 +116,10 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Get the storyId from URL query parameter
+    // Get storyId from URL query parameter
     const storyId = new URLSearchParams(window.location.search).get("storyId");
 
-    // Get DOM elements
+    // DOM elements
     const titleEl = document.getElementById("title");
     const blurbEl = document.getElementById("blurb");
     const coverEl = document.getElementById("cover");
@@ -146,7 +127,6 @@
     const sectionContentEl = document.getElementById("section-content");
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
-    const publishBtn = document.getElementById("publishBtn");
 
     let sectionKeys = [];
     let currentIndex = 0;
@@ -174,22 +154,13 @@
       }
     };
 
-    publishBtn.onclick = async () => {
-      if (!auth.currentUser) return alert("You must be logged in.");
-      // Update the story status to published for the current user
-      await db.collection("users").doc(auth.currentUser.uid)
-        .collection("stories").doc(storyId)
-        .update({ status: "published" });
-      alert("Story published!");
-      window.location.href = "author-dashboard.html";
-    };
-
+    // Listen for authentication state changes
     auth.onAuthStateChanged(async user => {
       if (!user) {
-        titleEl.textContent = "You must be logged in.";
+        titleEl.textContent = "You must be logged in to view this story.";
         return;
       }
-
+      // Fetch the story document from the current user's "stories" subcollection
       const docRef = db.collection("users").doc(user.uid).collection("stories").doc(storyId);
       const docSnap = await docRef.get();
 
