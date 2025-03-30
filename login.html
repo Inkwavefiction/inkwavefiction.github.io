@@ -13,8 +13,9 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       margin: 0;
+      padding: 2rem;
     }
 
     .login-box {
@@ -22,7 +23,7 @@
       padding: 2rem 2.5rem;
       border-radius: 10px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-      max-width: 420px;
+      max-width: 500px;
       width: 100%;
       text-align: center;
     }
@@ -101,6 +102,40 @@
       margin-top: 1rem;
     }
 
+    .reader-options {
+      display: none;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      flex-direction: column;
+    }
+
+    .reader-options.active {
+      display: flex;
+    }
+
+    .card-option {
+      border: 2px solid #ccc;
+      padding: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s ease;
+      text-align: left;
+    }
+
+    .card-option:hover {
+      border-color: #789a91;
+    }
+
+    .card-option.selected {
+      border-color: #789a91;
+      background-color: #f0f7f5;
+    }
+
+    .card-option h4 {
+      margin-bottom: 0.5rem;
+      font-size: 1.1rem;
+    }
+
     .success {
       color: green;
     }
@@ -113,9 +148,10 @@
 
     <div class="toggle-role">
       <button class="active" id="author-btn">Author</button>
-      <button disabled>Reader (Coming Soon)</button>
+      <button id="reader-btn">Reader</button>
     </div>
 
+    <!-- Shared Email/Password -->
     <div class="form-group">
       <label for="email">Email</label>
       <input type="email" id="email" placeholder="you@example.com" />
@@ -126,78 +162,144 @@
       <input type="password" id="password" placeholder="Your password" />
     </div>
 
-    <button class="login-btn" id="login-btn">Log In</button>
+    <!-- Reader Cards -->
+    <div class="reader-options" id="reader-options">
+      <div class="card-option" id="card-beta">
+        <h4>🌱 Beta Reader</h4>
+        <p>Free access during beta. No payment required.</p>
+      </div>
+      <div class="card-option" id="card-supporter">
+        <h4>🚀 Early Supporter</h4>
+        <p>Help support the platform and unlock stories post-beta.</p>
+      </div>
+    </div>
 
-    <div class="note">
+    <button class="login-btn" id="login-btn">Continue</button>
+
+    <div class="note" id="author-note">
       New here? <a href="become-author.html">Apply to be an author</a>
     </div>
 
     <div class="error" id="error-msg"></div>
   </div>
-<script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-  import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
-    authDomain: "inkwave-549c0.firebaseapp.com",
-    projectId: "inkwave-549c0",
-    storageBucket: "inkwave-549c0.appspot.com",
-    messagingSenderId: "1084811926133",
-    appId: "1:1084811926133:web:f1656fce68d5c4d697363c"
-  };
+  <!-- Firebase + Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0",
+      storageBucket: "inkwave-549c0.appspot.com",
+      messagingSenderId: "1084811926133",
+      appId: "1:1084811926133:web:f1656fce68d5c4d697363c"
+    };
 
-  const loginBtn = document.getElementById("login-btn");
-  const errorMsg = document.getElementById("error-msg");
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-  loginBtn.addEventListener("click", async () => {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value.trim();
-    errorMsg.textContent = "";
+    // DOM Elements
+    const readerBtn = document.getElementById("reader-btn");
+    const authorBtn = document.getElementById("author-btn");
+    const readerOptions = document.getElementById("reader-options");
+    const cardBeta = document.getElementById("card-beta");
+    const cardSupporter = document.getElementById("card-supporter");
+    const loginBtn = document.getElementById("login-btn");
+    const errorMsg = document.getElementById("error-msg");
+    const authorNote = document.getElementById("author-note");
 
-    if (!email || !password) {
-      errorMsg.textContent = "Please enter both email and password.";
-      return;
-    }
+    let mode = "author"; // or "reader"
+    let selectedPlan = "beta"; // default reader plan
 
-    try {
-      const userCred = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCred.user;
-      const docRef = doc(db, "authors", user.uid);
-      const docSnap = await getDoc(docRef);
+    readerBtn.addEventListener("click", () => {
+      mode = "reader";
+      readerBtn.classList.add("active");
+      authorBtn.classList.remove("active");
+      readerOptions.classList.add("active");
+      authorNote.style.display = "none";
+    });
 
-      if (!docSnap.exists()) {
-        errorMsg.textContent = "You haven't submitted an author application yet.";
+    authorBtn.addEventListener("click", () => {
+      mode = "author";
+      authorBtn.classList.add("active");
+      readerBtn.classList.remove("active");
+      readerOptions.classList.remove("active");
+      authorNote.style.display = "block";
+    });
+
+    cardBeta.addEventListener("click", () => {
+      selectedPlan = "beta";
+      cardBeta.classList.add("selected");
+      cardSupporter.classList.remove("selected");
+    });
+
+    cardSupporter.addEventListener("click", () => {
+      selectedPlan = "supporter";
+      cardSupporter.classList.add("selected");
+      cardBeta.classList.remove("selected");
+    });
+
+    loginBtn.addEventListener("click", async () => {
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value.trim();
+      errorMsg.textContent = "";
+
+      if (!email || !password) {
+        errorMsg.textContent = "Please enter both email and password.";
         return;
       }
 
-      const status = docSnap.data().status;
+      try {
+        // Try login first
+        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCred.user;
+        const docRef = doc(db, mode === "author" ? "authors" : "readers", user.uid);
+        const docSnap = await getDoc(docRef);
 
-      if (status === "approved") {
-        const seenWelcome = localStorage.getItem("seenWelcome");
-        if (!seenWelcome) {
-          localStorage.setItem("seenWelcome", "true");
-          window.location.href = "approved.html";
-        } else {
-          window.location.href = "author-dashboard.html";
+        if (!docSnap.exists()) {
+          errorMsg.textContent = "No application or profile found for this account.";
+          return;
         }
-      } else if (status === "pending") {
-        window.location.href = "dashboard.html";
-      } else if (status === "denied") {
-        errorMsg.textContent = "Your author application was denied.";
-      } else {
-        errorMsg.textContent = "Unknown status. Please contact support.";
+
+        if (mode === "author") {
+          const status = docSnap.data().status;
+          if (status === "approved") {
+            window.location.href = "author-dashboard.html";
+          } else if (status === "pending") {
+            window.location.href = "dashboard.html";
+          } else {
+            errorMsg.textContent = "Your author application was denied.";
+          }
+        } else {
+          window.location.href = "stories.html";
+        }
+
+      } catch (err) {
+        // Try signup if login fails
+        try {
+          const userCred = await createUserWithEmailAndPassword(auth, email, password);
+          const user = userCred.user;
+
+          if (mode === "reader") {
+            await setDoc(doc(db, "readers", user.uid), {
+              email,
+              role: "reader",
+              plan: selectedPlan,
+              joinedAt: new Date()
+            });
+            window.location.href = "stories.html";
+          } else {
+            errorMsg.textContent = "Please apply first using the Author form.";
+          }
+        } catch (signupErr) {
+          errorMsg.textContent = signupErr.message;
+        }
       }
-    } catch (err) {
-      console.error(err);
-      errorMsg.textContent = "Login failed. Please check your credentials.";
-    }
-  });
-</script>
+    });
+  </script>
 </body>
 </html>
