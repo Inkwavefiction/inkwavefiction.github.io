@@ -218,10 +218,9 @@
 
   <div class="error" id="error-msg"></div>
 </div>
-<!-- Firebase SDK & Script -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
   import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -269,7 +268,6 @@
     readerSignup.classList.add("active");
   };
 
-  // Plan selection
   document.getElementById("plan-beta").onclick = () => {
     selectedPlan = "beta";
     document.getElementById("plan-beta").classList.add("selected");
@@ -284,24 +282,47 @@
     signupForm.classList.add("active");
   };
 
-  // Reader Sign Up
+  // ✅ FIXED: Reader Sign Up – smart, no duplicate errors
   document.getElementById("signup-btn").onclick = async () => {
     const email = document.getElementById("signup-email").value.trim();
     const password = document.getElementById("signup-password").value.trim();
     errorMsg.textContent = "";
 
     try {
-      const userCred = await createUserWithEmailAndPassword(auth, email, password);
-      const uid = userCred.user.uid;
+      const methods = await fetchSignInMethodsForEmail(auth, email);
 
-      await setDoc(doc(db, "users", uid), {
-        email,
-        role: ["reader"],
-        plan: selectedPlan,
-        joinedAt: new Date()
-      });
+      if (methods.length > 0) {
+        // Email already in use – log in & add reader role
+        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        const uid = userCred.user.uid;
+        const userRef = doc(db, "users", uid);
+        const userDoc = await getDoc(userRef);
 
-      window.location.href = "stories.html";
+        if (!userDoc.exists()) {
+          errorMsg.textContent = "User exists but profile is missing.";
+          return;
+        }
+
+        await updateDoc(userRef, {
+          role: arrayUnion("reader"),
+          plan: selectedPlan
+        });
+
+        window.location.href = "stories.html";
+      } else {
+        // New user – create
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCred.user.uid;
+
+        await setDoc(doc(db, "users", uid), {
+          email,
+          role: ["reader"],
+          plan: selectedPlan,
+          joinedAt: new Date()
+        });
+
+        window.location.href = "stories.html";
+      }
     } catch (err) {
       errorMsg.textContent = err.message;
     }
