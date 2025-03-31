@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Reader Login – Inkwave</title>
+  <title>Login – Inkwave</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
   <style>
     body {
@@ -29,6 +29,24 @@
       font-family: 'Playfair Display', serif;
       font-size: 2rem;
       margin-bottom: 1rem;
+    }
+    .toggle-role {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1.5rem;
+    }
+    .toggle-role button {
+      background: #f0f1f2;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      margin: 0 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    .toggle-role button.active {
+      background-color: #789a91;
+      color: white;
     }
     .form-group {
       text-align: left;
@@ -60,11 +78,6 @@
     .login-btn:hover {
       background-color: #5f7f76;
     }
-    .error {
-      color: #a33c3c;
-      font-size: 0.95rem;
-      margin-top: 1rem;
-    }
     .note, .signup-link {
       font-size: 0.9rem;
       color: #666;
@@ -73,6 +86,11 @@
     .signup-link {
       color: #4f8dc0;
       cursor: pointer;
+    }
+    .error {
+      color: #a33c3c;
+      font-size: 0.95rem;
+      margin-top: 1rem;
     }
     .reader-options {
       display: none;
@@ -123,10 +141,30 @@
 <body>
 
 <div class="login-box">
-  <h1>Welcome Reader</h1>
+  <h1>Log in to Inkwave</h1>
 
-  <!-- Reader Login -->
-  <div id="reader-login">
+  <!-- Role Toggle -->
+  <div class="toggle-role">
+    <button class="active" id="author-btn">Author</button>
+    <button id="reader-btn">Reader</button>
+  </div>
+
+  <!-- AUTHOR LOGIN -->
+  <div id="author-form">
+    <div class="form-group">
+      <label for="author-email">Email</label>
+      <input type="email" id="author-email" placeholder="you@example.com" />
+    </div>
+    <div class="form-group">
+      <label for="author-password">Password</label>
+      <input type="password" id="author-password" placeholder="Your password" />
+    </div>
+    <button class="login-btn" id="author-login-btn">Log In</button>
+    <div class="note">New here? <a href="become-author.html">Apply to be an author</a></div>
+  </div>
+
+  <!-- READER LOGIN -->
+  <div id="reader-login" style="display: none;">
     <div class="form-group">
       <label for="reader-email">Email</label>
       <input type="email" id="reader-email" />
@@ -139,7 +177,7 @@
     <div class="signup-link" id="show-reader-signup">Not a reader yet? Sign up here :)</div>
   </div>
 
-  <!-- Reader Signup -->
+  <!-- READER SIGNUP -->
   <div class="reader-options" id="reader-signup">
     <div class="pricing-card" id="plan-beta">
       <h3>🌱 Beta Reader</h3>
@@ -160,11 +198,9 @@
       </div>
       <button class="login-btn" id="signup-btn">Create Account</button>
     </div>
-  </div>
-
-  <div class="author-note">
-    Already an author? Please <strong>log in on the author application page</strong>.  
-    Reader access must be set up through your author account.
+    <div class="author-note">
+      Already an author? Please use the author login or sign up via the <a href="become-author.html">author application page</a>.
+    </div>
   </div>
 
   <div class="error" id="error-msg"></div>
@@ -182,7 +218,8 @@
     doc,
     getDoc,
     setDoc,
-    updateDoc
+    updateDoc,
+    arrayUnion
   } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -198,14 +235,36 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  const errorMsg = document.getElementById("error-msg");
+  const authorBtn = document.getElementById("author-btn");
+  const readerBtn = document.getElementById("reader-btn");
+  const authorForm = document.getElementById("author-form");
   const readerLogin = document.getElementById("reader-login");
   const readerSignup = document.getElementById("reader-signup");
   const signupForm = document.getElementById("signup-form");
+  const errorMsg = document.getElementById("error-msg");
 
   let selectedPlan = "beta";
 
-  // Show signup when user clicks "Sign up here"
+  // Tab switching
+  authorBtn.onclick = () => {
+    authorBtn.classList.add("active");
+    readerBtn.classList.remove("active");
+    authorForm.style.display = "block";
+    readerLogin.style.display = "none";
+    readerSignup.classList.remove("active");
+    errorMsg.textContent = "";
+  };
+
+  readerBtn.onclick = () => {
+    readerBtn.classList.add("active");
+    authorBtn.classList.remove("active");
+    authorForm.style.display = "none";
+    readerLogin.style.display = "block";
+    readerSignup.classList.remove("active");
+    errorMsg.textContent = "";
+  };
+
+  // Show reader signup section
   document.getElementById("show-reader-signup").onclick = () => {
     readerLogin.style.display = "none";
     readerSignup.classList.add("active");
@@ -236,7 +295,7 @@
       const methods = await fetchSignInMethodsForEmail(auth, email);
 
       if (methods.length > 0) {
-        errorMsg.textContent = "This email is already in use. If you're an author, sign in there.";
+        errorMsg.textContent = "This email is already in use. If you're an author, please log in using the Author tab.";
         return;
       }
 
@@ -281,6 +340,43 @@
       window.location.href = "stories.html";
     } catch (err) {
       errorMsg.textContent = "Login failed. Please check your email and password.";
+    }
+  };
+
+  // Author Login
+  document.getElementById("author-login-btn").onclick = async () => {
+    const email = document.getElementById("author-email").value.trim();
+    const password = document.getElementById("author-password").value.trim();
+    errorMsg.textContent = "";
+
+    try {
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      const uid = userCred.user.uid;
+      const userDoc = await getDoc(doc(db, "users", uid));
+
+      if (!userDoc.exists()) {
+        errorMsg.textContent = "User profile not found.";
+        return;
+      }
+
+      const data = userDoc.data();
+
+      if (!data.role.includes("author")) {
+        errorMsg.textContent = "This account is not registered as an author.";
+        return;
+      }
+
+      if (data.authorStatus === "approved") {
+        window.location.href = "author-dashboard.html";
+      } else if (data.authorStatus === "pending") {
+        window.location.href = "dashboard.html";
+      } else if (data.authorStatus === "denied") {
+        errorMsg.textContent = "Your author application was denied.";
+      } else {
+        errorMsg.textContent = "Author status unknown.";
+      }
+    } catch (err) {
+      errorMsg.textContent = "Login failed. Please check your credentials.";
     }
   };
 </script>
