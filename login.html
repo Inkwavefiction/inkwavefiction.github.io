@@ -14,7 +14,6 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      margin: 0;
       padding: 2rem;
     }
 
@@ -162,20 +161,19 @@
     <button class="active" id="author-btn">Author</button>
     <button id="reader-btn">Reader</button>
   </div>
+
   <!-- AUTHOR LOGIN -->
   <div id="author-form">
     <div class="form-group">
       <label for="author-email">Email</label>
-      <input type="email" id="author-email" placeholder="you@example.com" />
+      <input type="email" id="author-email" />
     </div>
     <div class="form-group">
       <label for="author-password">Password</label>
-      <input type="password" id="author-password" placeholder="Your password" />
+      <input type="password" id="author-password" />
     </div>
     <button class="login-btn" id="author-login-btn">Log In</button>
-    <div class="note">
-      New here? <a href="become-author.html">Apply to be an author</a>
-    </div>
+    <div class="note">New here? <a href="become-author.html">Apply to be an author</a></div>
   </div>
 
   <!-- READER LOGIN -->
@@ -192,7 +190,7 @@
     <div class="signup-link" id="show-reader-signup">Not a reader yet? Sign up here :)</div>
   </div>
 
-  <!-- READER SIGNUP FLOW -->
+  <!-- READER SIGNUP -->
   <div class="reader-options" id="reader-signup">
     <div class="pricing-card" id="plan-beta">
       <h3>🌱 Beta Reader</h3>
@@ -221,7 +219,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, fetchSignInMethodsForEmail } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-  import { getFirestore, doc, setDoc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
@@ -243,10 +241,9 @@
   const readerSignup = document.getElementById("reader-signup");
   const signupForm = document.getElementById("signup-form");
   const errorMsg = document.getElementById("error-msg");
-
   let selectedPlan = "beta";
 
-  // Role toggle buttons
+  // Tab switching
   authorBtn.onclick = () => {
     authorBtn.classList.add("active");
     readerBtn.classList.remove("active");
@@ -282,7 +279,7 @@
     signupForm.classList.add("active");
   };
 
-  // ✅ FIXED: Reader Sign Up – smart, no duplicate errors
+  // ✅ FIXED READER SIGNUP
   document.getElementById("signup-btn").onclick = async () => {
     const email = document.getElementById("signup-email").value.trim();
     const password = document.getElementById("signup-password").value.trim();
@@ -292,7 +289,7 @@
       const methods = await fetchSignInMethodsForEmail(auth, email);
 
       if (methods.length > 0) {
-        // Email already in use – log in & add reader role
+        // User exists — log them in and add reader role
         const userCred = await signInWithEmailAndPassword(auth, email, password);
         const uid = userCred.user.uid;
         const userRef = doc(db, "users", uid);
@@ -310,7 +307,7 @@
 
         window.location.href = "stories.html";
       } else {
-        // New user – create
+        // New reader signup
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
         const uid = userCred.user.uid;
 
@@ -328,7 +325,7 @@
     }
   };
 
-  // Reader Login
+  // READER LOGIN
   document.getElementById("reader-login-btn").onclick = async () => {
     const email = document.getElementById("reader-email").value.trim();
     const password = document.getElementById("reader-password").value.trim();
@@ -351,13 +348,12 @@
       }
 
       window.location.href = "stories.html";
-
     } catch (err) {
       errorMsg.textContent = "Login failed. Check credentials.";
     }
   };
 
-  // Author Login
+  // AUTHOR LOGIN
   document.getElementById("author-login-btn").onclick = async () => {
     const email = document.getElementById("author-email").value.trim();
     const password = document.getElementById("author-password").value.trim();
@@ -387,9 +383,8 @@
       } else if (data.authorStatus === "denied") {
         errorMsg.textContent = "Your author application was denied.";
       } else {
-        errorMsg.textContent = "Author status unknown. Please contact support.";
+        errorMsg.textContent = "Author status unknown.";
       }
-
     } catch (err) {
       errorMsg.textContent = "Login failed. Check credentials.";
     }
