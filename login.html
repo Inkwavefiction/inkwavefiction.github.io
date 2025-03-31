@@ -194,3 +194,182 @@
 
   <div class="error" id="error-msg"></div>
 </div>
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    fetchSignInMethodsForEmail
+  } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    arrayUnion
+  } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+    authDomain: "inkwave-549c0.firebaseapp.com",
+    projectId: "inkwave-549c0",
+    storageBucket: "inkwave-549c0.appspot.com",
+    messagingSenderId: "1084811926133",
+    appId: "1:1084811926133:web:f1656fce68d5c4d697363c"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+
+  const authorBtn = document.getElementById("author-btn");
+  const readerBtn = document.getElementById("reader-btn");
+  const authorForm = document.getElementById("author-form");
+  const readerLogin = document.getElementById("reader-login");
+  const readerSignup = document.getElementById("reader-signup");
+  const signupForm = document.getElementById("signup-form");
+  const errorMsg = document.getElementById("error-msg");
+
+  let selectedPlan = "beta";
+
+  // Role toggle
+  authorBtn.onclick = () => {
+    authorBtn.classList.add("active");
+    readerBtn.classList.remove("active");
+    authorForm.style.display = "block";
+    readerLogin.style.display = "none";
+    readerSignup.classList.remove("active");
+  };
+
+  readerBtn.onclick = () => {
+    readerBtn.classList.add("active");
+    authorBtn.classList.remove("active");
+    authorForm.style.display = "none";
+    readerLogin.style.display = "block";
+    readerSignup.classList.remove("active");
+  };
+
+  document.getElementById("show-reader-signup").onclick = () => {
+    readerLogin.style.display = "none";
+    readerSignup.classList.add("active");
+  };
+
+  // Reader Plan Selection
+  document.getElementById("plan-beta").onclick = () => {
+    selectedPlan = "beta";
+    document.getElementById("plan-beta").classList.add("selected");
+    document.getElementById("plan-supporter").classList.remove("selected");
+    signupForm.classList.add("active");
+  };
+
+  document.getElementById("plan-supporter").onclick = () => {
+    selectedPlan = "supporter";
+    document.getElementById("plan-supporter").classList.add("selected");
+    document.getElementById("plan-beta").classList.remove("selected");
+    signupForm.classList.add("active");
+  };
+
+  // Reader Signup
+  document.getElementById("signup-btn").onclick = async () => {
+    const email = document.getElementById("signup-email").value.trim();
+    const password = document.getElementById("signup-password").value.trim();
+    errorMsg.textContent = "";
+
+    try {
+      const methods = await fetchSignInMethodsForEmail(auth, email);
+
+      if (methods.length > 0) {
+        // User already exists — log in, update roles
+        const userCred = await signInWithEmailAndPassword(auth, email, password);
+        const uid = userCred.user.uid;
+        await updateDoc(doc(db, "users", uid), {
+          role: arrayUnion("reader"),
+          plan: selectedPlan
+        });
+        window.location.href = "stories.html";
+      } else {
+        // New reader
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCred.user.uid;
+        await setDoc(doc(db, "users", uid), {
+          email,
+          role: ["reader"],
+          plan: selectedPlan,
+          joinedAt: new Date()
+        });
+        window.location.href = "stories.html";
+      }
+    } catch (err) {
+      errorMsg.textContent = err.message;
+    }
+  };
+
+  // Reader Login
+  document.getElementById("reader-login-btn").onclick = async () => {
+    const email = document.getElementById("reader-email").value.trim();
+    const password = document.getElementById("reader-password").value.trim();
+    errorMsg.textContent = "";
+
+    try {
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      const uid = userCred.user.uid;
+      const userDoc = await getDoc(doc(db, "users", uid));
+
+      if (!userDoc.exists()) {
+        errorMsg.textContent = "User profile not found.";
+        return;
+      }
+
+      const data = userDoc.data();
+      if (!data.role.includes("reader")) {
+        errorMsg.textContent = "This account is not registered as a reader.";
+        return;
+      }
+
+      window.location.href = "stories.html";
+    } catch (err) {
+      errorMsg.textContent = "Login failed. Check credentials.";
+    }
+  };
+
+  // Author Login
+  document.getElementById("author-login-btn").onclick = async () => {
+    const email = document.getElementById("author-email").value.trim();
+    const password = document.getElementById("author-password").value.trim();
+    errorMsg.textContent = "";
+
+    try {
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      const uid = userCred.user.uid;
+      const userDoc = await getDoc(doc(db, "users", uid));
+
+      if (!userDoc.exists()) {
+        errorMsg.textContent = "User profile not found.";
+        return;
+      }
+
+      const data = userDoc.data();
+
+      if (!data.role.includes("author")) {
+        errorMsg.textContent = "This account is not registered as an author.";
+        return;
+      }
+
+      if (data.authorStatus === "approved") {
+        window.location.href = "author-dashboard.html";
+      } else if (data.authorStatus === "pending") {
+        window.location.href = "dashboard.html";
+      } else if (data.authorStatus === "denied") {
+        errorMsg.textContent = "Your author application was denied.";
+      } else {
+        errorMsg.textContent = "Author status unknown.";
+      }
+    } catch (err) {
+      errorMsg.textContent = "Login failed. Check credentials.";
+    }
+  };
+</script>
+</body>
+</html>
