@@ -311,33 +311,36 @@
     }
   };
 
-  // Reader Login
-  document.getElementById("reader-login-btn").onclick = async () => {
-    const email = document.getElementById("reader-email").value.trim();
-    const password = document.getElementById("reader-password").value.trim();
-    errorMsg.textContent = "";
+  // ✅ Reader Login → Redirect to reader-dashboard.html
+document.getElementById("reader-login-btn").onclick = async () => {
+  const email = document.getElementById("reader-email").value.trim();
+  const password = document.getElementById("reader-password").value.trim();
+  errorMsg.textContent = "";
 
-    try {
-      const userCred = await signInWithEmailAndPassword(auth, email, password);
-      const uid = userCred.user.uid;
-      const userDoc = await getDoc(doc(db, "users", uid));
+  try {
+    const userCred = await signInWithEmailAndPassword(auth, email, password);
+    const uid = userCred.user.uid;
+    const userDoc = await getDoc(doc(db, "users", uid));
 
-      if (!userDoc.exists()) {
-        errorMsg.textContent = "No reader profile found.";
-        return;
-      }
-
-      const data = userDoc.data();
-      if (!data.role || !data.role.includes("reader")) {
-        errorMsg.textContent = "This account is not registered as a reader.";
-        return;
-      }
-
-      window.location.href = "stories.html";
-    } catch (err) {
-      errorMsg.textContent = "Login failed. Please check your credentials.";
+    if (!userDoc.exists()) {
+      errorMsg.textContent = "No reader profile found.";
+      return;
     }
-  };
+
+    const data = userDoc.data();
+    if (!data.role || !data.role.includes("reader")) {
+      errorMsg.textContent = "This account is not registered as a reader.";
+      return;
+    }
+
+    // ✅ Redirect to Reader Dashboard
+    window.location.href = "reader-dashboard.html";
+  } catch (err) {
+    errorMsg.textContent = "Login failed. Please check your credentials.";
+    console.error(err);
+  }
+};
+
 
   // Author Login (original logic restored)
   document.getElementById("author-login-btn").onclick = async () => {
