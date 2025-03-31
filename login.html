@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login – Inkwave</title>
+  <title>Reader Login – Inkwave</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
   <style>
     body {
@@ -29,24 +29,6 @@
       font-family: 'Playfair Display', serif;
       font-size: 2rem;
       margin-bottom: 1rem;
-    }
-    .toggle-role {
-      display: flex;
-      justify-content: center;
-      margin-bottom: 1.5rem;
-    }
-    .toggle-role button {
-      background: #f0f1f2;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      margin: 0 0.5rem;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 500;
-    }
-    .toggle-role button.active {
-      background-color: #789a91;
-      color: white;
     }
     .form-group {
       text-align: left;
@@ -78,6 +60,11 @@
     .login-btn:hover {
       background-color: #5f7f76;
     }
+    .error {
+      color: #a33c3c;
+      font-size: 0.95rem;
+      margin-top: 1rem;
+    }
     .note, .signup-link {
       font-size: 0.9rem;
       color: #666;
@@ -86,12 +73,6 @@
     .signup-link {
       color: #4f8dc0;
       cursor: pointer;
-      margin-top: 0.5rem;
-    }
-    .error {
-      color: #a33c3c;
-      font-size: 0.95rem;
-      margin-top: 1rem;
     }
     .reader-options {
       display: none;
@@ -129,34 +110,23 @@
     .reader-signup-form.active {
       display: block;
     }
+    .author-note {
+      margin-top: 1.5rem;
+      font-size: 0.9rem;
+      background: #fff7e6;
+      color: #a65d00;
+      padding: 1rem;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
 
 <div class="login-box">
-  <h1>Log in to Inkwave</h1>
+  <h1>Welcome Reader</h1>
 
-  <div class="toggle-role">
-    <button class="active" id="author-btn">Author</button>
-    <button id="reader-btn">Reader</button>
-  </div>
-
-  <!-- AUTHOR LOGIN -->
-  <div id="author-form">
-    <div class="form-group">
-      <label for="author-email">Email</label>
-      <input type="email" id="author-email" placeholder="you@example.com" />
-    </div>
-    <div class="form-group">
-      <label for="author-password">Password</label>
-      <input type="password" id="author-password" placeholder="Your password" />
-    </div>
-    <button class="login-btn" id="author-login-btn">Log In</button>
-    <div class="note">New here? <a href="become-author.html">Apply to be an author</a></div>
-  </div>
-
-  <!-- READER LOGIN -->
-  <div id="reader-login" style="display: none;">
+  <!-- Reader Login -->
+  <div id="reader-login">
     <div class="form-group">
       <label for="reader-email">Email</label>
       <input type="email" id="reader-email" />
@@ -169,7 +139,7 @@
     <div class="signup-link" id="show-reader-signup">Not a reader yet? Sign up here :)</div>
   </div>
 
-  <!-- READER SIGNUP -->
+  <!-- Reader Signup -->
   <div class="reader-options" id="reader-signup">
     <div class="pricing-card" id="plan-beta">
       <h3>🌱 Beta Reader</h3>
@@ -192,6 +162,11 @@
     </div>
   </div>
 
+  <div class="author-note">
+    Already an author? Please <strong>log in on the author application page</strong>.  
+    Reader access must be set up through your author account.
+  </div>
+
   <div class="error" id="error-msg"></div>
 </div>
 <script type="module">
@@ -207,8 +182,7 @@
     doc,
     getDoc,
     setDoc,
-    updateDoc,
-    arrayUnion
+    updateDoc
   } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -224,39 +198,20 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  const authorBtn = document.getElementById("author-btn");
-  const readerBtn = document.getElementById("reader-btn");
-  const authorForm = document.getElementById("author-form");
+  const errorMsg = document.getElementById("error-msg");
   const readerLogin = document.getElementById("reader-login");
   const readerSignup = document.getElementById("reader-signup");
   const signupForm = document.getElementById("signup-form");
-  const errorMsg = document.getElementById("error-msg");
 
   let selectedPlan = "beta";
 
-  // Role toggle
-  authorBtn.onclick = () => {
-    authorBtn.classList.add("active");
-    readerBtn.classList.remove("active");
-    authorForm.style.display = "block";
-    readerLogin.style.display = "none";
-    readerSignup.classList.remove("active");
-  };
-
-  readerBtn.onclick = () => {
-    readerBtn.classList.add("active");
-    authorBtn.classList.remove("active");
-    authorForm.style.display = "none";
-    readerLogin.style.display = "block";
-    readerSignup.classList.remove("active");
-  };
-
+  // Show signup when user clicks "Sign up here"
   document.getElementById("show-reader-signup").onclick = () => {
     readerLogin.style.display = "none";
     readerSignup.classList.add("active");
   };
 
-  // Reader Plan Selection
+  // Plan selection
   document.getElementById("plan-beta").onclick = () => {
     selectedPlan = "beta";
     document.getElementById("plan-beta").classList.add("selected");
@@ -281,26 +236,21 @@
       const methods = await fetchSignInMethodsForEmail(auth, email);
 
       if (methods.length > 0) {
-        // User already exists — log in, update roles
-        const userCred = await signInWithEmailAndPassword(auth, email, password);
-        const uid = userCred.user.uid;
-        await updateDoc(doc(db, "users", uid), {
-          role: arrayUnion("reader"),
-          plan: selectedPlan
-        });
-        window.location.href = "stories.html";
-      } else {
-        // New reader
-        const userCred = await createUserWithEmailAndPassword(auth, email, password);
-        const uid = userCred.user.uid;
-        await setDoc(doc(db, "users", uid), {
-          email,
-          role: ["reader"],
-          plan: selectedPlan,
-          joinedAt: new Date()
-        });
-        window.location.href = "stories.html";
+        errorMsg.textContent = "This email is already in use. If you're an author, sign in there.";
+        return;
       }
+
+      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+      const uid = userCred.user.uid;
+
+      await setDoc(doc(db, "users", uid), {
+        email,
+        role: ["reader"],
+        plan: selectedPlan,
+        joinedAt: new Date()
+      });
+
+      window.location.href = "stories.html";
     } catch (err) {
       errorMsg.textContent = err.message;
     }
@@ -318,56 +268,19 @@
       const userDoc = await getDoc(doc(db, "users", uid));
 
       if (!userDoc.exists()) {
-        errorMsg.textContent = "User profile not found.";
+        errorMsg.textContent = "No profile found for this user.";
         return;
       }
 
       const data = userDoc.data();
-      if (!data.role.includes("reader")) {
+      if (!data.role || !data.role.includes("reader")) {
         errorMsg.textContent = "This account is not registered as a reader.";
         return;
       }
 
       window.location.href = "stories.html";
     } catch (err) {
-      errorMsg.textContent = "Login failed. Check credentials.";
-    }
-  };
-
-  // Author Login
-  document.getElementById("author-login-btn").onclick = async () => {
-    const email = document.getElementById("author-email").value.trim();
-    const password = document.getElementById("author-password").value.trim();
-    errorMsg.textContent = "";
-
-    try {
-      const userCred = await signInWithEmailAndPassword(auth, email, password);
-      const uid = userCred.user.uid;
-      const userDoc = await getDoc(doc(db, "users", uid));
-
-      if (!userDoc.exists()) {
-        errorMsg.textContent = "User profile not found.";
-        return;
-      }
-
-      const data = userDoc.data();
-
-      if (!data.role.includes("author")) {
-        errorMsg.textContent = "This account is not registered as an author.";
-        return;
-      }
-
-      if (data.authorStatus === "approved") {
-        window.location.href = "author-dashboard.html";
-      } else if (data.authorStatus === "pending") {
-        window.location.href = "dashboard.html";
-      } else if (data.authorStatus === "denied") {
-        errorMsg.textContent = "Your author application was denied.";
-      } else {
-        errorMsg.textContent = "Author status unknown.";
-      }
-    } catch (err) {
-      errorMsg.textContent = "Login failed. Check credentials.";
+      errorMsg.textContent = "Login failed. Please check your email and password.";
     }
   };
 </script>
