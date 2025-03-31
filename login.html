@@ -143,7 +143,6 @@
 <div class="login-box">
   <h1>Log in to Inkwave</h1>
 
-  <!-- Role Switch -->
   <div class="toggle-role">
     <button class="active" id="author-btn">Author</button>
     <button id="reader-btn">Reader</button>
@@ -205,7 +204,8 @@
 
   <div class="error" id="error-msg"></div>
 </div>
-<!-- Firebase SDKs -->
+
+<!-- Firebase SDK & App Logic -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import {
@@ -244,7 +244,7 @@
 
   let selectedPlan = "beta";
 
-  // 🌀 Toggle between Author / Reader tab
+  // Switch tabs
   authorBtn.onclick = () => {
     authorBtn.classList.add("active");
     readerBtn.classList.remove("active");
@@ -263,13 +263,11 @@
     errorMsg.textContent = "";
   };
 
-  // ✨ Show Reader Signup
   document.getElementById("show-reader-signup").onclick = () => {
     readerLogin.style.display = "none";
     readerSignup.classList.add("active");
   };
 
-  // 💸 Plan selection
   document.getElementById("plan-beta").onclick = () => {
     selectedPlan = "beta";
     document.getElementById("plan-beta").classList.add("selected");
@@ -284,7 +282,7 @@
     signupForm.classList.add("active");
   };
 
-  // ✅ Reader Signup
+  // Reader Signup
   document.getElementById("signup-btn").onclick = async () => {
     const email = document.getElementById("signup-email").value.trim();
     const password = document.getElementById("signup-password").value.trim();
@@ -293,7 +291,7 @@
     try {
       const methods = await fetchSignInMethodsForEmail(auth, email);
       if (methods.length > 0) {
-        errorMsg.textContent = "This email is already in use. If you're an author, log in using the Author tab.";
+        errorMsg.textContent = "This email is already in use. If you're an author, use the Author login tab.";
         return;
       }
 
@@ -313,7 +311,7 @@
     }
   };
 
-  // ✅ Reader Login
+  // Reader Login
   document.getElementById("reader-login-btn").onclick = async () => {
     const email = document.getElementById("reader-email").value.trim();
     const password = document.getElementById("reader-password").value.trim();
@@ -325,7 +323,7 @@
       const userDoc = await getDoc(doc(db, "users", uid));
 
       if (!userDoc.exists()) {
-        errorMsg.textContent = "No reader profile found for this email.";
+        errorMsg.textContent = "No reader profile found.";
         return;
       }
 
@@ -341,50 +339,48 @@
     }
   };
 
-  // ✅ Author Login
+  // Author Login (original logic restored)
   document.getElementById("author-login-btn").onclick = async () => {
     const email = document.getElementById("author-email").value.trim();
     const password = document.getElementById("author-password").value.trim();
     errorMsg.textContent = "";
 
+    if (!email || !password) {
+      errorMsg.textContent = "Please enter both email and password.";
+      return;
+    }
+
     try {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
-      const uid = userCred.user.uid;
+      const user = userCred.user;
+      const docRef = doc(db, "authors", user.uid);
+      const docSnap = await getDoc(docRef);
 
-      // Try `users` first, then fallback to `authors`
-      let userDoc = await getDoc(doc(db, "users", uid));
-      if (!userDoc.exists()) {
-        userDoc = await getDoc(doc(db, "authors", uid));
-      }
-
-      if (!userDoc.exists()) {
-        errorMsg.textContent = "Author profile not found. Please apply first.";
+      if (!docSnap.exists()) {
+        errorMsg.textContent = "You haven't submitted an author application yet.";
         return;
       }
 
-      const data = userDoc.data();
-      const role = data.role || [];
-
-      if (!role.includes("author")) {
-        errorMsg.textContent = "This account is not registered as an author.";
-        return;
-      }
-
-      const status = data.status || data.authorStatus;
+      const status = docSnap.data().status;
 
       if (status === "approved") {
-        window.location.href = "author-dashboard.html";
+        const seenWelcome = localStorage.getItem("seenWelcome");
+        if (!seenWelcome) {
+          localStorage.setItem("seenWelcome", "true");
+          window.location.href = "approved.html";
+        } else {
+          window.location.href = "author-dashboard.html";
+        }
       } else if (status === "pending") {
         window.location.href = "dashboard.html";
       } else if (status === "denied") {
         errorMsg.textContent = "Your author application was denied.";
       } else {
-        errorMsg.textContent = "Author status unknown.";
+        errorMsg.textContent = "Unknown status. Please contact support.";
       }
-
     } catch (err) {
-      errorMsg.textContent = "Login failed. Please check your credentials.";
       console.error(err);
+      errorMsg.textContent = "Login failed. Please check your credentials.";
     }
   };
 </script>
