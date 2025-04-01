@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Reader Dashboard – Inkwave</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #f5f8f7;
@@ -89,10 +89,10 @@
 
     .card {
       background: var(--white);
-      padding: 1.5rem;
+      padding: 1rem;
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.05);
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
 
     .story-title {
@@ -106,19 +106,37 @@
       color: var(--muted);
     }
 
-    .delete-btn {
-      background: #e74c3c;
-      color: white;
-      padding: 6px 10px;
-      border: none;
-      border-radius: 4px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      float: right;
+    .story-blurb {
+      font-size: 0.9rem;
+      color: var(--muted);
+      margin: 0.5rem 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .delete-btn:hover {
-      background: #c0392b;
+    .read-btn {
+      background: var(--accent);
+      color: white;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      border: none;
+      border-radius: 4px;
+      text-decoration: none;
+      display: inline-block;
+      margin-top: 6px;
+    }
+
+    .search-bar {
+      margin-bottom: 1.2rem;
+    }
+
+    .search-bar input {
+      width: 100%;
+      padding: 0.7rem;
+      font-size: 1rem;
+      border: 1px solid var(--border);
+      border-radius: 6px;
     }
   </style>
 </head>
@@ -126,17 +144,26 @@
 
   <div class="sidebar">
     <h2>Inkwave</h2>
-    <a href="#" class="nav-link active" data-section="favorites">📚 Favorites</a>
+    <a href="#" class="nav-link active" data-section="explore">📰 Explore</a>
+    <a href="#" class="nav-link" data-section="favorites">📚 Favorites</a>
     <a href="#" class="nav-link" data-section="comments">💬 Comments</a>
     <a href="#" class="nav-link" data-section="following">👤 Following</a>
-    <a href="#" class="nav-link" data-section="stories">📰 Explore Stories</a>
     <a href="#" class="nav-link" data-section="settings">⚙️ Settings</a>
   </div>
 
   <div class="main">
     <h1>Reader Dashboard</h1>
 
-    <div class="section active" id="favorites">
+    <div class="section active" id="explore">
+      <h2>📰 Explore Stories</h2>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Search by title or genre...">
+      </div>
+      <div id="explore-stories-list">
+        <div class="card">Loading stories...</div>
+      </div>
+    </div>
+    <div class="section" id="favorites">
       <h2>📚 Your Favorite Stories</h2>
       <div id="favorites-list">
         <div class="card">Loading favorites...</div>
@@ -157,13 +184,6 @@
       </div>
     </div>
 
-    <div class="section" id="stories">
-      <h2>📰 Explore Stories</h2>
-      <div id="explore-stories-list">
-        <div class="card">Loading stories...</div>
-      </div>
-    </div>
-
     <div class="section" id="settings">
       <h2>⚙️ Account Settings</h2>
       <div class="card">
@@ -173,147 +193,151 @@
     </div>
   </div>
 
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
-    authDomain: "inkwave-549c0.firebaseapp.com",
-    projectId: "inkwave-549c0",
-    storageBucket: "inkwave-549c0.appspot.com",
-    messagingSenderId: "1084811926133",
-    appId: "1:1084811926133:web:f1656fce68d5c4d697363c"
-  };
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0",
+      storageBucket: "inkwave-549c0.appspot.com",
+      messagingSenderId: "1084811926133",
+      appId: "1:1084811926133:web:f1656fce68d5c4d697363c"
+    };
 
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-  const navLinks = document.querySelectorAll(".nav-link");
-  const sections = document.querySelectorAll(".section");
+    const navLinks = document.querySelectorAll(".nav-link");
+    const sections = document.querySelectorAll(".section");
 
-  navLinks.forEach(link => {
-    link.addEventListener("click", e => {
-      e.preventDefault();
-      navLinks.forEach(l => l.classList.remove("active"));
-      link.classList.add("active");
+    navLinks.forEach(link => {
+      link.addEventListener("click", e => {
+        e.preventDefault();
+        navLinks.forEach(l => l.classList.remove("active"));
+        link.classList.add("active");
 
-      const target = link.dataset.section;
-      sections.forEach(s => {
-        s.classList.toggle("active", s.id === target);
+        const target = link.dataset.section;
+        sections.forEach(s => {
+          s.classList.toggle("active", s.id === target);
+        });
       });
     });
-  });
 
-  auth.onAuthStateChanged(async user => {
-    if (!user) {
-      alert("Please log in first.");
-      window.location.href = "login.html";
-      return;
-    }
+    let allStories = [];
 
-    const uid = user.uid;
-    const userRef = db.collection("users").doc(uid);
-    const userSnap = await userRef.get();
-    const userData = userSnap.data();
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        alert("Please log in first.");
+        window.location.href = "login.html";
+        return;
+      }
 
-    document.getElementById("user-email").textContent = userData.email;
-    document.getElementById("user-plan").textContent = userData.plan || "Unknown";
+      const uid = user.uid;
+      const userRef = db.collection("users").doc(uid);
+      const userSnap = await userRef.get();
+      const userData = userSnap.data();
 
-    // 🔖 Favorites
-    const favorites = userData.favorites || [];
-    const favList = document.getElementById("favorites-list");
-    favList.innerHTML = "";
+      document.getElementById("user-email").textContent = userData.email;
+      document.getElementById("user-plan").textContent = userData.plan || "Unknown";
 
-    if (favorites.length === 0) {
-      favList.innerHTML = `<div class="card">You haven’t favorited any stories yet.</div>`;
-    } else {
-      for (const storyId of favorites) {
-        const storySnap = await db.collectionGroup("stories").where("id", "==", storyId).get();
-        storySnap.forEach(doc => {
-          const data = doc.data();
+      // 🌍 Explore Stories
+      const exploreList = document.getElementById("explore-stories-list");
+      exploreList.innerHTML = "";
+      const storyResults = await db.collectionGroup("stories").where("status", "==", "published").get();
+      allStories = storyResults.docs.map(doc => doc.data());
+      renderStories(allStories);
+
+      // 🔖 Favorites
+      const favorites = userData.favorites || [];
+      const favList = document.getElementById("favorites-list");
+      favList.innerHTML = "";
+      if (favorites.length === 0) {
+        favList.innerHTML = `<div class="card">You haven’t favorited any stories yet.</div>`;
+      } else {
+        for (const storyId of favorites) {
+          const snap = await db.collectionGroup("stories").where("id", "==", storyId).get();
+          snap.forEach(doc => {
+            const d = doc.data();
+            const div = document.createElement("div");
+            div.className = "card";
+            div.innerHTML = `<div class="story-title">${d.title}</div><div class="comment-meta">${d.genre}</div>`;
+            favList.appendChild(div);
+          });
+        }
+      }
+
+      // 💬 Comments
+      const commentsRef = await db.collection("comments").where("userId", "==", uid).get();
+      const commentList = document.getElementById("comments-list");
+      commentList.innerHTML = "";
+      if (commentsRef.empty) {
+        commentList.innerHTML = `<div class="card">You haven’t commented on any stories yet.</div>`;
+      } else {
+        commentsRef.forEach(doc => {
+          const c = doc.data();
           const div = document.createElement("div");
           div.className = "card";
-          div.innerHTML = `<div class="story-title">${data.title || "Untitled Story"}</div><div class="comment-meta">${data.genre || ""}</div>`;
-          favList.appendChild(div);
+          div.innerHTML = `
+            <div class="story-title">${c.storyTitle}</div>
+            <div class="comment-meta">${new Date(c.timestamp?.toDate()).toLocaleString()}</div>
+            <p>${c.text}</p>
+          `;
+          commentList.appendChild(div);
+        });
+      }
+
+      // 👤 Following
+      const following = userData.following || [];
+      const followList = document.getElementById("following-list");
+      followList.innerHTML = "";
+      if (following.length === 0) {
+        followList.innerHTML = `<div class="card">You’re not following any authors yet.</div>`;
+      } else {
+        for (const authorId of following) {
+          const authorSnap = await db.collection("users").doc(authorId).get();
+          if (authorSnap.exists) {
+            const a = authorSnap.data();
+            const div = document.createElement("div");
+            div.className = "card";
+            div.innerHTML = `<div class="story-title">${a.displayName || a.email}</div><div class="comment-meta">Author</div>`;
+            followList.appendChild(div);
+          }
+        }
+      }
+    });
+
+    function renderStories(stories) {
+      const list = document.getElementById("explore-stories-list");
+      list.innerHTML = "";
+      if (stories.length === 0) {
+        list.innerHTML = `<div class="card">No stories found.</div>`;
+      } else {
+        stories.forEach(s => {
+          const div = document.createElement("div");
+          div.className = "card";
+          div.innerHTML = `
+            <div class="story-title">${s.title || "Untitled"}</div>
+            <div class="comment-meta">${s.genre || ""}</div>
+            <div class="story-blurb">${s.blurb || ""}</div>
+            <a href="story.html?storyId=${s.id}" class="read-btn">Read →</a>
+          `;
+          list.appendChild(div);
         });
       }
     }
 
-    // 💬 Comments
-    const commentsRef = await db.collection("comments").where("userId", "==", uid).get();
-    const commentList = document.getElementById("comments-list");
-    commentList.innerHTML = "";
-
-    if (commentsRef.empty) {
-      commentList.innerHTML = `<div class="card">You haven’t commented on any stories yet.</div>`;
-    } else {
-      commentsRef.forEach(doc => {
-        const c = doc.data();
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-          <button class="delete-btn" onclick="deleteComment('${doc.id}')">Delete</button>
-          <div class="story-title">${c.storyTitle || "Unknown Story"}</div>
-          <div class="comment-meta">${new Date(c.timestamp?.toDate()).toLocaleString()}</div>
-          <p>${c.text}</p>
-        `;
-        commentList.appendChild(div);
-      });
-    }
-
-    // 👤 Following
-    const following = userData.following || [];
-    const followList = document.getElementById("following-list");
-    followList.innerHTML = "";
-
-    if (following.length === 0) {
-      followList.innerHTML = `<div class="card">You’re not following any authors yet.</div>`;
-    } else {
-      for (const authorId of following) {
-        const authorSnap = await db.collection("users").doc(authorId).get();
-        if (authorSnap.exists) {
-          const a = authorSnap.data();
-          const div = document.createElement("div");
-          div.className = "card";
-          div.innerHTML = `<div class="story-title">${a.displayName || a.email}</div><div class="comment-meta">Author</div>`;
-          followList.appendChild(div);
-        }
-      }
-    }
-
-    // 🌍 Explore Stories
-    const exploreList = document.getElementById("explore-stories-list");
-    exploreList.innerHTML = "";
-
-    const storyResults = await db.collectionGroup("stories").where("status", "==", "published").limit(10).get();
-
-    if (storyResults.empty) {
-      exploreList.innerHTML = `<div class="card">No stories published yet.</div>`;
-    } else {
-      storyResults.forEach(doc => {
-        const story = doc.data();
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-          <div class="story-title">${story.title || "Untitled"}</div>
-          <div class="comment-meta">${story.genre || "No genre"}</div>
-          <p>${story.blurb || "No description available."}</p>
-          <a href="story.html?storyId=${story.id}" class="nav-link" style="color: var(--accent)">Read Story →</a>
-        `;
-        exploreList.appendChild(div);
-      });
-    }
-  });
-
-  async function deleteComment(commentId) {
-    if (confirm("Are you sure you want to delete this comment?")) {
-      await db.collection("comments").doc(commentId).delete();
-      location.reload();
-    }
-  }
-</script>
+    document.getElementById("searchInput").addEventListener("input", e => {
+      const q = e.target.value.toLowerCase();
+      const filtered = allStories.filter(s =>
+        (s.title || "").toLowerCase().includes(q) ||
+        (s.genre || "").toLowerCase().includes(q)
+      );
+      renderStories(filtered);
+    });
+  </script>
 </body>
 </html>
