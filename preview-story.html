@@ -11,13 +11,13 @@
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      background-color: #f0f0f0;
       margin: 0;
       padding: 2rem;
+      background: #f5f5f5;
       color: #222;
     }
     .container {
-      max-width: 800px;
+      max-width: 700px;
       margin: auto;
       background: white;
       padding: 2rem;
@@ -26,108 +26,111 @@
     }
     h1 {
       font-family: 'Playfair Display', serif;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
     }
-    textarea, input {
+    input, textarea {
       width: 100%;
       padding: 0.8rem;
       margin-bottom: 1rem;
+      font-size: 1rem;
       border: 1px solid #ccc;
       border-radius: 6px;
-      font-size: 1rem;
     }
     button {
       background-color: #4f8dc0;
       color: white;
-      padding: 0.8rem 1.5rem;
-      font-size: 1rem;
+      padding: 0.7rem 1.4rem;
       border: none;
       border-radius: 6px;
+      font-size: 1rem;
       cursor: pointer;
+      margin-right: 10px;
     }
     button:hover {
-      background-color: #3e739c;
+      background-color: #3a74a2;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Become an Author</h1>
-
+    <h1>Write a Story</h1>
     <input type="text" id="titleInput" placeholder="Story Title" />
-    <textarea id="blurbInput" rows="3" placeholder="Short blurb..."></textarea>
-    <textarea id="sectionInput" rows="8" placeholder="Story content..."></textarea>
-    <button id="saveBtn">Save Draft</button>
-    <button id="publishBtn">Publish</button>
+    <textarea id="blurbInput" rows="3" placeholder="Short Blurb..."></textarea>
+    <textarea id="sectionInput" rows="8" placeholder="Chapter 1 content..."></textarea>
+    <div>
+      <button id="saveBtn">Save Draft</button>
+      <button id="publishBtn">Publish</button>
+    </div>
   </div>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
-    authDomain: "inkwave-549c0.firebaseapp.com",
-    projectId: "inkwave-549c0"
-  };
 
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0"
+    };
 
-  let storyId = localStorage.getItem("currentStoryId");
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-  const titleInput = document.getElementById("titleInput");
-  const blurbInput = document.getElementById("blurbInput");
-  const sectionInput = document.getElementById("sectionInput");
-  const saveBtn = document.getElementById("saveBtn");
-  const publishBtn = document.getElementById("publishBtn");
+    let storyId = localStorage.getItem("currentStoryId");
 
-  saveBtn.onclick = async () => {
-    const user = auth.currentUser;
-    if (!user) return alert("You must be logged in.");
+    const titleInput = document.getElementById("titleInput");
+    const blurbInput = document.getElementById("blurbInput");
+    const sectionInput = document.getElementById("sectionInput");
+    const saveBtn = document.getElementById("saveBtn");
+    const publishBtn = document.getElementById("publishBtn");
 
-    const uid = user.uid;
-    if (!storyId) {
-      const ref = await db.collection("users").doc(uid).collection("stories").add({});
-      storyId = ref.id;
-      localStorage.setItem("currentStoryId", storyId);
-    }
+    saveBtn.onclick = async () => {
+      const user = auth.currentUser;
+      if (!user) return alert("Please log in.");
 
-    await db.collection("users").doc(uid).collection("stories").doc(storyId).set({
-      title: titleInput.value.trim(),
-      blurb: blurbInput.value.trim(),
-      sections: {
-        "Chapter 1": { content: sectionInput.value.trim() }
-      },
-      coverUrl: "", // Optional
-      tags: [],
-      genre: "Uncategorized",
-      status: "draft"
-    }, { merge: true });
+      const uid = user.uid;
 
-    alert("Draft saved!");
-  };
+      if (!storyId) {
+        const newDoc = await db.collection("users").doc(uid).collection("stories").add({});
+        storyId = newDoc.id;
+        localStorage.setItem("currentStoryId", storyId);
+      }
 
-  publishBtn.onclick = async () => {
-    const user = auth.currentUser;
-    if (!user) return alert("You must be logged in.");
+      await db.collection("users").doc(uid).collection("stories").doc(storyId).set({
+        title: titleInput.value.trim(),
+        blurb: blurbInput.value.trim(),
+        coverUrl: "",
+        genre: "Uncategorized",
+        tags: [],
+        status: "draft",
+        sections: {
+          "Chapter 1": { content: sectionInput.value.trim() }
+        }
+      }, { merge: true });
 
-    const uid = user.uid;
-    const ref = db.collection("users").doc(uid).collection("stories").doc(storyId);
+      alert("Draft saved!");
+    };
 
-    await ref.set({
-      id: storyId,
-      status: "published"
-    }, { merge: true });
+    publishBtn.onclick = async () => {
+      const user = auth.currentUser;
+      if (!user || !storyId) return alert("Missing user or story.");
 
-    alert("Story published!");
-    localStorage.removeItem("currentStoryId");
-    window.location.href = "author-dashboard.html";
-  };
+      const uid = user.uid;
 
-  auth.onAuthStateChanged(user => {
-    if (!user) {
-      alert("You must be logged in to write.");
-      window.location.href = "login.html";
-    }
-  });
-</script>
+      await db.collection("users").doc(uid).collection("stories").doc(storyId).set({
+        id: storyId,
+        status: "published"
+      }, { merge: true });
+
+      localStorage.removeItem("currentStoryId");
+      alert("Story published!");
+      window.location.href = "author-dashboard.html";
+    };
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        alert("You must be logged in to write.");
+        window.location.href = "login.html";
+      }
+    });
+  </script>
 </body>
 </html>
