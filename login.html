@@ -204,8 +204,6 @@
 
   <div class="error" id="error-msg"></div>
 </div>
-
-<!-- Firebase SDK & App Logic -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import {
@@ -218,7 +216,9 @@
     getFirestore,
     doc,
     getDoc,
-    setDoc
+    setDoc,
+    updateDoc,
+    arrayUnion
   } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -244,7 +244,6 @@
 
   let selectedPlan = "beta";
 
-  // Switch tabs
   authorBtn.onclick = () => {
     authorBtn.classList.add("active");
     readerBtn.classList.remove("active");
@@ -282,11 +281,21 @@
     signupForm.classList.add("active");
   };
 
-  // Reader Signup
   document.getElementById("signup-btn").onclick = async () => {
     const email = document.getElementById("signup-email").value.trim();
     const password = document.getElementById("signup-password").value.trim();
     errorMsg.textContent = "";
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      errorMsg.textContent = "Please enter a valid email address.";
+      return;
+    }
+
+    if (password.length < 6) {
+      errorMsg.textContent = "Password must be at least 6 characters.";
+      return;
+    }
 
     try {
       const methods = await fetchSignInMethodsForEmail(auth, email);
@@ -311,38 +320,42 @@
     }
   };
 
-  // ✅ Reader Login → Redirect to reader-dashboard.html
-document.getElementById("reader-login-btn").onclick = async () => {
-  const email = document.getElementById("reader-email").value.trim();
-  const password = document.getElementById("reader-password").value.trim();
-  errorMsg.textContent = "";
+  document.getElementById("reader-login-btn").onclick = async () => {
+    const email = document.getElementById("reader-email").value.trim();
+    const password = document.getElementById("reader-password").value.trim();
+    errorMsg.textContent = "";
 
-  try {
-    const userCred = await signInWithEmailAndPassword(auth, email, password);
-    const uid = userCred.user.uid;
-    const userDoc = await getDoc(doc(db, "users", uid));
+    try {
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      const uid = userCred.user.uid;
+      const userDoc = await getDoc(doc(db, "users", uid));
 
-    if (!userDoc.exists()) {
-      errorMsg.textContent = "No reader profile found.";
-      return;
+      if (!userDoc.exists()) {
+        errorMsg.textContent = "No reader profile found.";
+        return;
+      }
+
+      const data = userDoc.data();
+      const roles = data.role || [];
+
+      if (!roles.includes("reader") && !roles.includes("author")) {
+        errorMsg.textContent = "This account is not eligible for reader access.";
+        return;
+      }
+
+      if (roles.includes("author") && !roles.includes("reader")) {
+        await updateDoc(doc(db, "users", uid), {
+          role: arrayUnion("reader")
+        });
+      }
+
+      window.location.href = "reader-dashboard.html";
+    } catch (err) {
+      errorMsg.textContent = "Login failed. Please check your credentials.";
+      console.error(err);
     }
+  };
 
-    const data = userDoc.data();
-    if (!data.role || !data.role.includes("reader")) {
-      errorMsg.textContent = "This account is not registered as a reader.";
-      return;
-    }
-
-    // ✅ Redirect to Reader Dashboard
-    window.location.href = "reader-dashboard.html";
-  } catch (err) {
-    errorMsg.textContent = "Login failed. Please check your credentials.";
-    console.error(err);
-  }
-};
-
-
-  // Author Login (original logic restored)
   document.getElementById("author-login-btn").onclick = async () => {
     const email = document.getElementById("author-email").value.trim();
     const password = document.getElementById("author-password").value.trim();
@@ -365,6 +378,10 @@ document.getElementById("reader-login-btn").onclick = async () => {
       }
 
       const status = docSnap.data().status;
+
+      await updateDoc(doc(db, "users", user.uid), {
+        role: arrayUnion("author", "reader")
+      });
 
       if (status === "approved") {
         const seenWelcome = localStorage.getItem("seenWelcome");
