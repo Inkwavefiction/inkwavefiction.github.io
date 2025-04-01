@@ -42,6 +42,22 @@
       color: #555;
       margin-bottom: 2rem;
     }
+    .author-box {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin: 1rem 0 2rem;
+    }
+    .author-box img {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .author-box .name {
+      font-weight: 600;
+      color: #333;
+    }
     .section-title {
       font-size: 1.6rem;
       color: #789a91;
@@ -54,10 +70,10 @@
     }
     .nav-buttons {
       display: flex;
-      justify-content: flex-end;
-      margin-bottom: 2rem;
       flex-wrap: wrap;
+      justify-content: flex-end;
       gap: 10px;
+      margin-bottom: 2rem;
     }
     .nav-buttons button {
       padding: 0.6rem 1.2rem;
@@ -90,6 +106,11 @@
     <h1 id="title">Loading...</h1>
     <div class="blurb" id="blurb"></div>
 
+    <div id="authorInfo" class="author-box" style="display: none;">
+      <img id="authorPhoto" src="" alt="Author Photo">
+      <div class="name" id="authorName"></div>
+    </div>
+
     <div class="section-title" id="section-name"></div>
     <div class="section-content" id="section-content"></div>
 
@@ -115,16 +136,17 @@
     const db = firebase.firestore();
 
     const storyId = new URLSearchParams(window.location.search).get("storyId");
-
     const titleEl = document.getElementById("title");
     const blurbEl = document.getElementById("blurb");
     const coverEl = document.getElementById("cover");
     const sectionTitleEl = document.getElementById("section-name");
     const sectionContentEl = document.getElementById("section-content");
-    const prevBtn = document.getElementById("prevBtn");
-    const nextBtn = document.getElementById("nextBtn");
     const favBtn = document.getElementById("favBtn");
     const followBtn = document.getElementById("followBtn");
+
+    const authorNameEl = document.getElementById("authorName");
+    const authorPhotoEl = document.getElementById("authorPhoto");
+    const authorInfoBox = document.getElementById("authorInfo");
 
     let sectionKeys = [];
     let currentIndex = 0;
@@ -137,18 +159,18 @@
       const key = sectionKeys[index];
       sectionTitleEl.textContent = key;
       sectionContentEl.innerHTML = sections[key].content || "";
-      prevBtn.disabled = index === 0;
-      nextBtn.disabled = index === sectionKeys.length - 1;
+      document.getElementById("prevBtn").disabled = index === 0;
+      document.getElementById("nextBtn").disabled = index === sectionKeys.length - 1;
     }
 
-    prevBtn.onclick = () => {
+    document.getElementById("prevBtn").onclick = () => {
       if (currentIndex > 0) {
         currentIndex--;
         renderSection(currentIndex);
       }
     };
 
-    nextBtn.onclick = () => {
+    document.getElementById("nextBtn").onclick = () => {
       if (currentIndex < sectionKeys.length - 1) {
         currentIndex++;
         renderSection(currentIndex);
@@ -159,76 +181,75 @@
       if (!currentUser || !storyData) return;
       const ref = db.collection("users").doc(currentUser.uid).collection("favorites").doc(storyId);
       ref.set({
+        id: storyId,
         title: storyData.title || "Untitled",
         author: authorId,
         cover: storyData.coverUrl || "",
         blurb: storyData.blurb || "",
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       }).then(() => {
-        alert("Story favorited!");
-      }).catch(err => {
-        console.error("Favorite failed:", err);
+        window.location.href = "reader-dashboard.html#favorites";
       });
     };
 
-    followBtn.onclick = () => {
+    followBtn.onclick = async () => {
       if (!currentUser || !authorId) return;
       const ref = db.collection("users").doc(currentUser.uid).collection("following").doc(authorId);
-      db.collection("authors").doc(authorId).get().then(doc => {
-        if (!doc.exists) {
-          alert("Author not found.");
-          return;
-        }
-        const data = doc.data();
-        ref.set({
-          displayName: data.displayName || "Unknown",
-          bio: data.bio || "",
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-          alert("Now following this author!");
-        });
+      const doc = await db.collection("authors").doc(authorId).get();
+      if (!doc.exists) {
+        alert("Author not found.");
+        return;
+      }
+      const data = doc.data();
+      await ref.set({
+        displayName: data.displayName || "Unknown",
+        photoURL: data.photoURL || "",
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
       });
+      window.location.href = "reader-dashboard.html#following";
     };
 
     auth.onAuthStateChanged(async user => {
       if (!user) {
-        titleEl.textContent = "You must be logged in to view this story.";
+        titleEl.textContent = "You must be logged in.";
         return;
       }
+
       currentUser = user;
+      const snap = await db.collectionGroup("stories").where("id", "==", storyId).get();
+      if (snap.empty) {
+        titleEl.textContent = "Story not found.";
+        return;
+      }
 
-      try {
-        const snap = await db.collectionGroup("stories").where("id", "==", storyId).get();
-        if (snap.empty) {
-          titleEl.textContent = "Story not found.";
-          return;
-        }
+      const doc = snap.docs[0];
+      storyData = doc.data();
+      authorId = doc.ref.parent.parent.id;
 
-        const doc = snap.docs[0];
-        storyData = doc.data();
-        authorId = doc.ref.parent.parent.id;
+      titleEl.textContent = storyData.title || "Untitled";
+      blurbEl.textContent = storyData.blurb || "";
+      if (storyData.coverUrl) {
+        coverEl.src = storyData.coverUrl;
+        coverEl.style.display = "block";
+      }
 
-        titleEl.textContent = storyData.title || "Untitled";
-        blurbEl.textContent = storyData.blurb || "";
+      // Load sections
+      sections = storyData.sections || {};
+      sectionKeys = Object.keys(sections);
+      currentIndex = 0;
+      renderSection(currentIndex);
 
-        if (storyData.coverUrl) {
-          coverEl.src = storyData.coverUrl;
-          coverEl.style.display = "block";
-        }
-
-        sections = storyData.sections || {};
-        sectionKeys = Object.keys(sections);
-        currentIndex = 0;
-
-        if (sectionKeys.length > 0) {
-          renderSection(currentIndex);
+      // Load author info
+      const authorDoc = await db.collection("authors").doc(authorId).get();
+      if (authorDoc.exists) {
+        const data = authorDoc.data();
+        authorNameEl.textContent = data.displayName || "Unknown Author";
+        if (data.photoURL) {
+          authorPhotoEl.src = data.photoURL;
         } else {
-          sectionTitleEl.textContent = "No sections found.";
-          sectionContentEl.textContent = "";
+          authorPhotoEl.src = "https://via.placeholder.com/48";
         }
-      } catch (err) {
-        console.error("Error fetching story:", err);
-        titleEl.textContent = "Error loading story.";
+        authorInfoBox.style.display = "flex";
       }
     });
   </script>
