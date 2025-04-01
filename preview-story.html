@@ -3,132 +3,217 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Become an Author – Inkwave</title>
+  <title>Story Preview – Inkwave</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: 'Poppins', sans-serif;
       margin: 0;
-      padding: 2rem;
-      background: #f5f5f5;
+      font-family: 'Poppins', sans-serif;
+      background-color: #fafafa;
       color: #222;
     }
-    .container {
+
+    main {
       max-width: 700px;
-      margin: auto;
-      background: white;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      margin: 4rem auto;
+      padding: 0 1.5rem;
     }
+
+    .cover {
+      width: 100%;
+      max-height: 400px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-bottom: 2rem;
+    }
+
     h1 {
       font-family: 'Playfair Display', serif;
-      margin-bottom: 1.5rem;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
     }
-    input, textarea {
-      width: 100%;
-      padding: 0.8rem;
+
+    .blurb {
+      font-size: 1.1rem;
+      color: #555;
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-size: 1.6rem;
+      color: #789a91;
       margin-bottom: 1rem;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
+      font-weight: 600;
     }
-    button {
-      background-color: #4f8dc0;
+
+    .section-content {
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2.5rem;
+    }
+
+    .nav-buttons button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      background-color: #789a91;
       color: white;
-      padding: 0.7rem 1.4rem;
       border: none;
       border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .nav-buttons button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 2rem;
+      color: #555;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    #publishBtn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background-color: #789a91;
+      color: white;
+      border: none;
+      padding: 0.8rem 1.6rem;
+      border-radius: 50px;
       font-size: 1rem;
       cursor: pointer;
-      margin-right: 10px;
-    }
-    button:hover {
-      background-color: #3a74a2;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Write a Story</h1>
-    <input type="text" id="titleInput" placeholder="Story Title" />
-    <textarea id="blurbInput" rows="3" placeholder="Short Blurb..."></textarea>
-    <textarea id="sectionInput" rows="8" placeholder="Chapter 1 content..."></textarea>
-    <div>
-      <button id="saveBtn">Save Draft</button>
-      <button id="publishBtn">Publish</button>
+  <main>
+    <img id="cover" class="cover" style="display:none" />
+    <h1 id="title">Loading...</h1>
+    <div class="blurb" id="blurb"></div>
+
+    <div class="section-title" id="section-name"></div>
+    <div class="section-content" id="section-content"></div>
+
+    <div class="nav-buttons">
+      <button id="prevBtn">← Previous</button>
+      <button id="nextBtn">Next →</button>
     </div>
-  </div>
+
+    <a href="publish-story.html" class="back-link">← Back to edit</a>
+  </main>
+
+  <button id="publishBtn">Publish</button>
 
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
-      projectId: "inkwave-549c0"
+      projectId: "inkwave-549c0",
+      storageBucket: "inkwave-549c0.appspot.com",
+      messagingSenderId: "1084811926133",
+      appId: "1:1084811926133:web:auto-generated"
     };
 
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    let storyId = localStorage.getItem("currentStoryId");
+    const storyId = new URLSearchParams(window.location.search).get("storyId");
 
-    const titleInput = document.getElementById("titleInput");
-    const blurbInput = document.getElementById("blurbInput");
-    const sectionInput = document.getElementById("sectionInput");
-    const saveBtn = document.getElementById("saveBtn");
+    const titleEl = document.getElementById("title");
+    const blurbEl = document.getElementById("blurb");
+    const coverEl = document.getElementById("cover");
+    const sectionTitleEl = document.getElementById("section-name");
+    const sectionContentEl = document.getElementById("section-content");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
     const publishBtn = document.getElementById("publishBtn");
 
-    saveBtn.onclick = async () => {
-      const user = auth.currentUser;
-      if (!user) return alert("Please log in.");
+    let sectionKeys = [];
+    let currentIndex = 0;
+    let sections = {};
 
-      const uid = user.uid;
+    function renderSection(index) {
+      const key = sectionKeys[index];
+      sectionTitleEl.textContent = key;
+      sectionContentEl.innerHTML = sections[key].content || "";
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === sectionKeys.length - 1;
+    }
 
-      if (!storyId) {
-        const newDoc = await db.collection("users").doc(uid).collection("stories").add({});
-        storyId = newDoc.id;
-        localStorage.setItem("currentStoryId", storyId);
+    prevBtn.onclick = () => {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderSection(currentIndex);
       }
+    };
 
-      await db.collection("users").doc(uid).collection("stories").doc(storyId).set({
-        title: titleInput.value.trim(),
-        blurb: blurbInput.value.trim(),
-        coverUrl: "",
-        genre: "Uncategorized",
-        tags: [],
-        status: "draft",
-        sections: {
-          "Chapter 1": { content: sectionInput.value.trim() }
-        }
-      }, { merge: true });
-
-      alert("Draft saved!");
+    nextBtn.onclick = () => {
+      if (currentIndex < sectionKeys.length - 1) {
+        currentIndex++;
+        renderSection(currentIndex);
+      }
     };
 
     publishBtn.onclick = async () => {
-      const user = auth.currentUser;
-      if (!user || !storyId) return alert("Missing user or story.");
+      if (!auth.currentUser) return alert("You must be logged in.");
 
-      const uid = user.uid;
+      await db.collection("users").doc(auth.currentUser.uid)
+        .collection("stories").doc(storyId)
+        .set({ status: "published", id: storyId }, { merge: true });
 
-      await db.collection("users").doc(uid).collection("stories").doc(storyId).set({
-        id: storyId,
-        status: "published"
-      }, { merge: true });
-
-      localStorage.removeItem("currentStoryId");
       alert("Story published!");
       window.location.href = "author-dashboard.html";
     };
 
-    auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(async user => {
       if (!user) {
-        alert("You must be logged in to write.");
-        window.location.href = "login.html";
+        titleEl.textContent = "You must be logged in.";
+        return;
+      }
+
+      const docRef = db.collection("users").doc(user.uid).collection("stories").doc(storyId);
+      const docSnap = await docRef.get();
+
+      if (!docSnap.exists) {
+        titleEl.textContent = "Story not found.";
+        return;
+      }
+
+      const data = docSnap.data();
+      titleEl.textContent = data.title || "Untitled";
+      blurbEl.textContent = data.blurb || "";
+
+      if (data.coverUrl) {
+        coverEl.src = data.coverUrl;
+        coverEl.style.display = "block";
+      }
+
+      sections = data.sections || {};
+      sectionKeys = Object.keys(sections);
+      currentIndex = 0;
+
+      if (sectionKeys.length > 0) {
+        renderSection(currentIndex);
+      } else {
+        sectionTitleEl.textContent = "No sections found.";
+        sectionContentEl.textContent = "";
       }
     });
   </script>
