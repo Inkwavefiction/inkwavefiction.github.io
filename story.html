@@ -200,7 +200,6 @@
       }
       currentUser = user;
 
-      // Find story across all users (public view)
       const snapshot = await db.collectionGroup("stories").where("id", "==", storyId).get();
       if (snapshot.empty) {
         titleEl.textContent = "Story not found.";
