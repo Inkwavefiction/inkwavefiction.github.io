@@ -172,14 +172,26 @@
     };
 
     publishBtn.onclick = async () => {
-      if (!auth.currentUser) return alert("You must be logged in.");
+      if (!auth.currentUser) {
+        alert("You must be logged in.");
+        return;
+      }
 
-      await db.collection("users").doc(auth.currentUser.uid)
-        .collection("stories").doc(storyId)
-        .set({ status: "published", id: storyId }, { merge: true });
+      try {
+        const userId = auth.currentUser.uid;
+        const storyRef = db.collection("users").doc(userId).collection("stories").doc(storyId);
 
-      alert("Story published!");
-      window.location.href = "author-dashboard.html";
+        await storyRef.set({
+          id: storyId,
+          status: "published"
+        }, { merge: true });
+
+        alert("Story published!");
+        window.location.href = "author-dashboard.html";
+      } catch (err) {
+        console.error("Publish error:", err);
+        alert("Something went wrong.");
+      }
     };
 
     auth.onAuthStateChanged(async user => {
