@@ -130,7 +130,6 @@
     let currentIndex = 0;
     let sections = {};
     let currentUser = null;
-    let authorId = null;
     let storyData = null;
 
     function renderSection(index) {
@@ -160,7 +159,7 @@
       const ref = db.collection("users").doc(currentUser.uid).collection("favorites").doc(storyId);
       ref.set({
         title: storyData.title || "Untitled",
-        author: authorId,
+        author: currentUser.uid,
         cover: storyData.coverUrl || "",
         blurb: storyData.blurb || "",
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
@@ -172,9 +171,9 @@
     };
 
     followBtn.onclick = () => {
-      if (!currentUser || !authorId) return;
-      const ref = db.collection("users").doc(currentUser.uid).collection("following").doc(authorId);
-      db.collection("authors").doc(authorId).get().then(doc => {
+      if (!currentUser) return;
+      const ref = db.collection("users").doc(currentUser.uid).collection("following").doc(currentUser.uid);
+      db.collection("authors").doc(currentUser.uid).get().then(doc => {
         if (!doc.exists) {
           alert("Author not found.");
           return;
@@ -185,7 +184,7 @@
           bio: data.bio || "",
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         }).then(() => {
-          alert("Now following this author!");
+          alert("Now following yourself 😅");
         });
       });
     };
@@ -198,15 +197,15 @@
       currentUser = user;
 
       try {
-        const snap = await db.collectionGroup("stories").where("id", "==", storyId).get();
-        if (snap.empty) {
+        const docRef = db.collection("users").doc(user.uid).collection("stories").doc(storyId);
+        const docSnap = await docRef.get();
+
+        if (!docSnap.exists) {
           titleEl.textContent = "Story not found.";
           return;
         }
 
-        const doc = snap.docs[0];
-        storyData = doc.data();
-        authorId = doc.ref.parent.parent.id;
+        storyData = docSnap.data();
 
         titleEl.textContent = storyData.title || "Untitled";
         blurbEl.textContent = storyData.blurb || "";
@@ -227,7 +226,7 @@
           sectionContentEl.textContent = "";
         }
       } catch (err) {
-        console.error("Error fetching story:", err);
+        console.error("Error loading story:", err);
         titleEl.textContent = "Error loading story.";
       }
     });
