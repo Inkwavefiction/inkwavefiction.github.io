@@ -33,10 +33,37 @@
       margin: auto;
       margin-top: 30px;
     }
+    .search-container {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 15px;
+    }
+    .search-box {
+      display: none;
+      transition: all 0.3s ease;
+      width: 200px;
+    }
+    .search-box.active {
+      display: block;
+    }
+    .search-icon {
+      cursor: pointer;
+      background: #2c3e50;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 5px;
+    }
+    .filter-container {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
     .story-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
       gap: 20px;
+      justify-content: center;
       padding-top: 20px;
     }
     .story-card {
@@ -77,25 +104,24 @@
       margin-top: 0.5rem;
       margin-bottom: 1rem;
     }
-    .btn-primary, .btn-secondary {
-      border-radius: 5px;
-      font-size: 14px;
-      transition: 0.3s ease-in-out;
-      margin-right: 10px;
-    }
     .btn-primary {
       background-color: #0056b3;
       color: white;
+      border-radius: 5px;
+      font-size: 14px;
+      transition: 0.3s ease-in-out;
     }
     .btn-primary:hover {
       background-color: #004494;
     }
-    .btn-secondary {
-      background-color: #6c757d;
-      color: white;
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 36px;
+      color: #1e3a5f;
     }
-    .btn-secondary:hover {
-      background-color: #545b62;
+    p {
+      font-size: 18px;
+      color: #444;
     }
   </style>
 </head>
@@ -104,7 +130,6 @@
   <nav class="navbar">
     <a href="index.html">Home</a>
     <a href="stories.html">Stories</a>
-    <a href="reader-dashboard.html">Dashboard</a>
     <a href="become-author.html">Become an Author</a>
     <a href="about.html">About</a>
   </nav>
@@ -113,12 +138,30 @@
     <h1>Explore Stories</h1>
     <p>Discover amazing fiction from talented authors.</p>
 
+    <div class="search-container">
+      <span class="search-icon" onclick="toggleSearch()">🔍</span>
+      <input type="text" id="searchBar" class="form-control search-box" placeholder="Search for stories..." oninput="filterStories()">
+    </div>
+
+    <div class="filter-container">
+      <select class="form-select">
+        <option>Sort by: Newest</option>
+        <option>Sort by: Oldest</option>
+        <option>Sort by: Most Popular</option>
+      </select>
+      <select class="form-select">
+        <option>Filter by Genre</option>
+        <option>Fantasy</option>
+        <option>Romance</option>
+        <option>Science Fiction</option>
+        <option>Mystery</option>
+      </select>
+    </div>
+
     <div class="story-grid" id="storyGrid"></div>
   </div>
 
-  <!-- Firebase Scripts -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
@@ -130,129 +173,79 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
-    const auth = firebase.auth();
     const storyGrid = document.getElementById("storyGrid");
 
-    let currentUser = null;
+    db.collectionGroup("stories")
+      .where("status", "==", "published")
+      .get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          storyGrid.innerHTML = "<p>No stories published yet.</p>";
+          return;
+        }
 
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user;
-        loadStories();
-      } else {
-        alert("Please log in to explore stories.");
-        window.location.href = "login.html";
-      }
-    });
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const card = document.createElement("div");
+          card.className = "story-card";
 
-    function loadStories() {
-      db.collectionGroup("stories")
-        .where("status", "==", "published")
-        .get()
-        .then(snapshot => {
-          if (snapshot.empty) {
-            storyGrid.innerHTML = "<p>No stories published yet.</p>";
-            return;
+          if (data.cover) {
+            const img = document.createElement("img");
+            img.src = data.cover;
+            img.alt = "Cover image";
+            card.appendChild(img);
           }
 
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const authorId = doc.ref.parent.parent.id; // Extract author ID
-            const storyId = doc.id;
+          const title = document.createElement("h3");
+          title.textContent = data.title || "Untitled";
+          card.appendChild(title);
 
-            const card = document.createElement("div");
-            card.className = "story-card";
+          if (data.genre) {
+            const genreTag = document.createElement("span");
+            genreTag.className = "story-card-tag";
+            genreTag.textContent = data.genre;
+            card.appendChild(genreTag);
+          }
 
-            if (data.cover) {
-              const img = document.createElement("img");
-              img.src = data.cover;
-              img.alt = "Cover image";
-              card.appendChild(img);
-            }
+          if (Array.isArray(data.tags)) {
+            data.tags.forEach(tag => {
+              const tagEl = document.createElement("span");
+              tagEl.className = "story-card-tag";
+              tagEl.textContent = tag;
+              card.appendChild(tagEl);
+            });
+          }
 
-            const title = document.createElement("h3");
-            title.textContent = data.title || "Untitled";
-            card.appendChild(title);
+          const blurb = document.createElement("p");
+          blurb.className = "story-description";
+          blurb.textContent = data.blurb || "No description available.";
+          card.appendChild(blurb);
 
-            if (data.genre) {
-              const genreTag = document.createElement("span");
-              genreTag.className = "story-card-tag";
-              genreTag.textContent = data.genre;
-              card.appendChild(genreTag);
-            }
+          const btn = document.createElement("button");
+          btn.className = "btn btn-primary";
+          btn.textContent = "Read More";
+          btn.onclick = () => window.location.href = `story.html?storyId=${doc.id}`;
+          card.appendChild(btn);
 
-            if (Array.isArray(data.tags)) {
-              data.tags.forEach(tag => {
-                const tagEl = document.createElement("span");
-                tagEl.className = "story-card-tag";
-                tagEl.textContent = tag;
-                card.appendChild(tagEl);
-              });
-            }
-
-            const blurb = document.createElement("p");
-            blurb.className = "story-description";
-            blurb.textContent = data.blurb || "No description available.";
-            card.appendChild(blurb);
-
-            const readBtn = document.createElement("button");
-            readBtn.className = "btn btn-primary";
-            readBtn.textContent = "Read More";
-            readBtn.onclick = () => window.location.href = `story.html?storyId=${storyId}`;
-            card.appendChild(readBtn);
-
-            const favBtn = document.createElement("button");
-            favBtn.className = "btn btn-secondary";
-            favBtn.textContent = "❤️ Favorite";
-            favBtn.onclick = () => saveFavorite(storyId, data);
-            card.appendChild(favBtn);
-
-            const followBtn = document.createElement("button");
-            followBtn.className = "btn btn-secondary";
-            followBtn.textContent = "👤 Follow Author";
-            followBtn.onclick = () => followAuthor(authorId);
-            card.appendChild(followBtn);
-
-            storyGrid.appendChild(card);
-          });
-        })
-        .catch(error => {
-          console.error("Error loading stories:", error);
-          storyGrid.innerHTML = "<p>Failed to load stories.</p>";
+          storyGrid.appendChild(card);
         });
-    }
-
-    function saveFavorite(storyId, storyData) {
-      const ref = db.collection("users").doc(currentUser.uid).collection("favorites").doc(storyId);
-      ref.set({
-        title: storyData.title || "Untitled",
-        author: storyData.author || "Unknown",
-        cover: storyData.cover || "",
-        genre: storyData.genre || "",
-        blurb: storyData.blurb || "",
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      }).then(() => {
-        alert("Story added to favorites!");
-      }).catch(err => {
-        console.error("Error favoriting story:", err);
+      })
+      .catch(error => {
+        console.error("Error loading stories:", error);
+        storyGrid.innerHTML = "<p>Failed to load stories.</p>";
       });
+
+    function toggleSearch() {
+      document.getElementById('searchBar').classList.toggle('active');
     }
 
-    function followAuthor(authorId) {
-      const ref = db.collection("users").doc(currentUser.uid).collection("following").doc(authorId);
-      db.collection("authors").doc(authorId).get().then(doc => {
-        if (!doc.exists) return alert("Author not found.");
-
-        const data = doc.data();
-        ref.set({
-          displayName: data.displayName || "Unknown Author",
-          bio: data.bio || "",
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
-          alert("You're now following this author!");
-        });
-      }).catch(err => {
-        console.error("Error following author:", err);
+    function filterStories() {
+      const query = document.getElementById('searchBar').value.toLowerCase();
+      const cards = document.querySelectorAll('.story-card');
+      cards.forEach(card => {
+        const title = card.querySelector('h3').innerText.toLowerCase();
+        const blurb = card.querySelector('.story-description').innerText.toLowerCase();
+        card.style.display = (title.includes(query) || blurb.includes(query)) ? "block" : "none";
       });
     }
   </script>
