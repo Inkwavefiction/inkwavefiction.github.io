@@ -16,6 +16,7 @@
       min-height: 100vh;
       padding: 2rem;
     }
+
     .login-box {
       background: white;
       padding: 2rem 2.5rem;
@@ -25,16 +26,19 @@
       width: 100%;
       text-align: center;
     }
+
     h1 {
       font-family: 'Playfair Display', serif;
       font-size: 2rem;
       margin-bottom: 1rem;
     }
+
     .toggle-role {
       display: flex;
       justify-content: center;
       margin-bottom: 1.5rem;
     }
+
     .toggle-role button {
       background: #f0f1f2;
       border: none;
@@ -44,19 +48,23 @@
       cursor: pointer;
       font-weight: 500;
     }
+
     .toggle-role button.active {
       background-color: #789a91;
       color: white;
     }
+
     .form-group {
       text-align: left;
       margin-bottom: 1rem;
     }
+
     label {
       display: block;
       margin-bottom: 0.4rem;
       font-weight: 500;
     }
+
     input {
       width: 100%;
       padding: 0.6rem;
@@ -64,6 +72,7 @@
       border: 1px solid #ccc;
       font-size: 1rem;
     }
+
     .login-btn {
       width: 100%;
       margin-top: 1.5rem;
@@ -75,32 +84,39 @@
       font-size: 1rem;
       cursor: pointer;
     }
+
     .login-btn:hover {
       background-color: #5f7f76;
     }
+
     .note, .signup-link {
       font-size: 0.9rem;
       color: #666;
       margin-top: 1.2rem;
     }
+
     .signup-link {
       color: #4f8dc0;
       cursor: pointer;
     }
+
     .error {
       color: #a33c3c;
       font-size: 0.95rem;
       margin-top: 1rem;
     }
+
     .reader-options {
       display: none;
       flex-direction: column;
       gap: 1rem;
       margin-top: 1rem;
     }
+
     .reader-options.active {
       display: flex;
     }
+
     .pricing-card {
       border: 2px solid #ccc;
       border-radius: 10px;
@@ -109,25 +125,31 @@
       cursor: pointer;
       text-align: left;
     }
+
     .pricing-card.selected {
       border-color: #4f8dc0;
       background-color: #f0f7ff;
     }
+
     .pricing-card h3 {
       margin-bottom: 0.3rem;
       font-size: 1.3rem;
     }
+
     .pricing-card p {
       font-size: 0.9rem;
       color: #555;
     }
+
     .reader-signup-form {
       display: none;
       margin-top: 1.5rem;
     }
+
     .reader-signup-form.active {
       display: block;
     }
+
     .author-note {
       margin-top: 1.5rem;
       font-size: 0.9rem;
@@ -204,6 +226,8 @@
 
   <div class="error" id="error-msg"></div>
 </div>
+
+<!-- ✅ FIREBASE AUTH LOGIC -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import {
@@ -216,9 +240,7 @@
     getFirestore,
     doc,
     getDoc,
-    setDoc,
-    updateDoc,
-    arrayUnion
+    setDoc
   } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -244,6 +266,7 @@
 
   let selectedPlan = "beta";
 
+  // Toggle roles
   authorBtn.onclick = () => {
     authorBtn.classList.add("active");
     readerBtn.classList.remove("active");
@@ -281,21 +304,11 @@
     signupForm.classList.add("active");
   };
 
+  // Reader Signup
   document.getElementById("signup-btn").onclick = async () => {
     const email = document.getElementById("signup-email").value.trim();
     const password = document.getElementById("signup-password").value.trim();
     errorMsg.textContent = "";
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      errorMsg.textContent = "Please enter a valid email address.";
-      return;
-    }
-
-    if (password.length < 6) {
-      errorMsg.textContent = "Password must be at least 6 characters.";
-      return;
-    }
 
     try {
       const methods = await fetchSignInMethodsForEmail(auth, email);
@@ -320,6 +333,7 @@
     }
   };
 
+  // Reader Login
   document.getElementById("reader-login-btn").onclick = async () => {
     const email = document.getElementById("reader-email").value.trim();
     const password = document.getElementById("reader-password").value.trim();
@@ -336,26 +350,18 @@
       }
 
       const data = userDoc.data();
-      const roles = data.role || [];
-
-      if (!roles.includes("reader") && !roles.includes("author")) {
-        errorMsg.textContent = "This account is not eligible for reader access.";
+      if (!data.role || !data.role.includes("reader")) {
+        errorMsg.textContent = "This account is not registered as a reader.";
         return;
-      }
-
-      if (roles.includes("author") && !roles.includes("reader")) {
-        await updateDoc(doc(db, "users", uid), {
-          role: arrayUnion("reader")
-        });
       }
 
       window.location.href = "reader-dashboard.html";
     } catch (err) {
       errorMsg.textContent = "Login failed. Please check your credentials.";
-      console.error(err);
     }
   };
 
+  // Author Login
   document.getElementById("author-login-btn").onclick = async () => {
     const email = document.getElementById("author-email").value.trim();
     const password = document.getElementById("author-password").value.trim();
@@ -379,10 +385,6 @@
 
       const status = docSnap.data().status;
 
-      await updateDoc(doc(db, "users", user.uid), {
-        role: arrayUnion("author", "reader")
-      });
-
       if (status === "approved") {
         const seenWelcome = localStorage.getItem("seenWelcome");
         if (!seenWelcome) {
@@ -399,10 +401,10 @@
         errorMsg.textContent = "Unknown status. Please contact support.";
       }
     } catch (err) {
-      console.error(err);
       errorMsg.textContent = "Login failed. Please check your credentials.";
     }
   };
 </script>
+
 </body>
 </html>
