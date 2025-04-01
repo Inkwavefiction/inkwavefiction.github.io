@@ -56,6 +56,8 @@
       display: flex;
       justify-content: flex-end;
       margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 10px;
     }
     .nav-buttons button {
       padding: 0.6rem 1.2rem;
@@ -65,7 +67,6 @@
       border: none;
       border-radius: 6px;
       cursor: pointer;
-      margin-left: 10px;
       transition: background 0.3s;
     }
     .nav-buttons button:hover {
@@ -95,14 +96,14 @@
     <div class="nav-buttons">
       <button id="prevBtn">← Previous</button>
       <button id="nextBtn">Next →</button>
+      <button id="favBtn">❤️ Favorite</button>
+      <button id="followBtn">👤 Follow Author</button>
     </div>
 
-    <!-- Back link goes to the stories list page -->
     <a href="stories.html" class="back-link">← Back to stories</a>
   </main>
 
   <script>
-    // Firebase configuration – update if needed
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -116,10 +117,8 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Get storyId from URL query parameter
     const storyId = new URLSearchParams(window.location.search).get("storyId");
 
-    // DOM elements
     const titleEl = document.getElementById("title");
     const blurbEl = document.getElementById("blurb");
     const coverEl = document.getElementById("cover");
@@ -127,10 +126,15 @@
     const sectionContentEl = document.getElementById("section-content");
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
+    const favBtn = document.getElementById("favBtn");
+    const followBtn = document.getElementById("followBtn");
 
     let sectionKeys = [];
     let currentIndex = 0;
     let sections = {};
+    let currentUser = null;
+    let authorId = null;
+    let storyData = null;
 
     function renderSection(index) {
       const key = sectionKeys[index];
@@ -154,31 +158,68 @@
       }
     };
 
-    // Listen for authentication state changes
+    favBtn.onclick = () => {
+      if (!currentUser || !storyData) return;
+      const ref = db.collection("users").doc(currentUser.uid).collection("favorites").doc(storyId);
+      ref.set({
+        title: storyData.title || "Untitled",
+        author: authorId,
+        cover: storyData.coverUrl || "",
+        blurb: storyData.blurb || "",
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      }).then(() => {
+        alert("Story favorited!");
+      }).catch(err => {
+        console.error("Favorite failed:", err);
+      });
+    };
+
+    followBtn.onclick = () => {
+      if (!currentUser || !authorId) return;
+      const ref = db.collection("users").doc(currentUser.uid).collection("following").doc(authorId);
+      db.collection("authors").doc(authorId).get().then(doc => {
+        if (!doc.exists) {
+          alert("Author not found.");
+          return;
+        }
+        const data = doc.data();
+        ref.set({
+          displayName: data.displayName || "Unknown",
+          bio: data.bio || "",
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+          alert("Now following this author!");
+        });
+      });
+    };
+
     auth.onAuthStateChanged(async user => {
       if (!user) {
         titleEl.textContent = "You must be logged in to view this story.";
         return;
       }
-      // Fetch the story document from the current user's "stories" subcollection
-      const docRef = db.collection("users").doc(user.uid).collection("stories").doc(storyId);
-      const docSnap = await docRef.get();
+      currentUser = user;
 
-      if (!docSnap.exists) {
+      // Find story across all users (public view)
+      const snapshot = await db.collectionGroup("stories").where("id", "==", storyId).get();
+      if (snapshot.empty) {
         titleEl.textContent = "Story not found.";
         return;
       }
 
-      const data = docSnap.data();
-      titleEl.textContent = data.title || "Untitled";
-      blurbEl.textContent = data.blurb || "";
+      const docSnap = snapshot.docs[0];
+      storyData = docSnap.data();
+      authorId = docSnap.ref.parent.parent.id;
 
-      if (data.coverUrl) {
-        coverEl.src = data.coverUrl;
+      titleEl.textContent = storyData.title || "Untitled";
+      blurbEl.textContent = storyData.blurb || "";
+
+      if (storyData.coverUrl) {
+        coverEl.src = storyData.coverUrl;
         coverEl.style.display = "block";
       }
 
-      sections = data.sections || {};
+      sections = storyData.sections || {};
       sectionKeys = Object.keys(sections);
       currentIndex = 0;
 
