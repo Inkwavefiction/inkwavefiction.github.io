@@ -268,7 +268,10 @@
           const div = document.createElement("div");
           div.className = "comment";
           div.innerHTML = `
-            <div class="comment-author">${data.username || "Anonymous"}</div>
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom: 0.5rem;">
+              <img src="${data.userPhotoURL || 'https://placehold.co/32x32'}" alt="User" style="width:32px; height:32px; border-radius:50%; object-fit:cover;" />
+              <span class="comment-author">${data.username || "Anonymous"}</span>
+            </div>
             <div class="comment-content">${data.text || ""}</div>
           `;
           commentList.appendChild(div);
@@ -282,13 +285,16 @@
 
       try {
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
-        const username = userDoc.exists ? userDoc.data().displayName || "Anonymous" : "Anonymous";
+        const userData = userDoc.exists ? userDoc.data() : {};
+        const username = userData.displayName || "Anonymous";
+        const userPhotoURL = userData.photoURL || "https://placehold.co/32x32";
 
         await db.collection("comments").add({
           storyId,
           userId: currentUser.uid,
           text,
           username,
+          userPhotoURL,
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           storyTitle: storyData.title || "Untitled"
         });
