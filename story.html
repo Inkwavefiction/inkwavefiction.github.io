@@ -261,22 +261,23 @@
 
       if (commentsSnap.empty) {
         commentList.innerHTML = "<p>No comments yet.</p>";
-      } else {
-        commentList.innerHTML = "";
-        commentsSnap.forEach(doc => {
-          const data = doc.data();
-          const div = document.createElement("div");
-          div.className = "comment";
-          div.innerHTML = `
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom: 0.5rem;">
-              <img src="${data.userPhotoURL || 'https://placehold.co/32x32'}" alt="User" style="width:32px; height:32px; border-radius:50%; object-fit:cover;" />
-              <span class="comment-author">${data.username || "Anonymous"}</span>
-            </div>
-            <div class="comment-content">${data.text || ""}</div>
-          `;
-          commentList.appendChild(div);
-        });
+        return;
       }
+
+      commentList.innerHTML = "";
+      commentsSnap.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "comment";
+        div.innerHTML = `
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom: 0.5rem;">
+            <img src="${data.userPhotoURL || 'https://placehold.co/32x32'}" alt="User" style="width:32px; height:32px; border-radius:50%; object-fit:cover;" />
+            <span class="comment-author">${data.username || "Anonymous"}</span>
+          </div>
+          <div class="comment-content">${data.text || ""}</div>
+        `;
+        commentList.appendChild(div);
+      });
     }
 
     async function postComment() {
@@ -284,6 +285,7 @@
       if (!text) return alert("Please write something first.");
 
       try {
+        console.log("Posting comment as user:", currentUser?.uid);
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const userData = userDoc.exists ? userDoc.data() : {};
         const username = userData.displayName || "Anonymous";
@@ -291,7 +293,7 @@
 
         await db.collection("comments").add({
           storyId,
-          userId: currentUser.uid,
+          userId: currentUser.uid, // ✅ Critical fix: Include userId so Comments Page works!
           text,
           username,
           userPhotoURL,
