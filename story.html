@@ -96,7 +96,6 @@
     .back-link:hover {
       text-decoration: underline;
     }
-
     .comments-section {
       display: none;
       margin-top: 2rem;
@@ -153,7 +152,13 @@
 
     <button class="show-comments-btn" onclick="toggleComments()">Show Comments</button>
     <div class="comments-section" id="commentsSection">
-      <!-- Comments will be loaded here -->
+      <!-- Comments will be rendered here -->
+
+      <!-- 🆕 Comment input section -->
+      <div style="margin-top: 2rem;">
+        <textarea id="newComment" rows="3" placeholder="Write a comment..." style="width: 100%; padding: 0.75rem; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+        <button onclick="postComment()" style="margin-top: 0.5rem; background-color: #789a91; color: white; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer;">Post Comment</button>
+      </div>
     </div>
 
     <a href="reader-dashboard.html#explore" class="back-link">← Back to stories</a>
@@ -251,31 +256,63 @@
     };
 
     async function loadComments() {
-      commentsSection.innerHTML = "Loading comments...";
-      const commentsSnap = await db.collection("comments").where("storyId", "==", storyId).get();
+      commentsSection.innerHTML = "";
+
+      const commentsSnap = await db.collection("comments").where("storyId", "==", storyId).orderBy("timestamp", "asc").get();
 
       if (commentsSnap.empty) {
         commentsSection.innerHTML = "<p>No comments yet.</p>";
-        return;
+      } else {
+        commentsSnap.forEach(doc => {
+          const data = doc.data();
+          const div = document.createElement("div");
+          div.className = "comment";
+          div.innerHTML = `
+            <div class="comment-author">${data.username || "Anonymous"}</div>
+            <div class="comment-content">${data.text || ""}</div>
+          `;
+          commentsSection.appendChild(div);
+        });
       }
 
-      commentsSection.innerHTML = "";
-      commentsSnap.forEach(doc => {
-        const data = doc.data();
-        const div = document.createElement("div");
-        div.className = "comment";
-        div.innerHTML = `
-          <div class="comment-author">${data.username || "Anonymous"}</div>
-          <div class="comment-content">${data.text || ""}</div>
-        `;
-        commentsSection.appendChild(div);
-      });
+      // Append comment input at the end
+      commentsSection.innerHTML += `
+        <div style="margin-top: 2rem;">
+          <textarea id="newComment" rows="3" placeholder="Write a comment..." style="width: 100%; padding: 0.75rem; font-size: 1rem; border: 1px solid #ccc; border-radius: 4px;"></textarea>
+          <button onclick="postComment()" style="margin-top: 0.5rem; background-color: #789a91; color: white; padding: 0.5rem 1rem; border: none; border-radius: 4px; cursor: pointer;">Post Comment</button>
+        </div>
+      `;
     }
 
     function toggleComments() {
       const isVisible = commentsSection.style.display === "block";
       commentsSection.style.display = isVisible ? "none" : "block";
       if (!isVisible) loadComments();
+    }
+
+    async function postComment() {
+      const text = document.getElementById("newComment").value.trim();
+      if (!text) return alert("Please write something first.");
+
+      try {
+        const userDoc = await db.collection("users").doc(currentUser.uid).get();
+        const username = userDoc.exists ? userDoc.data().displayName || "Anonymous" : "Anonymous";
+
+        await db.collection("comments").add({
+          storyId,
+          userId: currentUser.uid,
+          text,
+          username,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          storyTitle: storyData.title || "Untitled"
+        });
+
+        document.getElementById("newComment").value = "";
+        loadComments();
+      } catch (err) {
+        console.error("Error posting comment:", err);
+        alert("Something went wrong while posting your comment.");
+      }
     }
 
     auth.onAuthStateChanged(async user => {
