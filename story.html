@@ -14,7 +14,6 @@
       font-family: 'Poppins', sans-serif;
       background-color: #fafafa;
       color: #222;
-      line-height: 1.6;
     }
     main {
       max-width: 700px;
@@ -35,7 +34,6 @@
       font-family: 'Playfair Display', serif;
       font-size: 2.5rem;
       margin-bottom: 0.5rem;
-      color: #1e3a5f;
     }
     .blurb {
       font-size: 1.1rem;
@@ -179,43 +177,48 @@
 
     favBtn.onclick = async () => {
       if (!currentUser || !storyData) return;
-
-      await db
-        .collection("users")
-        .doc(currentUser.uid)
-        .collection("favorites")
-        .doc(storyId)
-        .set({
-          id: storyId,
-          title: storyData.title || "Untitled",
-          author: authorId,
-          cover: storyData.coverUrl || "",
-          blurb: storyData.blurb || "",
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-      window.location.href = "reader-dashboard.html#favorites";
+      try {
+        await db
+          .collection("users")
+          .doc(currentUser.uid)
+          .collection("favorites")
+          .doc(storyId)
+          .set({
+            id: storyId,
+            title: storyData.title || "Untitled",
+            author: authorId,
+            cover: storyData.coverUrl || "",
+            blurb: storyData.blurb || "",
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        window.location.href = "reader-dashboard.html#favorites";
+      } catch (err) {
+        console.error("Favorite error:", err);
+        alert("Failed to favorite story.");
+      }
     };
 
     followBtn.onclick = async () => {
       if (!currentUser || !authorId) return;
-
-      const authorDoc = await db.collection("authors").doc(authorId).get();
-      const data = authorDoc.data();
-
-      await db
-        .collection("users")
-        .doc(currentUser.uid)
-        .collection("following")
-        .doc(authorId)
-        .set({
-          id: authorId,
-          displayName: data.displayName || "Unknown",
-          photoURL: data.photoURL || "",
-          timestamp: firebase.firestore.FieldValue.serverTimestamp()
-        });
-
-      window.location.href = "reader-dashboard.html#following";
+      try {
+        const authorDoc = await db.collection("authors").doc(authorId).get();
+        const data = authorDoc.data();
+        await db
+          .collection("users")
+          .doc(currentUser.uid)
+          .collection("following")
+          .doc(authorId)
+          .set({
+            id: authorId,
+            displayName: data.displayName || "Unknown",
+            photoURL: data.photoURL || "",
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+          });
+        window.location.href = "reader-dashboard.html#following";
+      } catch (err) {
+        console.error("Follow error:", err);
+        alert("Failed to follow author.");
+      }
     };
 
     auth.onAuthStateChanged(async user => {
@@ -223,36 +226,41 @@
         titleEl.textContent = "You must be logged in.";
         return;
       }
-
       currentUser = user;
-      const snap = await db.collectionGroup("stories").where("id", "==", storyId).get();
-      if (snap.empty) {
-        titleEl.textContent = "Story not found.";
-        return;
-      }
 
-      const doc = snap.docs[0];
-      storyData = doc.data();
-      authorId = doc.ref.parent.parent.id;
+      try {
+        const snap = await db.collectionGroup("stories").where("id", "==", storyId).get();
+        if (snap.empty) {
+          titleEl.textContent = "Story not found.";
+          return;
+        }
 
-      titleEl.textContent = storyData.title || "Untitled";
-      blurbEl.textContent = storyData.blurb || "";
-      if (storyData.coverUrl) {
-        coverEl.src = storyData.coverUrl;
-        coverEl.style.display = "block";
-      }
+        const doc = snap.docs[0];
+        storyData = doc.data();
+        authorId = doc.ref.parent.parent.id;
 
-      sections = storyData.sections || {};
-      sectionKeys = Object.keys(sections);
-      currentIndex = 0;
-      renderSection(currentIndex);
+        titleEl.textContent = storyData.title || "Untitled";
+        blurbEl.textContent = storyData.blurb || "";
+        if (storyData.coverUrl) {
+          coverEl.src = storyData.coverUrl;
+          coverEl.style.display = "block";
+        }
 
-      const authorDoc = await db.collection("authors").doc(authorId).get();
-      if (authorDoc.exists) {
-        const aData = authorDoc.data();
-        authorNameEl.textContent = aData.displayName || "Unknown Author";
-        authorPhotoEl.src = aData.photoURL || "https://via.placeholder.com/48";
-        authorInfoBox.style.display = "flex";
+        sections = storyData.sections || {};
+        sectionKeys = Object.keys(sections);
+        currentIndex = 0;
+        renderSection(currentIndex);
+
+        const authorDoc = await db.collection("authors").doc(authorId).get();
+        if (authorDoc.exists) {
+          const aData = authorDoc.data();
+          authorNameEl.textContent = aData.displayName || "Unknown Author";
+          authorPhotoEl.src = aData.photoURL || "https://placehold.co/48x48";
+          authorInfoBox.style.display = "flex";
+        }
+      } catch (err) {
+        console.error("Error fetching story:", err);
+        titleEl.textContent = "Error loading story.";
       }
     });
   </script>
