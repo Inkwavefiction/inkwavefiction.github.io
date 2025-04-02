@@ -26,6 +26,7 @@
       background: var(--bg);
       color: var(--text);
       display: flex;
+      min-height: 100vh;
     }
 
     .sidebar {
@@ -34,11 +35,8 @@
       color: white;
       height: 100vh;
       padding: 2rem 1.5rem;
-      display: flex;
-      flex-direction: column;
       position: fixed;
-      top: 0;
-      left: 0;
+      overflow-y: auto;
     }
 
     .sidebar h2 {
@@ -72,14 +70,18 @@
       font-weight: 600;
     }
 
-    .settings-container {
+    .main {
       margin-left: var(--sidebar-width);
-      padding: 2.5rem;
-      flex: 1;
-      max-width: 700px;
+      padding: 3rem 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
     }
 
-    .settings-inner {
+    .settings-container {
+      width: 100%;
+      max-width: 700px;
       background: var(--white);
       padding: 2rem;
       border-radius: 10px;
@@ -117,9 +119,7 @@
       font-weight: 500;
     }
 
-    input[type="text"],
-    input[type="email"],
-    input[type="file"] {
+    input[type="text"], input[type="email"], input[type="file"] {
       width: 100%;
       padding: 0.6rem;
       border: 1px solid #ccc;
@@ -152,6 +152,7 @@
   </style>
 </head>
 <body>
+
   <div class="sidebar">
     <h2>Inkwave</h2>
     <a href="favorites.html" class="nav-link">📚 Favorites</a>
@@ -161,8 +162,8 @@
     <a href="settings.html" class="nav-link active">⚙️ Settings</a>
   </div>
 
-  <div class="settings-container">
-    <div class="settings-inner">
+  <div class="main">
+    <div class="settings-container">
       <h1>⚙️ Account Settings</h1>
 
       <div class="profile-section">
@@ -190,7 +191,7 @@
     </div>
   </div>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
