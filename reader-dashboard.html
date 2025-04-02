@@ -101,7 +101,6 @@
       margin-bottom: 0.5rem;
     }
 
-    /* Explore Stories styles */
     .story-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -145,9 +144,9 @@
   <div class="sidebar">
     <h2>Inkwave</h2>
     <a href="favorites.html" class="nav-link">📚 Favorites</a>
-    <a href="comments.html" class="nav-link active">💬 Comments</a>
+    <a href="#" class="nav-link active" data-section="comments">💬 Comments</a>
     <a href="following.html" class="nav-link">👤 Following</a>
-    <a href="reader-dashboard.html#explore" class="nav-link">📰 Explore Stories</a>
+    <a href="#" class="nav-link" data-section="explore">📰 Explore Stories</a>
     <a href="settings.html" class="nav-link">⚙️ Settings</a>
   </div>
 
@@ -169,8 +168,8 @@
       </div>
     </div>
 
-    <!-- SETTINGS -->
-    <div class="section" id="settings">
+    <!-- SETTINGS (NOT USED HERE) -->
+    <div class="section" id="settings" style="display: none;">
       <h2>⚙️ Account Settings</h2>
       <div class="card">
         <p><strong>Email:</strong> <span id="user-email">Loading...</span></p>
