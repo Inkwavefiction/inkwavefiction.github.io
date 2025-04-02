@@ -16,7 +16,11 @@
       --sidebar-bg: #111;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
     body {
       font-family: 'Poppins', sans-serif;
@@ -93,6 +97,12 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.05);
       margin-bottom: 1.5rem;
+    }
+
+    .comment-meta {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
     }
   </style>
 </head>
@@ -184,8 +194,8 @@
           const div = document.createElement("div");
           div.className = "card";
           div.innerHTML = `
-            <div class="story-title">${c.storyTitle || "Unknown Story"}</div>
             <div class="comment-meta">${new Date(c.timestamp?.toDate()).toLocaleString()}</div>
+            <strong>${c.storyTitle || "Unknown Story"}</strong>
             <p>${c.text}</p>
           `;
           commentList.appendChild(div);
