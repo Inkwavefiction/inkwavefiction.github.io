@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Comments – Inkwave</title>
+  <title>Your Comments – Inkwave</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -12,7 +12,7 @@
       --muted: #6a6a6a;
       --accent: #4f8dc0;
       --white: #ffffff;
-      --border: #e0e0e0;
+      --sidebar-bg: #111;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -27,8 +27,8 @@
 
     .sidebar {
       width: 260px;
-      background-color: #0d0d0d;
-      color: #fff;
+      background: var(--sidebar-bg);
+      color: var(--white);
       padding: 2rem 1.5rem;
       height: 100vh;
       position: fixed;
@@ -37,23 +37,21 @@
 
     .sidebar h2 {
       font-family: 'Playfair Display', serif;
-      font-size: 2rem;
+      font-size: 1.8rem;
       margin-bottom: 2rem;
-      color: #fff;
+      font-weight: 600;
     }
 
     .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 0.8rem 1rem;
+      display: block;
       color: #e0e0e0;
       text-decoration: none;
-      border-radius: 6px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      transition: background 0.2s ease;
-      margin-bottom: 1rem;
+      font-size: 1rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: 4px;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      transition: background 0.2s;
     }
 
     .nav-link:hover,
@@ -63,7 +61,7 @@
 
     .main {
       margin-left: 260px;
-      padding: 2rem;
+      padding: 2.5rem;
       flex: 1;
     }
 
@@ -80,56 +78,12 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.05);
       margin-bottom: 1.5rem;
-      position: relative;
-    }
-
-    .story-title {
-      font-weight: 600;
-      font-size: 1.1rem;
-      margin-bottom: 0.4rem;
     }
 
     .comment-meta {
       font-size: 0.85rem;
       color: var(--muted);
       margin-bottom: 0.5rem;
-    }
-
-    .delete-btn {
-      position: absolute;
-      top: 1rem;
-      right: 1rem;
-      background: #e74c3c;
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 0.4rem 0.7rem;
-      font-size: 0.85rem;
-      cursor: pointer;
-    }
-
-    .delete-btn:hover {
-      background: #c0392b;
-    }
-
-    .toggle-replies-btn {
-      background: transparent;
-      border: none;
-      color: var(--accent);
-      cursor: pointer;
-      margin-top: 0.5rem;
-      font-size: 0.9rem;
-      padding: 0;
-    }
-
-    .toggle-replies-btn:hover {
-      text-decoration: underline;
-    }
-
-    .replies-container {
-      margin-top: 1rem;
-      padding-left: 1rem;
-      border-left: 2px solid #ccc;
     }
   </style>
 </head>
@@ -140,12 +94,12 @@
     <a href="favorites.html" class="nav-link">📚 Favorites</a>
     <a href="comments.html" class="nav-link active">💬 Comments</a>
     <a href="following.html" class="nav-link">👤 Following</a>
-    <a href="reader-dashboard.html#explore" class="nav-link">📰 Explore Stories</a>
+    <a href="explore.html" class="nav-link">📰 Explore Stories</a>
     <a href="settings.html" class="nav-link">⚙️ Settings</a>
   </div>
 
   <div class="main">
-    <h1>Your Comments</h1>
+    <h1>💬 Your Comments</h1>
     <div id="comments-list">
       <div class="card">Loading comments...</div>
     </div>
@@ -166,8 +120,6 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    const commentsList = document.getElementById("comments-list");
-
     auth.onAuthStateChanged(async user => {
       if (!user) {
         alert("Please log in first.");
@@ -175,64 +127,27 @@
         return;
       }
 
-      const commentsSnap = await db.collection("comments").where("userId", "==", user.uid).orderBy("timestamp", "desc").get();
-      commentsList.innerHTML = "";
+      const uid = user.uid;
+      const commentsRef = await db.collection("comments").where("userId", "==", uid).get();
+      const commentList = document.getElementById("comments-list");
+      commentList.innerHTML = "";
 
-      if (commentsSnap.empty) {
-        commentsList.innerHTML = `<div class="card">You haven’t commented on any stories yet.</div>`;
-        return;
-      }
-
-      commentsSnap.forEach(async doc => {
-        const data = doc.data();
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-          <button class="delete-btn" onclick="deleteComment('${doc.id}')">Delete</button>
-          <div class="story-title">${data.storyTitle || "Unknown Story"}</div>
-          <div class="comment-meta">${new Date(data.timestamp?.toDate()).toLocaleString()}</div>
-          <p>${data.text}</p>
-          <button class="toggle-replies-btn" onclick="toggleReplies('${doc.id}', this)">View Replies</button>
-          <div id="replies-${doc.id}" class="replies-container" style="display: none;"></div>
-        `;
-        commentsList.appendChild(div);
-      });
-    });
-
-    async function toggleReplies(commentId, btn) {
-      const container = document.getElementById(`replies-${commentId}`);
-      if (container.style.display === "none") {
-        const repliesSnap = await db.collection("comments").doc(commentId).collection("replies").orderBy("timestamp").get();
-        container.innerHTML = "";
-
-        if (repliesSnap.empty) {
-          container.innerHTML = `<p style="color: #888;">No replies yet.</p>`;
-        } else {
-          repliesSnap.forEach(reply => {
-            const r = reply.data();
-            container.innerHTML += `
-              <div style="margin-bottom: 0.8rem;">
-                <div class="comment-meta">${new Date(r.timestamp?.toDate()).toLocaleString()}</div>
-                <p>${r.text}</p>
-              </div>
-            `;
-          });
-        }
-
-        container.style.display = "block";
-        btn.textContent = "Hide Replies";
+      if (commentsRef.empty) {
+        commentList.innerHTML = `<div class="card">You haven’t commented on any stories yet.</div>`;
       } else {
-        container.style.display = "none";
-        btn.textContent = "View Replies";
+        commentsRef.forEach(doc => {
+          const c = doc.data();
+          const div = document.createElement("div");
+          div.className = "card";
+          div.innerHTML = `
+            <div class="comment-meta">${new Date(c.timestamp?.toDate()).toLocaleString()}</div>
+            <strong>${c.storyTitle || "Unknown Story"}</strong>
+            <p>${c.text}</p>
+          `;
+          commentList.appendChild(div);
+        });
       }
-    }
-
-    async function deleteComment(commentId) {
-      if (confirm("Delete this comment?")) {
-        await db.collection("comments").doc(commentId).delete();
-        location.reload();
-      }
-    }
+    });
   </script>
 </body>
 </html>
