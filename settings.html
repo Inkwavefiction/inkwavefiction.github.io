@@ -152,14 +152,14 @@
     <button class="delete-btn" onclick="deleteAccount()">Delete Account</button>
   </div>
 
-  <!-- Firebase scripts -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 
   <script>
-    // 🔐 Replace this with your actual Firebase config (use the one from your dashboard)
+    // 🔐 Replace with your actual Firebase config from the console
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -190,18 +190,21 @@
       }
 
       currentUser = user;
-
       emailField.value = user.email;
       dateJoinedField.value = new Date(user.metadata.creationTime).toLocaleDateString();
       avatarPreview.src = user.photoURL || "https://placehold.co/80x80";
 
-      // Get Firestore profile data
-      const doc = await db.collection("users").doc(user.uid).get();
-      if (doc.exists) {
-        const data = doc.data();
-        usernameField.value = data.username || user.displayName || "";
-      } else {
-        usernameField.value = user.displayName || "";
+      // Firestore username
+      try {
+        const doc = await db.collection("users").doc(user.uid).get();
+        if (doc.exists) {
+          const data = doc.data();
+          usernameField.value = data.username || user.displayName || "";
+        } else {
+          usernameField.value = user.displayName || "";
+        }
+      } catch (err) {
+        console.warn("Could not load user profile:", err);
       }
     });
 
@@ -214,48 +217,63 @@
 
     async function saveChanges() {
       const username = usernameField.value.trim();
-      const email = emailField.value.trim();
+      const newEmail = emailField.value.trim();
       const file = avatarInput.files[0];
 
-      try {
-        if (email !== currentUser.email) {
-          await currentUser.updateEmail(email);
-        }
+      if (!username || !newEmail) {
+        alert("Username and email cannot be empty.");
+        return;
+      }
 
+      try {
+        const currentEmail = currentUser.email;
+
+        // Upload avatar if changed
         let photoURL = currentUser.photoURL;
         if (file) {
           const storageRef = storage.ref().child(`avatars/${currentUser.uid}`);
           await storageRef.put(file);
           photoURL = await storageRef.getDownloadURL();
-          await currentUser.updateProfile({ photoURL });
         }
 
-        await currentUser.updateProfile({ displayName: username });
+        // Update profile
+        await currentUser.updateProfile({ displayName: username, photoURL });
 
+        // Update email only if it changed
+        if (newEmail !== currentEmail) {
+          await currentUser.updateEmail(newEmail);
+        }
+
+        // Update Firestore
         await db.collection("users").doc(currentUser.uid).set({
-          username: username,
-          photoURL: photoURL,
-          email: email,
+          username,
+          photoURL,
+          email: newEmail,
           dateJoined: currentUser.metadata.creationTime
         }, { merge: true });
 
-        alert("Profile updated!");
+        alert("Profile updated successfully!");
       } catch (err) {
         console.error(err);
-        alert("Failed to update profile: " + err.message);
+        if (err.code === "auth/requires-recent-login") {
+          alert("You need to log in again to change your email.");
+        } else {
+          alert("Update failed: " + err.message);
+        }
       }
     }
 
     async function deleteAccount() {
-      if (confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
-        try {
-          await db.collection("users").doc(currentUser.uid).delete();
-          await currentUser.delete();
-          alert("Account deleted.");
-          window.location.href = "signup.html";
-        } catch (err) {
-          alert("Error deleting account: " + err.message);
-        }
+      if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
+
+      try {
+        await db.collection("users").doc(currentUser.uid).delete();
+        await currentUser.delete();
+        alert("Account deleted.");
+        window.location.href = "signup.html";
+      } catch (err) {
+        console.error(err);
+        alert("Could not delete account: " + err.message);
       }
     }
   </script>
