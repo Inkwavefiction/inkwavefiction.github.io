@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Your Favorite Stories – Inkwave</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f5f8f7;
+      color: #1e1e1e;
+      margin: 0;
+      padding: 2rem;
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      margin-bottom: 1.5rem;
+    }
+    .story-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      margin-bottom: 1.5rem;
+      transition: transform 0.2s;
+    }
+    .story-card:hover {
+      transform: scale(1.01);
+    }
+    .story-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 0.3rem;
+    }
+    .story-meta {
+      font-size: 0.9rem;
+      color: #666;
+      margin-bottom: 0.8rem;
+    }
+    .read-btn {
+      display: inline-block;
+      padding: 0.5rem 1rem;
+      background-color: #4f8dc0;
+      color: white;
+      text-decoration: none;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+    .read-btn:hover {
+      background-color: #3b6d91;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      color: #4f8dc0;
+      text-decoration: none;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📚 Your Favorite Stories</h1>
+  <div id="favorites-container">
+    <p>Loading your favorites...</p>
+  </div>
+
+  <a href="reader-dashboard.html" class="back-link">← Back to dashboard</a>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const container = document.getElementById('favorites-container');
+
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        container.innerHTML = "<p>You must be logged in to view your favorites.</p>";
+        return;
+      }
+
+      try {
+        const favsRef = await db.collection("users").doc(user.uid).collection("favorites").orderBy("timestamp", "desc").get();
+
+        if (favsRef.empty) {
+          container.innerHTML = "<p>You haven't favorited any stories yet.</p>";
+          return;
+        }
+
+        container.innerHTML = "";
+        favsRef.forEach(doc => {
+          const data = doc.data();
+          const card = document.createElement("div");
+          card.className = "story-card";
+          card.innerHTML = `
+            <div class="story-title">${data.title || "Untitled Story"}</div>
+            <div class="story-meta">By ${data.author || "Unknown"} · ${data.blurb || "No description"}</div>
+            <a class="read-btn" href="story.html?storyId=${data.id}">Read Story</a>
+          `;
+          container.appendChild(card);
+        });
+
+      } catch (err) {
+        console.error("Error loading favorites:", err);
+        container.innerHTML = "<p>Failed to load favorites.</p>";
+      }
+    });
+  </script>
+</body>
+</html>
