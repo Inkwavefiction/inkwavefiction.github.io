@@ -159,7 +159,7 @@
       </div>
     </div>
 
-    <a href="reader-dashboard.html#explore" class="back-link">← Back to stories</a>
+    <a href="comments.html" class="back-link">← Back to stories</a>
   </main>
 
   <script>
@@ -230,7 +230,7 @@
           blurb: storyData.blurb || "",
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-        window.location.href = "reader-dashboard.html#favorites";
+        window.location.href = "favorites.html";
       } catch (err) {
         console.error("Favorite error:", err);
         alert("Failed to favorite story.");
@@ -248,7 +248,7 @@
           photoURL: data.photoURL || "",
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-        window.location.href = "reader-dashboard.html#following";
+        window.location.href = "following.html";
       } catch (err) {
         console.error("Follow error:", err);
         alert("Failed to follow author.");
