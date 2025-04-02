@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>   
+<head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Reader Dashboard – Inkwave</title>
@@ -16,11 +16,7 @@
       --sidebar-bg: #111;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       font-family: 'Poppins', sans-serif;
@@ -104,6 +100,44 @@
       color: var(--muted);
       margin-bottom: 0.5rem;
     }
+
+    /* Explore Stories styles */
+    .story-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .story-card {
+      background: var(--white);
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: transform 0.2s;
+    }
+
+    .story-card:hover {
+      transform: scale(1.01);
+    }
+
+    .story-title {
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .story-blurb {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .search-bar {
+      margin-bottom: 1rem;
+      padding: 0.5rem;
+      width: 100%;
+      max-width: 400px;
+      font-size: 1rem;
+    }
   </style>
 </head>
 <body>
@@ -112,6 +146,7 @@
     <h2>Inkwave</h2>
     <a href="favorites.html" class="nav-link">📚 Favorites</a>
     <a href="following.html" class="nav-link">👤 Following</a>
+    <a href="#" class="nav-link" data-section="explore">📖 Explore Stories</a>
     <a href="#" class="nav-link active" data-section="comments">💬 Comments</a>
     <a href="#" class="nav-link" data-section="settings">⚙️ Settings</a>
   </div>
@@ -119,6 +154,14 @@
   <div class="main">
     <h1>Reader Dashboard</h1>
 
+    <!-- EXPLORE STORIES -->
+    <div class="section" id="explore">
+      <h2>📖 Explore Stories</h2>
+      <input type="text" class="search-bar" placeholder="Search stories..." id="storySearch" />
+      <div id="storyGrid" class="story-grid"></div>
+    </div>
+
+    <!-- COMMENTS -->
     <div class="section active" id="comments">
       <h2>💬 Your Comments</h2>
       <div id="comments-list">
@@ -126,6 +169,7 @@
       </div>
     </div>
 
+    <!-- SETTINGS -->
     <div class="section" id="settings">
       <h2>⚙️ Account Settings</h2>
       <div class="card">
@@ -135,7 +179,6 @@
     </div>
   </div>
 
-  <!-- Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
@@ -144,7 +187,7 @@
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
-      projectId: "inkwave-549c0",
+      projectId: "inkwave-549c0"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -164,6 +207,8 @@
         sections.forEach(s => {
           s.classList.toggle("active", s.id === target);
         });
+
+        if (target === "explore") loadStories();
       });
     });
 
@@ -202,6 +247,42 @@
         });
       }
     });
+
+    async function loadStories() {
+      const grid = document.getElementById("storyGrid");
+      const searchInput = document.getElementById("storySearch");
+      grid.innerHTML = "<p>Loading stories...</p>";
+
+      try {
+        const snapshot = await db.collectionGroup("stories").where("status", "==", "published").get();
+        grid.innerHTML = "";
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const div = document.createElement("div");
+          div.className = "story-card";
+          div.innerHTML = `
+            <div class="story-title">${data.title || "Untitled"}</div>
+            <div class="story-blurb">${data.blurb || "No description"}</div>
+          `;
+          div.onclick = () => window.location.href = `story.html?storyId=${data.id}`;
+          grid.appendChild(div);
+        });
+
+        searchInput.oninput = () => {
+          const query = searchInput.value.toLowerCase();
+          const cards = grid.querySelectorAll(".story-card");
+          cards.forEach(card => {
+            const title = card.querySelector(".story-title").innerText.toLowerCase();
+            const blurb = card.querySelector(".story-blurb").innerText.toLowerCase();
+            card.style.display = (title.includes(query) || blurb.includes(query)) ? "block" : "none";
+          });
+        };
+      } catch (err) {
+        console.error("Error loading stories:", err);
+        grid.innerHTML = "<p>Failed to load stories.</p>";
+      }
+    }
   </script>
 </body>
 </html>
