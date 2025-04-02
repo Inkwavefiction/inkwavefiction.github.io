@@ -111,6 +111,26 @@
     .delete-btn:hover {
       background: #c0392b;
     }
+
+    .toggle-replies-btn {
+      background: transparent;
+      border: none;
+      color: var(--accent);
+      cursor: pointer;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
+      padding: 0;
+    }
+
+    .toggle-replies-btn:hover {
+      text-decoration: underline;
+    }
+
+    .replies-container {
+      margin-top: 1rem;
+      padding-left: 1rem;
+      border-left: 2px solid #ccc;
+    }
   </style>
 </head>
 <body>
@@ -163,7 +183,7 @@
         return;
       }
 
-      commentsSnap.forEach(doc => {
+      commentsSnap.forEach(async doc => {
         const data = doc.data();
         const div = document.createElement("div");
         div.className = "card";
@@ -172,10 +192,40 @@
           <div class="story-title">${data.storyTitle || "Unknown Story"}</div>
           <div class="comment-meta">${new Date(data.timestamp?.toDate()).toLocaleString()}</div>
           <p>${data.text}</p>
+          <button class="toggle-replies-btn" onclick="toggleReplies('${doc.id}', this)">View Replies</button>
+          <div id="replies-${doc.id}" class="replies-container" style="display: none;"></div>
         `;
         commentsList.appendChild(div);
       });
     });
+
+    async function toggleReplies(commentId, btn) {
+      const container = document.getElementById(`replies-${commentId}`);
+      if (container.style.display === "none") {
+        const repliesSnap = await db.collection("comments").doc(commentId).collection("replies").orderBy("timestamp").get();
+        container.innerHTML = "";
+
+        if (repliesSnap.empty) {
+          container.innerHTML = `<p style="color: #888;">No replies yet.</p>`;
+        } else {
+          repliesSnap.forEach(reply => {
+            const r = reply.data();
+            container.innerHTML += `
+              <div style="margin-bottom: 0.8rem;">
+                <div class="comment-meta">${new Date(r.timestamp?.toDate()).toLocaleString()}</div>
+                <p>${r.text}</p>
+              </div>
+            `;
+          });
+        }
+
+        container.style.display = "block";
+        btn.textContent = "Hide Replies";
+      } else {
+        container.style.display = "none";
+        btn.textContent = "View Replies";
+      }
+    }
 
     async function deleteComment(commentId) {
       if (confirm("Delete this comment?")) {
