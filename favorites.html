@@ -16,7 +16,11 @@
       --sidebar-bg: #111;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
     body {
       font-family: 'Poppins', sans-serif;
@@ -28,8 +32,8 @@
 
     .sidebar {
       width: 260px;
-      background: var(--sidebar-bg);
-      color: var(--white);
+      background-color: #0d0d0d;
+      color: #fff;
       padding: 2rem 1.5rem;
       height: 100vh;
       position: fixed;
@@ -38,21 +42,23 @@
 
     .sidebar h2 {
       font-family: 'Playfair Display', serif;
-      font-size: 1.8rem;
+      font-size: 2rem;
       margin-bottom: 2rem;
-      font-weight: 600;
+      color: #fff;
     }
 
     .nav-link {
-      display: block;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0.8rem 1rem;
       color: #e0e0e0;
       text-decoration: none;
-      font-size: 1rem;
-      padding: 0.6rem 0.8rem;
-      border-radius: 4px;
-      font-weight: 500;
-      margin-bottom: 0.5rem;
-      transition: background 0.2s;
+      border-radius: 6px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      transition: background 0.2s ease;
+      margin-bottom: 1rem;
     }
 
     .nav-link:hover,
@@ -62,7 +68,7 @@
 
     .main {
       margin-left: 260px;
-      padding: 2.5rem;
+      padding: 2rem;
       flex: 1;
     }
 
@@ -97,10 +103,10 @@
 
   <div class="sidebar">
     <h2>Inkwave</h2>
-    <a href="reader-dashboard.html" class="nav-link">📚 Dashboard</a>
-    <a href="favorites.html" class="nav-link active">❤️ Favorites</a>
+    <a href="favorites.html" class="nav-link active">📚 Favorites</a>
     <a href="comments.html" class="nav-link">💬 Comments</a>
     <a href="following.html" class="nav-link">👤 Following</a>
+    <a href="stories.html" class="nav-link">📰 Explore Stories</a>
     <a href="settings.html" class="nav-link">⚙️ Settings</a>
   </div>
 
@@ -111,7 +117,7 @@
     </div>
   </div>
 
-  <!-- Firebase SDKs -->
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
@@ -120,7 +126,10 @@
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
-      projectId: "inkwave-549c0"
+      projectId: "inkwave-549c0",
+      storageBucket: "inkwave-549c0.appspot.com",
+      messagingSenderId: "1084811926133",
+      appId: "1:1084811926133:web:f1656fce68d5c4d697363c"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -129,31 +138,31 @@
 
     auth.onAuthStateChanged(async user => {
       if (!user) {
-        alert("Please log in first.");
+        alert("You must be logged in to view this page.");
         window.location.href = "login.html";
         return;
       }
 
       const favList = document.getElementById("favorites-list");
+      const ref = db.collection("users").doc(user.uid).collection("favorites").orderBy("timestamp", "desc");
+      const snapshot = await ref.get();
       favList.innerHTML = "";
 
-      const favSnap = await db.collection("users").doc(user.uid).collection("favorites").orderBy("timestamp", "desc").get();
-
-      if (favSnap.empty) {
+      if (snapshot.empty) {
         favList.innerHTML = `<div class="card">You haven’t favorited any stories yet.</div>`;
-        return;
+      } else {
+        snapshot.forEach(doc => {
+          const story = doc.data();
+          const div = document.createElement("div");
+          div.className = "card";
+          div.innerHTML = `
+            <div class="story-title">${story.title || "Untitled Story"}</div>
+            <div class="comment-meta">By ${story.author || "Unknown"}</div>
+            <p>${story.blurb || ""}</p>
+          `;
+          favList.appendChild(div);
+        });
       }
-
-      favSnap.forEach(doc => {
-        const data = doc.data();
-        const div = document.createElement("div");
-        div.className = "card";
-        div.innerHTML = `
-          <div class="story-title">${data.title || "Untitled Story"}</div>
-          <div class="comment-meta">${data.blurb || "No blurb available."}</div>
-        `;
-        favList.appendChild(div);
-      });
     });
   </script>
 </body>
