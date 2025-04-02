@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Explore Stories – Inkwave</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --accent: #4f8dc0;
+      --white: #ffffff;
+      --sidebar-bg: #0d0d0d;
+      --sidebar-width: 280px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      color: var(--white);
+      padding: 2rem 1.5rem;
+      height: 100vh;
+      position: fixed;
+      overflow-y: auto;
+    }
+
+    .sidebar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin-bottom: 2.5rem;
+      font-weight: 600;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-weight: 500;
+      margin-bottom: 0.6rem;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .nav-link:hover {
+      background-color: #1a1a1a;
+    }
+
+    .nav-link.active {
+      background-color: #2a2a2a;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .main {
+      margin-left: var(--sidebar-width);
+      padding: 2.5rem;
+      flex: 1;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    .story-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .story-card {
+      background: var(--white);
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: transform 0.2s;
+    }
+
+    .story-card:hover {
+      transform: scale(1.01);
+      cursor: pointer;
+    }
+
+    .story-title {
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .story-blurb {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .search-bar {
+      margin-bottom: 1.5rem;
+      padding: 0.5rem;
+      width: 100%;
+      max-width: 400px;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="sidebar">
+    <h2>Inkwave</h2>
+    <a href="favorites.html" class="nav-link">📚 Favorites</a>
+    <a href="comments.html" class="nav-link">💬 Comments</a>
+    <a href="following.html" class="nav-link">👤 Following</a>
+    <a href="explore.html" class="nav-link active">📰 Explore Stories</a>
+    <a href="settings.html" class="nav-link">⚙️ Settings</a>
+  </div>
+
+  <div class="main">
+    <h1>📖 Explore Stories</h1>
+    <input type="text" class="search-bar" placeholder="Search stories..." id="storySearch" />
+    <div id="storyGrid" class="story-grid">
+      <p>Loading stories...</p>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        alert("Please log in first.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      loadStories();
+    });
+
+    async function loadStories() {
+      const grid = document.getElementById("storyGrid");
+      const searchInput = document.getElementById("storySearch");
+      grid.innerHTML = "<p>Loading stories...</p>";
+
+      try {
+        const snapshot = await db.collectionGroup("stories").where("status", "==", "published").get();
+        grid.innerHTML = "";
+
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          const div = document.createElement("div");
+          div.className = "story-card";
+          div.innerHTML = `
+            <div class="story-title">${data.title || "Untitled"}</div>
+            <div class="story-blurb">${data.blurb || "No description available."}</div>
+          `;
+          div.onclick = () => window.location.href = `story.html?storyId=${data.id}`;
+          grid.appendChild(div);
+        });
+
+        searchInput.oninput = () => {
+          const query = searchInput.value.toLowerCase();
+          const cards = grid.querySelectorAll(".story-card");
+          cards.forEach(card => {
+            const title = card.querySelector(".story-title").innerText.toLowerCase();
+            const blurb = card.querySelector(".story-blurb").innerText.toLowerCase();
+            card.style.display = (title.includes(query) || blurb.includes(query)) ? "block" : "none";
+          });
+        };
+
+      } catch (err) {
+        console.error("Error loading stories:", err);
+        grid.innerHTML = "<p>Failed to load stories.</p>";
+      }
+    }
+  </script>
+</body>
+</html>
