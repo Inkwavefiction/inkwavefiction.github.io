@@ -138,8 +138,10 @@
     <div class="blurb" id="blurb"></div>
 
     <div id="authorInfo" class="author-box" style="display: none;">
-      <img id="authorPhoto" src="" alt="Author Photo">
-      <div class="name" id="authorName"></div>
+      <a id="authorProfileLink" href="#" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: inherit;">
+        <img id="authorPhoto" src="" alt="Author Photo">
+        <div class="name" id="authorName"></div>
+      </a>
     </div>
 
     <div class="section-title" id="section-name"></div>
@@ -190,6 +192,7 @@
     const authorNameEl = document.getElementById("authorName");
     const authorPhotoEl = document.getElementById("authorPhoto");
     const authorInfoBox = document.getElementById("authorInfo");
+    const authorProfileLink = document.getElementById("authorProfileLink");
 
     const commentsSection = document.getElementById("commentsSection");
     const commentList = document.getElementById("commentList");
@@ -209,19 +212,8 @@
       nextBtn.disabled = index === sectionKeys.length - 1;
     }
 
-    prevBtn.onclick = () => {
-      if (currentIndex > 0) {
-        currentIndex--;
-        renderSection(currentIndex);
-      }
-    };
-
-    nextBtn.onclick = () => {
-      if (currentIndex < sectionKeys.length - 1) {
-        currentIndex++;
-        renderSection(currentIndex);
-      }
-    };
+    prevBtn.onclick = () => { if (currentIndex > 0) { currentIndex--; renderSection(currentIndex); }};
+    nextBtn.onclick = () => { if (currentIndex < sectionKeys.length - 1) { currentIndex++; renderSection(currentIndex); }};
 
     favBtn.onclick = async () => {
       if (!currentUser || !storyData) return;
@@ -353,6 +345,7 @@
           const aData = authorDoc.data();
           authorNameEl.textContent = aData.displayName || "Unknown Author";
           authorPhotoEl.src = aData.photoURL || "https://placehold.co/48x48";
+          authorProfileLink.href = `author-profile.html?authorId=${authorId}`;
           authorInfoBox.style.display = "flex";
         }
       } catch (err) {
