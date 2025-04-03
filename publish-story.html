@@ -215,10 +215,10 @@
       </div>
 
       <div class="form-group">
-        <label>Status</label>
+        <label>Story Type</label>
         <div class="toggle">
-          <label><input type="radio" name="status" value="draft" checked /> Draft</label>
-          <label><input type="radio" name="status" value="published" /> Publish</label>
+          <label><input type="radio" name="type" value="short" checked /> Short Story</label>
+          <label><input type="radio" name="type" value="book" /> Full Book</label>
         </div>
       </div>
 
@@ -292,12 +292,12 @@
       document.getElementById("preview-cover").style.display = "block";
     }
 
-    if (data.status === "published") {
-      document.querySelector('input[value="published"]').checked = true;
-    }
-
     if (data.finished === true) {
       document.querySelector('input[name="finished"][value="true"]').checked = true;
+    }
+
+    if (data.type === "book") {
+      document.querySelector('input[name="type"][value="book"]').checked = true;
     }
 
     updatePreview();
@@ -382,9 +382,10 @@
       blurb: document.getElementById("story-blurb").value,
       genre: document.getElementById("story-genre").value,
       tags: currentTags,
-      coverUrl: coverUrl,
-      status: document.querySelector('input[name="status"]:checked').value,
-      finished: document.querySelector('input[name="finished"]:checked').value === "true"
+      coverUrl,
+      finished: document.querySelector('input[name="finished"]:checked').value === "true",
+      type: document.querySelector('input[name="type"]:checked').value,
+      status: "published"
     };
 
     try {
@@ -405,8 +406,9 @@
       blurb: document.getElementById("story-blurb").value,
       genre: document.getElementById("story-genre").value,
       tags: currentTags,
-      status: document.querySelector('input[name="status"]:checked').value,
       finished: document.querySelector('input[name="finished"]:checked').value === "true",
+      type: document.querySelector('input[name="type"]:checked').value,
+      status: "draft",
       coverUrl: cover
     };
 
