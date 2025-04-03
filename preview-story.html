@@ -124,10 +124,7 @@
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
-      projectId: "inkwave-549c0",
-      storageBucket: "inkwave-549c0.appspot.com",
-      messagingSenderId: "1084811926133",
-      appId: "1:1084811926133:web:auto-generated"
+      projectId: "inkwave-549c0"
     };
 
     firebase.initializeApp(firebaseConfig);
@@ -218,7 +215,7 @@
       }
 
       sections = data.sections || {};
-      sectionKeys = Object.keys(sections);
+      sectionKeys = data.sectionOrder || Object.keys(sections);
       currentIndex = 0;
 
       if (sectionKeys.length > 0) {
