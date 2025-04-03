@@ -91,6 +91,7 @@
       color: inherit;
       transition: box-shadow 0.2s;
       display: block;
+      position: relative;
     }
 
     .card:hover {
@@ -114,6 +115,20 @@
       object-fit: cover;
       border-radius: 8px;
       margin-bottom: 10px;
+    }
+
+    .heart-icon {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      font-size: 1.2rem;
+      color: #e25555;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .heart-icon:hover {
+      transform: scale(1.2);
     }
   </style>
 </head>
@@ -175,6 +190,7 @@
         card.href = `story.html?storyId=${s.id}`;
         card.className = "card";
         card.innerHTML = `
+          <div class="heart-icon">❤️</div>
           ${s.cover ? `<img src="${s.cover}" alt="Cover Image">` : ""}
           <div class="story-title">${s.title}</div>
           <div class="blurb">${s.blurb || "No description available."}</div>
