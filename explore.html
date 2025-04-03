@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Explore Stories – Inkwave</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #f5f8f7;
@@ -14,6 +14,11 @@
       --white: #ffffff;
       --sidebar-bg: #0d0d0d;
       --sidebar-width: 280px;
+      --finished-color: #1F77DE;
+      --in-progress-color: #64B676;
+      --genre-color: #FFA500;
+      --tag-bg: #e0e0e0;
+      --tag-text: #333333;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -91,14 +96,8 @@
       padding: 1rem;
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      transition: transform 0.2s ease, opacity 0.4s ease;
+      transition: transform 0.2s;
       position: relative;
-      opacity: 0;
-      animation: fadeIn 0.4s ease forwards;
-    }
-
-    @keyframes fadeIn {
-      to { opacity: 1; }
     }
 
     .story-card:hover {
@@ -109,28 +108,42 @@
     .story-title {
       font-weight: 600;
       font-size: 1.1rem;
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.4rem;
     }
 
-    .progress-badge {
-      display: inline-block;
-      font-size: 0.75rem;
-      padding: 0.25rem 0.6rem;
-      border-radius: 999px;
-      font-weight: 500;
+    .story-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
       margin-bottom: 0.5rem;
-      background-color: #f0f0f0;
-      color: #333;
     }
 
-    .progress-badge.finished {
-      background-color: #1F77DE;
-      color: #fff;
+    .badge {
+      padding: 0.3rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--white);
     }
 
-    .progress-badge.inprogress {
-      background-color: #64B676;
-      color: #fff;
+    .badge.finished {
+      background-color: var(--finished-color);
+    }
+
+    .badge.in-progress {
+      background-color: var(--in-progress-color);
+    }
+
+    .badge.genre {
+      background-color: var(--genre-color);
+    }
+
+    .tag {
+      background-color: var(--tag-bg);
+      color: var(--tag-text);
+      padding: 0.2rem 0.5rem;
+      border-radius: 10px;
+      font-size: 0.75rem;
     }
 
     .story-blurb {
@@ -156,7 +169,6 @@
   </style>
 </head>
 <body>
-
   <div class="sidebar">
     <a href="index.html" style="text-decoration: none; color: inherit;">
       <h2>Inkwave</h2>
@@ -175,82 +187,97 @@
       <p>Loading stories...</p>
     </div>
   </div>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID"
+  };
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
-      authDomain: "inkwave-549c0.firebaseapp.com",
-      projectId: "inkwave-549c0"
-    };
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-
-    auth.onAuthStateChanged(async user => {
-      if (!user) {
-        alert("Please log in first.");
-        window.location.href = "login.html";
-        return;
-      }
-
-      const uid = user.uid;
-      const favSnapshot = await db.collection("users").doc(uid).collection("favorites").get();
-      const favoriteIds = new Set();
-      favSnapshot.forEach(doc => favoriteIds.add(doc.data().id));
-
-      loadStories(favoriteIds);
-    });
-
-    async function loadStories(favoriteIds) {
-      const grid = document.getElementById("storyGrid");
-      const searchInput = document.getElementById("storySearch");
-      grid.innerHTML = "<p>Loading stories...</p>";
-
-      try {
-        const snapshot = await db.collectionGroup("stories").where("status", "==", "published").get();
-        grid.innerHTML = "";
-
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const div = document.createElement("div");
-          div.className = "story-card";
-          div.onclick = () => window.location.href = `story.html?storyId=${data.id}`;
-
-          const heart = favoriteIds.has(data.id) ? `<div class="heart-icon">❤️</div>` : "";
-
-          const progressBadge = data.finished === true
-            ? `<div class="progress-badge finished">✅ Finished</div>`
-            : `<div class="progress-badge inprogress">📘 In Progress</div>`;
-
-          div.innerHTML = `
-            ${heart}
-            <div class="story-title">${data.title || "Untitled"}</div>
-            ${progressBadge}
-            <div class="story-blurb">${data.blurb || "No description available."}</div>
-          `;
-          grid.appendChild(div);
-        });
-
-        searchInput.oninput = () => {
-          const query = searchInput.value.toLowerCase();
-          const cards = grid.querySelectorAll(".story-card");
-          cards.forEach(card => {
-            const title = card.querySelector(".story-title").innerText.toLowerCase();
-            const blurb = card.querySelector(".story-blurb").innerText.toLowerCase();
-            card.style.display = (title.includes(query) || blurb.includes(query)) ? "block" : "none";
-          });
-        };
-
-      } catch (err) {
-        console.error("Error loading stories:", err);
-        grid.innerHTML = "<p>Failed to load stories.</p>";
-      }
+  auth.onAuthStateChanged(async user => {
+    if (!user) {
+      alert("Please log in first.");
+      window.location.href = "login.html";
+      return;
     }
-  </script>
+
+    const uid = user.uid;
+    const favSnapshot = await db.collection("users").doc(uid).collection("favorites").get();
+    const favoriteIds = new Set();
+    favSnapshot.forEach(doc => favoriteIds.add(doc.data().id));
+
+    loadStories(favoriteIds);
+  });
+
+  async function loadStories(favoriteIds) {
+    const grid = document.getElementById("storyGrid");
+    const searchInput = document.getElementById("storySearch");
+    grid.innerHTML = "<p>Loading stories...</p>";
+
+    try {
+      const snapshot = await db.collectionGroup("stories").where("status", "==", "published").get();
+      grid.innerHTML = "";
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "story-card";
+        div.onclick = () => window.location.href = `story.html?storyId=${data.id}`;
+
+        const heart = favoriteIds.has(data.id) ? `<div class="heart-icon">❤️</div>` : "";
+
+        const typeBadge = data.type === "book"
+          ? `<span class="badge in-progress">📘 Full Book</span>`
+          : `<span class="badge in-progress">📖 Short Story</span>`;
+
+        const statusBadge = data.finished
+          ? `<span class="badge finished">✅ Finished</span>`
+          : `<span class="badge in-progress">🕓 In Progress</span>`;
+
+        const genreBadge = data.genre
+          ? `<span class="badge genre">${data.genre}</span>`
+          : "";
+
+        const tagHTML = (Array.isArray(data.tags) ? data.tags : [])
+          .map(tag => `<span class="tag">${tag}</span>`)
+          .join(" ");
+
+        div.innerHTML = `
+          ${heart}
+          <div class="story-title">${data.title || "Untitled"}</div>
+          <div class="story-info">
+            ${typeBadge} ${statusBadge}
+            ${genreBadge}
+            ${tagHTML}
+          </div>
+          <div class="story-blurb">${data.blurb || "No description available."}</div>
+        `;
+        grid.appendChild(div);
+      });
+
+      searchInput.oninput = () => {
+        const query = searchInput.value.toLowerCase();
+        const cards = grid.querySelectorAll(".story-card");
+        cards.forEach(card => {
+          const title = card.querySelector(".story-title").innerText.toLowerCase();
+          const blurb = card.querySelector(".story-blurb").innerText.toLowerCase();
+          card.style.display = (title.includes(query) || blurb.includes(query)) ? "block" : "none";
+        });
+      };
+
+    } catch (err) {
+      console.error("Error loading stories:", err);
+      grid.innerHTML = "<p>Failed to load stories.</p>";
+    }
+  }
+</script>
 </body>
 </html>
