@@ -178,10 +178,12 @@
 
     .modal-content {
       background-color: #fefefe;
-      margin: 10% auto;
+      margin: 5% auto;
       padding: 20px;
       border-radius: 8px;
-      width: 60%;
+      width: 40%;
+      max-height: 80vh;
+      overflow-y: auto;
       position: relative;
     }
 
@@ -195,10 +197,20 @@
       cursor: pointer;
     }
 
-    .close-button:hover,
-    .close-button:focus {
-      color: black;
-      text-decoration: none;
+    .modal-header h2 {
+      margin-bottom: 0.3rem;
+    }
+
+    .modal-header p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .section-list {
+      list-style-type: disc;
+      padding-left: 1.5rem;
+      margin-top: 0.5rem;
+      font-size: 0.9rem;
     }
   </style>
 </head>
@@ -219,14 +231,24 @@
     <div id="storyGrid" class="story-grid"><p>Loading stories...</p></div>
   </div>
 
-  <!-- Modal Preview -->
+  <!-- Modal -->
   <div id="storyModal" class="modal">
     <div class="modal-content">
       <span class="close-button">&times;</span>
-      <h2 id="modalTitle">Story Title</h2>
-      <p id="modalAuthor">by Author</p>
-      <p id="modalBlurb">Full story blurb will go here...</p>
-      <button id="startReading">Start Reading</button>
+      <div class="modal-header">
+        <h2 id="modalTitle">Story Title</h2>
+        <p id="modalAuthor">by Author Name</p>
+      </div>
+      <p id="modalBlurb">Full blurb goes here...</p>
+      <div id="modalMeta">
+        <span id="modalGenre" class="badge genre"></span>
+        <div id="modalTags" style="margin: 0.5rem 0;"></div>
+      </div>
+      <h4 style="margin-top: 1.5rem;">Sections</h4>
+      <ul id="modalSections" class="section-list"></ul>
+      <div style="margin-top: 2rem; text-align: right;">
+        <button id="startReading">📖 Start Reading</button>
+      </div>
     </div>
   </div>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
@@ -248,6 +270,9 @@
   const modalTitle = document.getElementById("modalTitle");
   const modalAuthor = document.getElementById("modalAuthor");
   const modalBlurb = document.getElementById("modalBlurb");
+  const modalGenre = document.getElementById("modalGenre");
+  const modalTags = document.getElementById("modalTags");
+  const modalSections = document.getElementById("modalSections");
   const startReading = document.getElementById("startReading");
 
   document.querySelector(".close-button").onclick = () => modal.style.display = "none";
@@ -262,6 +287,20 @@
 
       modalTitle.textContent = data.title || "Untitled";
       modalBlurb.textContent = data.blurb || "No description available.";
+      modalGenre.textContent = data.genre || "";
+      modalGenre.style.display = data.genre ? "inline-block" : "none";
+
+      modalTags.innerHTML = (data.tags || []).map(t => `<span class="tag">${t}</span>`).join(" ");
+
+      modalSections.innerHTML = "";
+      const sections = Object.keys(data.sections || {});
+      if (sections.length === 0) {
+        modalSections.innerHTML = "<li>No sections</li>";
+      } else {
+        sections.forEach(name => {
+          modalSections.innerHTML += `<li>${name}</li>`;
+        });
+      }
 
       const authorSnap = await db.collection("authors").doc(authorId).get();
       modalAuthor.textContent = authorSnap.exists
@@ -277,7 +316,6 @@
   }
 
   auth.onAuthStateChanged(async user => {
-    if (user === null && !auth.currentUser) return;
     if (!user) {
       alert("Please log in first.");
       window.location.href = "login.html";
