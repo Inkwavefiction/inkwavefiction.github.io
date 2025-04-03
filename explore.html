@@ -1,3 +1,4 @@
+<!-- ✅ FULL UPDATED explore.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -104,6 +105,27 @@
       font-weight: 600;
       font-size: 1.1rem;
       margin-bottom: 0.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .progress-badge {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 999px;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .progress-badge.finished {
+      background-color: #d3f1ce;
+      color: #27632a;
+    }
+
+    .progress-badge.inprogress {
+      background-color: #ffe6c3;
+      color: #855e00;
     }
 
     .story-blurb {
@@ -133,7 +155,7 @@
   <div class="sidebar">
     <a href="index.html" style="text-decoration: none; color: inherit;">
       <h2>Inkwave</h2>
-  </a>
+    </a>
     <a href="favorites.html" class="nav-link">📚 Favorites</a>
     <a href="comments.html" class="nav-link">💬 Comments</a>
     <a href="following.html" class="nav-link">👤 Following</a>
@@ -196,9 +218,13 @@
 
           const heart = favoriteIds.has(data.id) ? `<div class="heart-icon">❤️</div>` : "";
 
+          const progressBadge = data.finished === true
+            ? `<span class="progress-badge finished">✅ Finished</span>`
+            : `<span class="progress-badge inprogress">📘 In Progress</span>`;
+
           div.innerHTML = `
             ${heart}
-            <div class="story-title">${data.title || "Untitled"}</div>
+            <div class="story-title">${data.title || "Untitled"} ${progressBadge}</div>
             <div class="story-blurb">${data.blurb || "No description available."}</div>
           `;
           grid.appendChild(div);
