@@ -222,6 +222,14 @@
         </div>
       </div>
 
+      <div class="form-group">
+        <label>Story Progress</label>
+        <div class="toggle">
+          <label><input type="radio" name="finished" value="false" checked /> In Progress</label>
+          <label><input type="radio" name="finished" value="true" /> Finished</label>
+        </div>
+      </div>
+
       <button class="publish-btn" onclick="publishStory()">Publish Story</button>
     </div>
 
@@ -238,6 +246,7 @@
       <button class="preview-button" id="saveAndPreview">💾 Save & Preview</button>
     </div>
   </div>
+
 <script>
   const firebaseConfig = {
     apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
@@ -258,7 +267,6 @@
   let coverImageFile = null;
   const storyId = new URLSearchParams(window.location.search).get("storyId");
 
-  // AUTH + LOAD STORY
   auth.onAuthStateChanged(async user => {
     if (!user) return alert("Login required.");
     currentUser = user;
@@ -288,10 +296,13 @@
       document.querySelector('input[value="published"]').checked = true;
     }
 
+    if (data.finished === true) {
+      document.querySelector('input[name="finished"][value="true"]').checked = true;
+    }
+
     updatePreview();
   });
 
-  // LIVE PREVIEW
   document.getElementById("story-blurb").addEventListener("input", updatePreview);
   document.getElementById("story-genre").addEventListener("change", updatePreview);
 
@@ -342,7 +353,6 @@
     }
   });
 
-  // COVER IMAGE UPLOAD
   document.getElementById("cover-upload").addEventListener("change", async (e) => {
     coverImageFile = e.target.files[0];
     if (!coverImageFile) return;
@@ -358,7 +368,6 @@
     reader.readAsDataURL(coverImageFile);
   });
 
-  // PUBLISH STORY
   async function publishStory() {
     const docRef = db.collection("users").doc(currentUser.uid).collection("stories").doc(storyId);
     let coverUrl = document.getElementById("preview-cover").src;
@@ -374,7 +383,8 @@
       genre: document.getElementById("story-genre").value,
       tags: currentTags,
       coverUrl: coverUrl,
-      status: document.querySelector('input[name="status"]:checked').value
+      status: document.querySelector('input[name="status"]:checked').value,
+      finished: document.querySelector('input[name="finished"]:checked').value === "true"
     };
 
     try {
@@ -387,7 +397,6 @@
     }
   }
 
-  // SAVE + PREVIEW BUTTON
   document.getElementById("saveAndPreview").addEventListener("click", async () => {
     const docRef = db.collection("users").doc(currentUser.uid).collection("stories").doc(storyId);
     const cover = document.getElementById("preview-cover").src;
@@ -397,6 +406,7 @@
       genre: document.getElementById("story-genre").value,
       tags: currentTags,
       status: document.querySelector('input[name="status"]:checked').value,
+      finished: document.querySelector('input[name="finished"]:checked').value === "true",
       coverUrl: cover
     };
 
