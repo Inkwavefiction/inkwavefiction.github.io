@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Story Preview – Inkwave</title>
+  <title>Story – Inkwave</title>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
@@ -83,8 +83,10 @@
       cursor: pointer;
       transition: background 0.3s;
     }
-    .nav-buttons button:hover {
-      background-color: #637f73;
+    .nav-buttons button:disabled {
+      background-color: #ccc !important;
+      color: #666 !important;
+      cursor: not-allowed;
     }
     .back-link {
       display: inline-block;
@@ -180,6 +182,8 @@
     const coverEl = document.getElementById("cover");
     const sectionTitleEl = document.getElementById("section-name");
     const sectionContentEl = document.getElementById("section-content");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
     const favBtn = document.getElementById("favBtn");
     const followBtn = document.getElementById("followBtn");
 
@@ -201,18 +205,18 @@
       const key = sectionKeys[index];
       sectionTitleEl.textContent = key;
       sectionContentEl.innerHTML = sections[key].content || "";
-      document.getElementById("prevBtn").disabled = index === 0;
-      document.getElementById("nextBtn").disabled = index === sectionKeys.length - 1;
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === sectionKeys.length - 1;
     }
 
-    document.getElementById("prevBtn").onclick = () => {
+    prevBtn.onclick = () => {
       if (currentIndex > 0) {
         currentIndex--;
         renderSection(currentIndex);
       }
     };
 
-    document.getElementById("nextBtn").onclick = () => {
+    nextBtn.onclick = () => {
       if (currentIndex < sectionKeys.length - 1) {
         currentIndex++;
         renderSection(currentIndex);
@@ -285,7 +289,6 @@
       if (!text) return alert("Please write something first.");
 
       try {
-        console.log("Posting comment as user:", currentUser?.uid);
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const userData = userDoc.exists ? userDoc.data() : {};
         const username = userData.displayName || "Anonymous";
@@ -293,7 +296,7 @@
 
         await db.collection("comments").add({
           storyId,
-          userId: currentUser.uid, // ✅ Critical fix: Include userId so Comments Page works!
+          userId: currentUser.uid,
           text,
           username,
           userPhotoURL,
@@ -341,7 +344,7 @@
         }
 
         sections = storyData.sections || {};
-        sectionKeys = Object.keys(sections);
+        sectionKeys = storyData.sectionOrder || Object.keys(sections);
         currentIndex = 0;
         renderSection(currentIndex);
 
