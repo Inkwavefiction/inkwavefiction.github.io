@@ -92,6 +92,7 @@
       border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.05);
       transition: transform 0.2s;
+      position: relative;
     }
 
     .story-card:hover {
@@ -116,6 +117,14 @@
       width: 100%;
       max-width: 400px;
       font-size: 1rem;
+    }
+
+    .heart-icon {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 1.2rem;
+      color: #e25555;
     }
   </style>
 </head>
@@ -153,17 +162,22 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    auth.onAuthStateChanged(user => {
+    auth.onAuthStateChanged(async user => {
       if (!user) {
         alert("Please log in first.");
         window.location.href = "login.html";
         return;
       }
 
-      loadStories();
+      const uid = user.uid;
+      const favSnapshot = await db.collection("users").doc(uid).collection("favorites").get();
+      const favoriteIds = new Set();
+      favSnapshot.forEach(doc => favoriteIds.add(doc.data().id));
+
+      loadStories(favoriteIds);
     });
 
-    async function loadStories() {
+    async function loadStories(favoriteIds) {
       const grid = document.getElementById("storyGrid");
       const searchInput = document.getElementById("storySearch");
       grid.innerHTML = "<p>Loading stories...</p>";
@@ -176,11 +190,15 @@
           const data = doc.data();
           const div = document.createElement("div");
           div.className = "story-card";
+          div.onclick = () => window.location.href = `story.html?storyId=${data.id}`;
+
+          const heart = favoriteIds.has(data.id) ? `<div class="heart-icon">❤️</div>` : "";
+
           div.innerHTML = `
+            ${heart}
             <div class="story-title">${data.title || "Untitled"}</div>
             <div class="story-blurb">${data.blurb || "No description available."}</div>
           `;
-          div.onclick = () => window.location.href = `story.html?storyId=${data.id}`;
           grid.appendChild(div);
         });
 
