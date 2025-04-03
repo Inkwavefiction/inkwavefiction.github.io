@@ -1,1 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Author Settings – Inkwave</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --white: #ffffff;
+      --sidebar-bg: #0d0d0d;
+      --sidebar-width: 280px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      color: white;
+      height: 100vh;
+      padding: 2rem 1.5rem;
+      position: fixed;
+      overflow-y: auto;
+    }
+
+    .sidebar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin-bottom: 2.5rem;
+      font-weight: 600;
+    }
+
+    .nav-link {
+      display: block;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .main {
+      margin-left: var(--sidebar-width);
+      padding: 3rem 2rem;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .settings-container {
+      width: 100%;
+      max-width: 700px;
+      background: var(--white);
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .profile-section {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .profile-section img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 1rem;
+      border: 2px solid #ccc;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: 500;
+    }
+
+    input[type="text"], input[type="email"], textarea {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .save-btn, .delete-btn {
+      background-color: #789a91;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 1rem;
+    }
+
+    .delete-btn {
+      background-color: #e74c3c;
+    }
+
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+
+    .save-btn:hover {
+      background-color: #5f7f76;
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <h2>Inkwave</h2>
+  <a href="author-dashboard.html" class="nav-link">📚 Dashboard</a>
+  <a href="author-settings.html" class="nav-link">⚙️ Author Settings</a>
+</div>
+
+<div class="main">
+  <div class="settings-container">
+    <h1>✍️ Author Profile</h1>
+
+    <div class="profile-section">
+      <img id="avatarPreview" src="https://placehold.co/80x80" alt="Avatar">
+      <input type="file" id="avatarInput" accept="image/*">
+    </div>
+
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="usernameField">
+    </div>
+
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="emailField">
+    </div>
+
+    <div class="form-group">
+      <label>Date Joined</label>
+      <input type="text" id="dateJoinedField" disabled>
+    </div>
+
+    <div class="form-group">
+      <label>Bio</label>
+      <textarea id="bioField" placeholder="Tell readers a bit about yourself..."></textarea>
+    </div>
+
+    <button class="save-btn" onclick="saveAuthorProfile()">Save Changes</button>
+    <button class="delete-btn" onclick="deleteAccount()">Delete Account</button>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+    authDomain: "inkwave-549c0.firebaseapp.com",
+    projectId: "inkwave-549c0",
+    storageBucket: "inkwave-549c0.appspot.com"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const auth = firebase.auth();
+  const db = firebase.firestore();
+  const storage = firebase.storage();
+
+  const usernameField = document.getElementById("usernameField");
+  const emailField = document.getElementById("emailField");
+  const bioField = document.getElementById("bioField");
+  const dateJoinedField = document.getElementById("dateJoinedField");
+  const avatarPreview = document.getElementById("avatarPreview");
+  const avatarInput = document.getElementById("avatarInput");
+
+  let currentUser;
+
+  auth.onAuthStateChanged(async (user) => {
+    if (!user) return window.location.href = "login.html";
+    currentUser = user;
+
+    emailField.value = user.email;
+    dateJoinedField.value = new Date(user.metadata.creationTime).toLocaleDateString();
+    avatarPreview.src = user.photoURL || "https://placehold.co/80x80";
+
+    const authorRef = db.collection("authors").doc(user.uid);
+    const authorDoc = await authorRef.get();
+    if (authorDoc.exists) {
+      const data = authorDoc.data();
+      usernameField.value = data.displayName || "";
+      bioField.value = data.bio || "";
+    }
+  });
+
+  avatarInput.addEventListener("change", () => {
+    const file = avatarInput.files[0];
+    if (file) {
+      avatarPreview.src = URL.createObjectURL(file);
+    }
+  });
+
+  async function saveAuthorProfile() {
+    const username = usernameField.value.trim();
+    const bio = bioField.value.trim();
+    const email = emailField.value.trim();
+    const file = avatarInput.files[0];
+    let photoURL = currentUser.photoURL;
+
+    try {
+      if (file) {
+        const ref = storage.ref(`avatars/${currentUser.uid}`);
+        await ref.put(file);
+        photoURL = await ref.getDownloadURL();
+      }
+
+      await currentUser.updateProfile({ displayName: username, photoURL });
+      if (email !== currentUser.email) {
+        await currentUser.updateEmail(email);
+      }
+
+      await db.collection("authors").doc(currentUser.uid).set({
+        displayName: username,
+        bio,
+        email,
+        photoURL,
+        dateJoined: currentUser.metadata.creationTime
+      }, { merge: true });
+
+      alert("Profile updated!");
+    } catch (err) {
+      console.error(err);
+      alert("Error: " + err.message);
+    }
+  }
+
+  async function deleteAccount() {
+    if (!confirm("Are you sure you want to delete your account?")) return;
+
+    try {
+      await db.collection("authors").doc(currentUser.uid).delete();
+      await currentUser.delete();
+      alert("Account deleted.");
+      window.location.href = "signup.html";
+    } catch (err) {
+      console.error(err);
+      alert("Delete failed: " + err.message);
+    }
+  }
+</script>
+</body>
+</html>
 
