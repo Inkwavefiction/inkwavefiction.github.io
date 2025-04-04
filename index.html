@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head> 
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inkwave - Discover & Share Stories</title>
@@ -121,7 +121,7 @@
 
     // Role-based UI Switcher
     document.addEventListener("DOMContentLoaded", () => {
-        const role = sessionStorage.getItem("userRole");
+        const role = sessionStorage.getItem("userRole") || localStorage.getItem("userRole");
 
         if (role === "reader") {
             activateReaderView();
@@ -129,15 +129,12 @@
     });
 
     function activateReaderView() {
-        // Navbar: Login → Dashboard
         const loginLink = document.getElementById("loginLink").querySelector("a");
         loginLink.innerText = "Dashboard";
         loginLink.href = "dashboard.html";
 
-        // Hide guest-only nav links
         document.querySelectorAll(".guest-only").forEach(el => el.style.display = "none");
 
-        // Hero changes
         document.querySelector(".hero h1").innerText = "Welcome Back, Reader!";
         document.querySelector(".hero p").innerText = "Your next story awaits...";
         const cta = document.getElementById("mainCTA");
@@ -148,8 +145,7 @@
         authorBtn.innerText = "Become an Author";
         authorBtn.classList.remove("btn-outline-light");
         authorBtn.classList.add("btn-sm", "btn-outline-light");
-        
-        // Section content swap
+
         document.getElementById("contentSection").innerHTML = `
             <h2 class="text-center">Coming Soon: Reader Forums</h2>
             <p class="text-center mt-3">Join the community! Connect with fellow readers, start discussions, and share feedback.</p>
