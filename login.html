@@ -226,8 +226,6 @@
 
   <div class="error" id="error-msg"></div>
 </div>
-
-<!-- ✅ FIREBASE AUTH LOGIC -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import {
@@ -266,7 +264,6 @@
 
   let selectedPlan = "beta";
 
-  // Toggle roles
   authorBtn.onclick = () => {
     authorBtn.classList.add("active");
     readerBtn.classList.remove("active");
@@ -327,6 +324,7 @@
         joinedAt: new Date()
       });
 
+      sessionStorage.setItem("userRole", "reader"); // ✅ Reader role set on signup
       window.location.href = "reader-dashboard.html";
     } catch (err) {
       errorMsg.textContent = err.message;
@@ -355,6 +353,7 @@
         return;
       }
 
+      sessionStorage.setItem("userRole", "reader"); // ✅ Reader role set on login
       window.location.href = "reader-dashboard.html";
     } catch (err) {
       errorMsg.textContent = "Login failed. Please check your credentials.";
@@ -386,6 +385,7 @@
       const status = docSnap.data().status;
 
       if (status === "approved") {
+        sessionStorage.setItem("userRole", "author"); // ✅ Author role set on approved login
         const seenWelcome = localStorage.getItem("seenWelcome");
         if (!seenWelcome) {
           localStorage.setItem("seenWelcome", "true");
@@ -394,6 +394,7 @@
           window.location.href = "author-dashboard.html";
         }
       } else if (status === "pending") {
+        sessionStorage.setItem("userRole", "author"); // ✅ Author role set on pending
         window.location.href = "dashboard.html";
       } else if (status === "denied") {
         errorMsg.textContent = "Your author application was denied.";
