@@ -129,20 +129,11 @@
     .show-comments-btn:hover {
       background-color: #ccc;
     }
-    .stats {
-      display: flex;
-      gap: 20px;
-      margin-bottom: 1rem;
-    }
-    .stats div {
-      font-size: 1rem;
-      color: #555;
-    }
   </style>
 </head>
 <body>
   <main>
-    <img id="cover" class="cover" style="display:none" alt="Cover Image">
+    <img id="cover" class="cover" style="display:none" alt="Cover Image" />
     <h1 id="title">Loading...</h1>
     <div class="blurb" id="blurb"></div>
 
@@ -151,11 +142,6 @@
         <img id="authorPhoto" src="" alt="Author Photo">
         <div class="name" id="authorName"></div>
       </a>
-    </div>
-
-    <div class="stats">
-      <div>Views: <span id="viewCount">0</span></div>
-      <div>Likes: <span id="likeCount">0</span></div>
     </div>
 
     <div class="section-title" id="section-name"></div>
@@ -198,9 +184,6 @@
     const coverEl = document.getElementById("cover");
     const sectionTitleEl = document.getElementById("section-name");
     const sectionContentEl = document.getElementById("section-content");
-    const viewCountEl = document.getElementById("viewCount");
-    const likeCountEl = document.getElementById("likeCount");
-
     const prevBtn = document.getElementById("prevBtn");
     const nextBtn = document.getElementById("nextBtn");
     const favBtn = document.getElementById("favBtn");
@@ -229,22 +212,11 @@
       nextBtn.disabled = index === sectionKeys.length - 1;
     }
 
-    prevBtn.onclick = () => {
-      if (currentIndex > 0) {
-        currentIndex--;
-        renderSection(currentIndex);
-      }
-    };
-
-    nextBtn.onclick = () => {
-      if (currentIndex < sectionKeys.length - 1) {
-        currentIndex++;
-        renderSection(currentIndex);
-      }
-    };
+    prevBtn.onclick = () => { if (currentIndex > 0) { currentIndex--; renderSection(currentIndex); }};
+    nextBtn.onclick = () => { if (currentIndex < sectionKeys.length - 1) { currentIndex++; renderSection(currentIndex); }};
 
     favBtn.onclick = async () => {
-      if (!currentUser || !storyData || !authorId) return;
+      if (!currentUser || !storyData) return;
       try {
         await db.collection("users").doc(currentUser.uid).collection("favorites").doc(storyId).set({
           id: storyId,
@@ -254,13 +226,7 @@
           blurb: storyData.blurb || "",
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
-
-        const storyRef = db.collection("users").doc(authorId).collection("stories").doc(storyId);
-        await storyRef.update({
-          likes: firebase.firestore.FieldValue.increment(1)
-        });
-
-        likeCountEl.textContent = parseInt(likeCountEl.textContent) + 1;
+        window.location.href = "favorites.html";
       } catch (err) {
         console.error("Favorite error:", err);
         alert("Failed to favorite story.");
@@ -285,12 +251,6 @@
       }
     };
 
-    function toggleComments() {
-      const isVisible = commentsSection.style.display === "block";
-      commentsSection.style.display = isVisible ? "none" : "block";
-      if (!isVisible) loadComments();
-    }
-
     async function loadComments() {
       commentList.innerHTML = "Loading comments...";
       const commentsSnap = await db.collection("comments").where("storyId", "==", storyId).orderBy("timestamp", "asc").get();
@@ -305,13 +265,13 @@
         const data = doc.data();
         const div = document.createElement("div");
         div.className = "comment";
-        div.innerHTML = `
+        div.innerHTML = 
           <div style="display:flex; align-items:center; gap:10px; margin-bottom: 0.5rem;">
             <img src="${data.userPhotoURL || 'https://placehold.co/32x32'}" alt="User" style="width:32px; height:32px; border-radius:50%; object-fit:cover;" />
             <span class="comment-author">${data.username || "Anonymous"}</span>
           </div>
           <div class="comment-content">${data.text || ""}</div>
-        `;
+        ;
         commentList.appendChild(div);
       });
     }
@@ -344,6 +304,12 @@
       }
     }
 
+    function toggleComments() {
+      const isVisible = commentsSection.style.display === "block";
+      commentsSection.style.display = isVisible ? "none" : "block";
+      if (!isVisible) loadComments();
+    }
+
     auth.onAuthStateChanged(async user => {
       if (!user) {
         titleEl.textContent = "You must be logged in.";
@@ -362,13 +328,6 @@
         storyData = doc.data();
         authorId = doc.ref.parent.parent.id;
 
-        // 🔥 Increment view count
-        const storyRef = db.collection("users").doc(authorId).collection("stories").doc(storyId);
-        await storyRef.update({
-          reads: firebase.firestore.FieldValue.increment(1)
-        });
-
-        // Update UI
         titleEl.textContent = storyData.title || "Untitled";
         blurbEl.textContent = storyData.blurb || "";
         if (storyData.coverUrl) {
@@ -381,19 +340,16 @@
         currentIndex = 0;
         renderSection(currentIndex);
 
-        likeCountEl.textContent = storyData.likes ?? 0;
-        viewCountEl.textContent = storyData.reads ?? 0;
-
         const authorDoc = await db.collection("authors").doc(authorId).get();
         if (authorDoc.exists) {
           const aData = authorDoc.data();
           authorNameEl.textContent = aData.displayName || "Unknown Author";
           authorPhotoEl.src = aData.photoURL || "https://placehold.co/48x48";
-          authorProfileLink.href = `author-profile.html?authorId=${authorId}`;
+          authorProfileLink.href = author-profile.html?authorId=${authorId};
           authorInfoBox.style.display = "flex";
         }
       } catch (err) {
-        console.error("Error loading story:", err);
+        console.error("Error fetching story:", err);
         titleEl.textContent = "Error loading story.";
       }
     });
