@@ -16,7 +16,6 @@
       min-height: 100vh;
       padding: 2rem;
     }
-
     .login-box {
       background: white;
       padding: 2rem 2.5rem;
@@ -26,19 +25,16 @@
       width: 100%;
       text-align: center;
     }
-
     h1 {
       font-family: 'Playfair Display', serif;
       font-size: 2rem;
       margin-bottom: 1rem;
     }
-
     .toggle-role {
       display: flex;
       justify-content: center;
       margin-bottom: 1.5rem;
     }
-
     .toggle-role button {
       background: #f0f1f2;
       border: none;
@@ -48,23 +44,19 @@
       cursor: pointer;
       font-weight: 500;
     }
-
     .toggle-role button.active {
       background-color: #789a91;
       color: white;
     }
-
     .form-group {
       text-align: left;
       margin-bottom: 1rem;
     }
-
     label {
       display: block;
       margin-bottom: 0.4rem;
       font-weight: 500;
     }
-
     input {
       width: 100%;
       padding: 0.6rem;
@@ -72,7 +64,6 @@
       border: 1px solid #ccc;
       font-size: 1rem;
     }
-
     .login-btn {
       width: 100%;
       margin-top: 1.5rem;
@@ -84,39 +75,32 @@
       font-size: 1rem;
       cursor: pointer;
     }
-
     .login-btn:hover {
       background-color: #5f7f76;
     }
-
     .note, .signup-link {
       font-size: 0.9rem;
       color: #666;
       margin-top: 1.2rem;
     }
-
     .signup-link {
       color: #4f8dc0;
       cursor: pointer;
     }
-
     .error {
       color: #a33c3c;
       font-size: 0.95rem;
       margin-top: 1rem;
     }
-
     .reader-options {
       display: none;
       flex-direction: column;
       gap: 1rem;
       margin-top: 1rem;
     }
-
     .reader-options.active {
       display: flex;
     }
-
     .pricing-card {
       border: 2px solid #ccc;
       border-radius: 10px;
@@ -125,31 +109,25 @@
       cursor: pointer;
       text-align: left;
     }
-
     .pricing-card.selected {
       border-color: #4f8dc0;
       background-color: #f0f7ff;
     }
-
     .pricing-card h3 {
       margin-bottom: 0.3rem;
       font-size: 1.3rem;
     }
-
     .pricing-card p {
       font-size: 0.9rem;
       color: #555;
     }
-
     .reader-signup-form {
       display: none;
       margin-top: 1.5rem;
     }
-
     .reader-signup-form.active {
       display: block;
     }
-
     .author-note {
       margin-top: 1.5rem;
       font-size: 0.9rem;
@@ -301,7 +279,7 @@
     signupForm.classList.add("active");
   };
 
-  // Reader Signup
+  // Reader Signup (unchanged)
   document.getElementById("signup-btn").onclick = async () => {
     const email = document.getElementById("signup-email").value.trim();
     const password = document.getElementById("signup-password").value.trim();
@@ -324,14 +302,14 @@
         joinedAt: new Date()
       });
 
-      sessionStorage.setItem("userRole", "reader"); // ✅ Reader role set on signup
+      sessionStorage.setItem("userRole", "reader");
       window.location.href = "explore.html";
     } catch (err) {
       errorMsg.textContent = err.message;
     }
   };
 
-  // Reader Login
+  // UPDATED: Reader Login with parent document touch
   document.getElementById("reader-login-btn").onclick = async () => {
     const email = document.getElementById("reader-email").value.trim();
     const password = document.getElementById("reader-password").value.trim();
@@ -340,6 +318,12 @@
     try {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
+      
+      // Ensure the user document exists by updating/merging a field.
+      await setDoc(doc(db, "users", uid), {
+        joinedAt: new Date() // or use firebase.firestore.FieldValue.serverTimestamp() if needed
+      }, { merge: true });
+
       const userDoc = await getDoc(doc(db, "users", uid));
 
       if (!userDoc.exists()) {
@@ -353,14 +337,14 @@
         return;
       }
 
-      sessionStorage.setItem("userRole", "reader"); // ✅ Reader role set on login
+      sessionStorage.setItem("userRole", "reader");
       window.location.href = "explore.html";
     } catch (err) {
       errorMsg.textContent = "Login failed. Please check your credentials.";
     }
   };
 
-  // Author Login
+  // Author Login (unchanged)
   document.getElementById("author-login-btn").onclick = async () => {
     const email = document.getElementById("author-email").value.trim();
     const password = document.getElementById("author-password").value.trim();
@@ -385,7 +369,7 @@
       const status = docSnap.data().status;
 
       if (status === "approved") {
-        sessionStorage.setItem("userRole", "author"); // ✅ Author role set on approved login
+        sessionStorage.setItem("userRole", "author");
         const seenWelcome = localStorage.getItem("seenWelcome");
         if (!seenWelcome) {
           localStorage.setItem("seenWelcome", "true");
@@ -394,7 +378,7 @@
           window.location.href = "author-dashboard.html";
         }
       } else if (status === "pending") {
-        sessionStorage.setItem("userRole", "author"); // ✅ Author role set on pending
+        sessionStorage.setItem("userRole", "author");
         window.location.href = "dashboard.html";
       } else if (status === "denied") {
         errorMsg.textContent = "Your author application was denied.";
