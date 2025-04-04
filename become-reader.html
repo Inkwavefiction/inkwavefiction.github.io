@@ -89,6 +89,12 @@
 
 <div class="login-box">
   <h1>Become a Reader</h1>
+
+  <p style="margin-bottom: 1.5rem; color: #555;">
+    Use the <strong>same email and password</strong you used to register as an author.
+    This will add the reader role to your existing account.
+  </p>
+
   <div class="form-group">
     <label for="email">Email</label>
     <input type="email" id="email" placeholder="you@example.com" />
@@ -97,9 +103,9 @@
     <label for="password">Password</label>
     <input type="password" id="password" placeholder="Your password" />
   </div>
-  <button class="login-btn" id="signup-btn">Create Account</button>
+  <button class="login-btn" id="upgrade-btn">Register as Reader</button>
   <div class="confirmation" id="confirmation-msg">
-    🎉 You’re now registered as both a reader and an author. You can log in from either side!
+    ✅ You are now also registered as a reader! You can now log in from both the reader and author sides.
   </div>
   <div class="error" id="error-msg"></div>
 </div>
@@ -108,11 +114,12 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import {
     getAuth,
-    createUserWithEmailAndPassword
+    signInWithEmailAndPassword
   } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
   import {
     getFirestore,
     doc,
+    getDoc,
     setDoc
   } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -129,24 +136,29 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  const signupBtn = document.getElementById("signup-btn");
-  const confirmation = document.getElementById("confirmation-msg");
+  const btn = document.getElementById("upgrade-btn");
   const errorMsg = document.getElementById("error-msg");
+  const confirmation = document.getElementById("confirmation-msg");
 
-  signupBtn.onclick = async () => {
+  btn.onclick = async () => {
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value.trim();
     errorMsg.textContent = "";
     confirmation.style.display = "none";
 
     try {
-      const userCred = await createUserWithEmailAndPassword(auth, email, password);
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
 
-      await setDoc(doc(db, "users", uid), {
-        email,
-        role: ["reader", "author"],
-        joinedAt: new Date()
+      const ref = doc(db, "users", uid);
+      const snap = await getDoc(ref);
+      const existingData = snap.exists() ? snap.data() : { email, role: [], joinedAt: new Date() };
+
+      const updatedRoles = [...new Set([...(existingData.role || []), "author", "reader"])];
+
+      await setDoc(ref, {
+        ...existingData,
+        role: updatedRoles
       });
 
       confirmation.style.display = "block";
