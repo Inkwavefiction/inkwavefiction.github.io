@@ -1,156 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inkwave - Discover & Share Stories</title>
-
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { font-family: 'Arial', sans-serif; background-color: #f5f5f5; color: #222; }
-        .navbar { background: #2c3e50; }
-        .navbar-brand, .nav-link { color: white !important; }
-        .hero {
-            background: url('https://source.unsplash.com/1600x900/?books,writing') no-repeat center center/cover;
-            padding: 100px 20px;
-            text-align: center;
-            color: black;
-        }
-        .hero h1 { font-size: 3rem; font-weight: bold; color: black; }
-        .hero p { font-size: 1.3rem; color: #333; }
-        .story-card { margin-bottom: 20px; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
-        .theme-toggle { cursor: pointer; font-size: 18px; padding: 10px; position: absolute; top: 10px; right: 20px; }
-        .dark-mode { background-color: #1e1e1e; color: white; }
-        .dark-mode .card { background-color: #2a2a2a; color: white; }
-        .dark-mode .navbar { background: #1a252f; }
-        .animated-button {
-            transition: all 0.3s ease-in-out;
-        }
-        .animated-button:hover {
-            transform: scale(1.1);
-        }
-        .btn-primary {
-            background-color: #0056b3;
-            color: white;
-        }
-        .btn-outline-light {
-            background-color: #444;
-            color: white;
-            border-color: #222;
-        }
-        .btn-outline-light:hover {
-            background-color: #666;
-        }
-        .reader-only {
-            display: none;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inkwave - Discover & Share Stories</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { font-family: 'Arial', sans-serif; background-color: #f5f5f5; color: #222; }
+    .navbar { background: #2c3e50; }
+    .navbar-brand, .nav-link { color: white !important; }
+    .hero {
+      background: url('https://source.unsplash.com/1600x900/?books,writing') no-repeat center center/cover;
+      padding: 100px 20px;
+      text-align: center;
+      color: black;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: bold;
+      color: black;
+      margin-bottom: 1rem;
+    }
+    .hero p {
+      font-size: 1.3rem;
+      color: #333;
+      margin-bottom: 1.5rem;
+    }
+    .story-card {
+      margin-bottom: 20px;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .theme-toggle {
+      cursor: pointer;
+      font-size: 18px;
+      padding: 10px;
+      position: absolute;
+      top: 10px;
+      right: 20px;
+    }
+    .dark-mode { background-color: #1e1e1e; color: white; }
+    .dark-mode .card { background-color: #2a2a2a; color: white; }
+    .dark-mode .navbar { background: #1a252f; }
+    .animated-button {
+      transition: all 0.3s ease-in-out;
+    }
+    .animated-button:hover {
+      transform: scale(1.1);
+    }
+    .btn-primary {
+      background-color: #0056b3;
+      color: white;
+    }
+    .btn-outline-light {
+      background-color: #444;
+      color: white;
+      border-color: #222;
+    }
+    .btn-outline-light:hover {
+      background-color: #666;
+    }
+    .guest-only {
+      display: inline;
+    }
+    .reader-only {
+      display: none;
+    }
+  </style>
 </head>
 <body>
 
 <span class="theme-toggle">🌙</span>
 
 <nav class="navbar navbar-expand-lg">
-    <div class="container">
-        <a class="navbar-brand" href="#">Inkwave</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
-                <li class="nav-item guest-only"><a class="nav-link" href="stories.html">Stories</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">Submit</a></li>
-                <li class="nav-item"><a class="nav-link" href="#">About</a></li>
-                <li class="nav-item" id="loginLink"><a class="nav-link" href="login.html">Login / Signup</a></li>
-            </ul>
-        </div>
+  <div class="container">
+    <a class="navbar-brand" href="#">Inkwave</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav ms-auto">
+        <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
+        <li class="nav-item guest-only"><a class="nav-link" href="stories.html">Stories</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Submit</a></li>
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+        <li class="nav-item" id="loginLink"><a class="nav-link" href="login.html">Login / Signup</a></li>
+      </ul>
     </div>
+  </div>
 </nav>
 
 <div class="hero">
-    <h1>Welcome to Inkwave</h1>
-    <p>Discover, read, and share amazing fiction.</p>
-    <a href="stories.html" class="btn btn-primary animated-button" id="mainCTA">Explore Stories</a>
-    <a href="become-author.html" class="btn btn-outline-light animated-button" id="authorBtn">Apply to Become an Author</a>
+  <h1>Welcome to Inkwave</h1>
+  <p>Discover, read, and share amazing fiction.</p>
+  <a href="stories.html" class="btn btn-primary animated-button" id="mainCTA">Explore Stories</a>
+  <a href="become-author.html" class="btn btn-outline-light animated-button" id="authorBtn">Apply to Become an Author</a>
 </div>
 
 <div class="container mt-5" id="contentSection">
-    <h2 class="text-center">Featured Stories</h2>
-    <div class="row" id="storiesRow">
-        <div class="col-md-4">
-            <div class="card story-card">
-                <div class="card-body">
-                    <h5 class="card-title">The Lost Kingdom</h5>
-                    <p class="card-text">A thrilling fantasy adventure awaits...</p>
-                    <a href="#" class="btn btn-sm btn-primary animated-button">Read More</a>
-                </div>
-            </div>
+  <h2 class="text-center">Featured Stories</h2>
+  <div class="row" id="storiesRow">
+    <div class="col-md-4">
+      <div class="card story-card">
+        <div class="card-body">
+          <h5 class="card-title">The Lost Kingdom</h5>
+          <p class="card-text">A thrilling fantasy adventure awaits...</p>
+          <a href="#" class="btn btn-sm btn-primary animated-button">Read More</a>
         </div>
-        <div class="col-md-4">
-            <div class="card story-card">
-                <div class="card-body">
-                    <h5 class="card-title">Beyond the Stars</h5>
-                    <p class="card-text">A sci-fi tale that will take you beyond...</p>
-                    <a href="#" class="btn btn-sm btn-primary animated-button">Read More</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card story-card">
-                <div class="card-body">
-                    <h5 class="card-title">Echoes of the Past</h5>
-                    <p class="card-text">Mystery and history collide in this gripping story.</p>
-                    <a href="#" class="btn btn-sm btn-primary animated-button">Read More</a>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
+    <div class="col-md-4">
+      <div class="card story-card">
+        <div class="card-body">
+          <h5 class="card-title">Beyond the Stars</h5>
+          <p class="card-text">A sci-fi tale that will take you beyond...</p>
+          <a href="#" class="btn btn-sm btn-primary animated-button">Read More</a>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card story-card">
+        <div class="card-body">
+          <h5 class="card-title">Echoes of the Past</h5>
+          <p class="card-text">Mystery and history collide in this gripping story.</p>
+          <a href="#" class="btn btn-sm btn-primary animated-button">Read More</a>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <footer class="text-center mt-5 py-3 bg-light">
-    <p>© 2024 Inkwave. All rights reserved.</p>
+  <p>© 2024 Inkwave. All rights reserved.</p>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-    // Dark Mode Toggle Script
-    document.querySelector(".theme-toggle").addEventListener("click", () => {
-        document.body.classList.toggle("dark-mode");
-    });
+  // Dark Mode Toggle
+  document.querySelector(".theme-toggle").addEventListener("click", () => {
+    document.body.classList.toggle("dark-mode");
+  });
 
-    // Role-based UI Switcher
-    document.addEventListener("DOMContentLoaded", () => {
-        const role = sessionStorage.getItem("userRole") || localStorage.getItem("userRole");
+  // Reader View Script
+  document.addEventListener("DOMContentLoaded", () => {
+    const role = sessionStorage.getItem("userRole") || localStorage.getItem("userRole");
 
-        if (role === "reader") {
-            activateReaderView();
-        }
-    });
-
-    function activateReaderView() {
-        const loginLink = document.getElementById("loginLink").querySelector("a");
-        loginLink.innerText = "Dashboard";
-        loginLink.href = "dashboard.html";
-
-        document.querySelectorAll(".guest-only").forEach(el => el.style.display = "none");
-
-        document.querySelector(".hero h1").innerText = "Welcome Back, Reader!";
-        document.querySelector(".hero p").innerText = "Your next story awaits...";
-        const cta = document.getElementById("mainCTA");
-        cta.innerText = "Go to Dashboard";
-        cta.href = "dashboard.html";
-
-        const authorBtn = document.getElementById("authorBtn");
-        authorBtn.innerText = "Become an Author";
-        authorBtn.classList.remove("btn-outline-light");
-        authorBtn.classList.add("btn-sm", "btn-outline-light");
-
-        document.getElementById("contentSection").innerHTML = `
-            <h2 class="text-center">Coming Soon: Reader Forums</h2>
-            <p class="text-center mt-3">Join the community! Connect with fellow readers, start discussions, and share feedback.</p>
-        `;
+    if (role === "reader") {
+      activateReaderView();
     }
+  });
+
+  function activateReaderView() {
+    const loginLink = document.getElementById("loginLink").querySelector("a");
+    loginLink.innerText = "Dashboard";
+    loginLink.href = "explore.html";
+
+    document.querySelectorAll(".guest-only").forEach(el => el.style.display = "none");
+    document.querySelector(".hero h1").innerText = "Welcome Back!";
+    document.querySelector(".hero p").innerText = "";
+    const cta = document.getElementById("mainCTA");
+    cta.innerText = "Go to Dashboard";
+    cta.href = "explore.html";
+    cta.classList.add("btn-lg");
+
+    const authorBtn = document.getElementById("authorBtn");
+    authorBtn.style.display = "none";
+  }
 </script>
+
 </body>
 </html>
