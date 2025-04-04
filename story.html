@@ -245,6 +245,8 @@
 
     favBtn.onclick = async () => {
       if (!currentUser || !storyData || !authorId) return;
+      // Disable the favorite button immediately to prevent multiple clicks
+      favBtn.disabled = true;
       try {
         await db.collection("users").doc(currentUser.uid).collection("favorites").doc(storyId).set({
           id: storyId,
@@ -261,9 +263,14 @@
         });
 
         likeCountEl.textContent = parseInt(likeCountEl.textContent) + 1;
+
+        // Redirect to favorites.html after successfully adding to favorites
+        window.location.href = "favorites.html";
       } catch (err) {
         console.error("Favorite error:", err);
         alert("Failed to favorite story.");
+        // Re-enable the button if an error occurs
+        favBtn.disabled = false;
       }
     };
 
