@@ -216,7 +216,7 @@
     nextBtn.onclick = () => { if (currentIndex < sectionKeys.length - 1) { currentIndex++; renderSection(currentIndex); }};
 
     favBtn.onclick = async () => {
-      if (!currentUser || !storyData) return;
+      if (!currentUser || !storyData || !authorId) return;
       try {
         await db.collection("users").doc(currentUser.uid).collection("favorites").doc(storyId).set({
           id: storyId,
@@ -226,6 +226,12 @@
           blurb: storyData.blurb || "",
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
+
+        const storyRef = db.collection("users").doc(authorId).collection("stories").doc(storyId);
+        await storyRef.update({
+          likes: firebase.firestore.FieldValue.increment(1)
+        });
+
         window.location.href = "favorites.html";
       } catch (err) {
         console.error("Favorite error:", err);
@@ -327,6 +333,12 @@
         const doc = snap.docs[0];
         storyData = doc.data();
         authorId = doc.ref.parent.parent.id;
+
+        // 👁️ Increment views
+        const storyRef = db.collection("users").doc(authorId).collection("stories").doc(storyId);
+        await storyRef.update({
+          reads: firebase.firestore.FieldValue.increment(1)
+        });
 
         titleEl.textContent = storyData.title || "Untitled";
         blurbEl.textContent = storyData.blurb || "";
