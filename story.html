@@ -243,11 +243,13 @@
       }
     };
 
+    // Favorite button click handler
     favBtn.onclick = async () => {
       if (!currentUser || !storyData || !authorId) return;
-      // Disable the favorite button immediately to prevent multiple clicks
+      // Disable the button immediately to prevent multiple clicks.
       favBtn.disabled = true;
       try {
+        // Add story to user's favorites
         await db.collection("users").doc(currentUser.uid).collection("favorites").doc(storyId).set({
           id: storyId,
           title: storyData.title || "Untitled",
@@ -257,6 +259,7 @@
           timestamp: firebase.firestore.FieldValue.serverTimestamp()
         });
 
+        // Increment the story's like count.
         const storyRef = db.collection("users").doc(authorId).collection("stories").doc(storyId);
         await storyRef.update({
           likes: firebase.firestore.FieldValue.increment(1)
@@ -264,12 +267,12 @@
 
         likeCountEl.textContent = parseInt(likeCountEl.textContent) + 1;
 
-        // Redirect to favorites.html after successfully adding to favorites
-        window.location.href = "favorites.html";
+        // Change button text to indicate it's been favorited.
+        favBtn.textContent = "Favorited";
       } catch (err) {
         console.error("Favorite error:", err);
         alert("Failed to favorite story.");
-        // Re-enable the button if an error occurs
+        // Re-enable the button if an error occurs.
         favBtn.disabled = false;
       }
     };
@@ -300,7 +303,10 @@
 
     async function loadComments() {
       commentList.innerHTML = "Loading comments...";
-      const commentsSnap = await db.collection("comments").where("storyId", "==", storyId).orderBy("timestamp", "asc").get();
+      const commentsSnap = await db.collection("comments")
+                                   .where("storyId", "==", storyId)
+                                   .orderBy("timestamp", "asc")
+                                   .get();
 
       if (commentsSnap.empty) {
         commentList.innerHTML = "<p>No comments yet.</p>";
@@ -359,7 +365,9 @@
       currentUser = user;
 
       try {
-        const snap = await db.collectionGroup("stories").where("id", "==", storyId).get();
+        const snap = await db.collectionGroup("stories")
+                             .where("id", "==", storyId)
+                             .get();
         if (snap.empty) {
           titleEl.textContent = "Story not found.";
           return;
@@ -369,13 +377,13 @@
         storyData = doc.data();
         authorId = doc.ref.parent.parent.id;
 
-        // 🔥 Increment view count
+        // Increment view count
         const storyRef = db.collection("users").doc(authorId).collection("stories").doc(storyId);
         await storyRef.update({
           reads: firebase.firestore.FieldValue.increment(1)
         });
 
-        // Update UI
+        // Update UI with story data
         titleEl.textContent = storyData.title || "Untitled";
         blurbEl.textContent = storyData.blurb || "";
         if (storyData.coverUrl) {
@@ -398,6 +406,17 @@
           authorPhotoEl.src = aData.photoURL || "https://placehold.co/48x48";
           authorProfileLink.href = `author-profile.html?authorId=${authorId}`;
           authorInfoBox.style.display = "flex";
+        }
+
+        // Check if the story is already favorited by this user.
+        const favDoc = await db.collection("users")
+                               .doc(currentUser.uid)
+                               .collection("favorites")
+                               .doc(storyId)
+                               .get();
+        if (favDoc.exists) {
+          favBtn.disabled = true;
+          favBtn.textContent = "Favorited";
         }
       } catch (err) {
         console.error("Error loading story:", err);
