@@ -325,7 +325,7 @@
       });
 
       sessionStorage.setItem("userRole", "reader"); // ✅ Reader role set on signup
-      window.location.href = "reader-dashboard.html";
+      window.location.href = "explore.html";
     } catch (err) {
       errorMsg.textContent = err.message;
     }
@@ -354,7 +354,7 @@
       }
 
       sessionStorage.setItem("userRole", "reader"); // ✅ Reader role set on login
-      window.location.href = "reader-dashboard.html";
+      window.location.href = "explore.html";
     } catch (err) {
       errorMsg.textContent = "Login failed. Please check your credentials.";
     }
