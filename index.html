@@ -94,10 +94,25 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Firebase App and Firestore Libraries -->
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+
 <script>
+  // Theme toggle remains unchanged.
   document.querySelector(".theme-toggle").addEventListener("click", () => {
     document.body.classList.toggle("dark-mode");
   });
+
+  // Initialize Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+    authDomain: "inkwave-549c0.firebaseapp.com",
+    projectId: "inkwave-549c0"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
 
   const role = sessionStorage.getItem("userRole") || localStorage.getItem("userRole");
   const nav = document.getElementById("nav-links");
@@ -106,6 +121,44 @@
   const mainCTA = document.getElementById("mainCTA");
   const footerCTA = document.getElementById("footerCTA");
   const content = document.getElementById("contentSection");
+
+  // NEW: Function to load dynamic featured stories
+  function loadFeaturedStories() {
+    db.collectionGroup("stories")
+      .where("status", "==", "published")
+      .orderBy("likes", "desc")
+      .limit(3)
+      .get()
+      .then(snapshot => {
+        if (snapshot.empty) {
+          content.innerHTML = "<h2 class='text-center'>Featured Stories</h2><p class='text-center'>No featured stories available.</p>";
+          return;
+        }
+        let featuredHTML = "<h2 class='text-center'>Featured Stories</h2><div class='row'>";
+        snapshot.forEach(doc => {
+          const story = doc.data();
+          featuredHTML += `
+            <div class="col-md-4">
+              <div class="card story-card">
+                <div class="card-body">
+                  <h5 class="card-title">${story.title || "Untitled"}</h5>
+                  <p class="card-text">${story.blurb || "No description available."}</p>
+                  <a href="story.html?storyId=${story.id}" class="btn btn-sm btn-primary animated-button">Read More</a>
+                </div>
+              </div>
+            </div>
+          `;
+        });
+        featuredHTML += "</div>";
+        content.innerHTML = featuredHTML;
+      })
+      .catch(error => {
+        console.error("Error loading featured stories: ", error);
+        content.innerHTML = "<h2 class='text-center'>Featured Stories</h2><p class='text-center'>Error loading featured stories.</p>";
+      });
+  }
+
+  // Role-based UI settings (untouched except for Featured Stories)
   if (role === "reader") {
     nav.innerHTML = `
       <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
@@ -118,37 +171,8 @@
     mainCTA.href = "explore.html";
     footerCTA.textContent = "Become an Author";
     footerCTA.href = "become-author.html";
-    content.innerHTML = `
-      <h2 class="text-center">Featured Stories</h2>
-      <div class="row">
-        <div class="col-md-4">
-          <div class="card story-card">
-            <div class="card-body">
-              <h5 class="card-title">The Lost Kingdom</h5>
-              <p class="card-text">A thrilling fantasy adventure awaits...</p>
-              <a href="#" class="btn btn-sm btn-primary animated-button">Read More</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card story-card">
-            <div class="card-body">
-              <h5 class="card-title">Beyond the Stars</h5>
-              <p class="card-text">A sci-fi tale that will take you beyond...</p>
-              <a href="#" class="btn btn-sm btn-primary animated-button">Read More</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card story-card">
-            <div class="card-body">
-              <h5 class="card-title">Echoes of the Past</h5>
-              <p class="card-text">Mystery and history collide in this gripping story.</p>
-              <a href="#" class="btn btn-sm btn-primary animated-button">Read More</a>
-            </div>
-          </div>
-        </div>
-      </div>`;
+    // Replace hard-coded featured stories with dynamic ones.
+    loadFeaturedStories();
   } else if (role === "author") {
     nav.innerHTML = `
       <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
@@ -183,39 +207,9 @@
     mainCTA.href = "stories.html";
     footerCTA.textContent = "Become an Author";
     footerCTA.href = "become-author.html";
-    content.innerHTML = `
-      <h2 class="text-center">Featured Stories</h2>
-      <div class="row">
-        <div class="col-md-4">
-          <div class="card story-card">
-            <div class="card-body">
-              <h5 class="card-title">The Lost Kingdom</h5>
-              <p class="card-text">A thrilling fantasy adventure awaits...</p>
-              <a href="#" class="btn btn-sm btn-primary animated-button">Read More</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card story-card">
-            <div class="card-body">
-              <h5 class="card-title">Beyond the Stars</h5>
-              <p class="card-text">A sci-fi tale that will take you beyond...</p>
-              <a href="#" class="btn btn-sm btn-primary animated-button">Read More</a>
-            </div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="card story-card">
-            <div class="card-body">
-              <h5 class="card-title">Echoes of the Past</h5>
-              <p class="card-text">Mystery and history collide in this gripping story.</p>
-              <a href="#" class="btn btn-sm btn-primary animated-button">Read More</a>
-            </div>
-          </div>
-        </div>
-      </div>`;
+    // Replace hard-coded featured stories with dynamic ones.
+    loadFeaturedStories();
   }
 </script>
-
 </body>
 </html>
