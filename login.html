@@ -216,7 +216,8 @@
     getFirestore,
     doc,
     getDoc,
-    setDoc
+    setDoc,
+    serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -279,7 +280,7 @@
     signupForm.classList.add("active");
   };
 
-  // Reader Signup (unchanged)
+  // Reader Signup remains unchanged.
   document.getElementById("signup-btn").onclick = async () => {
     const email = document.getElementById("signup-email").value.trim();
     const password = document.getElementById("signup-password").value.trim();
@@ -299,7 +300,7 @@
         email,
         role: ["reader"],
         plan: selectedPlan,
-        joinedAt: new Date()
+        joinedAt: serverTimestamp()
       });
 
       sessionStorage.setItem("userRole", "reader");
@@ -309,7 +310,7 @@
     }
   };
 
-  // UPDATED: Reader Login with parent document touch
+  // UPDATED: Reader Login with parent document creation/merge
   document.getElementById("reader-login-btn").onclick = async () => {
     const email = document.getElementById("reader-email").value.trim();
     const password = document.getElementById("reader-password").value.trim();
@@ -319,13 +320,12 @@
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
       
-      // Ensure the user document exists by updating/merging a field.
+      // Ensure the user's document exists by merging a joinedAt field.
       await setDoc(doc(db, "users", uid), {
-        joinedAt: new Date() // or use firebase.firestore.FieldValue.serverTimestamp() if needed
+        joinedAt: serverTimestamp()
       }, { merge: true });
 
       const userDoc = await getDoc(doc(db, "users", uid));
-
       if (!userDoc.exists()) {
         errorMsg.textContent = "No reader profile found.";
         return;
@@ -344,7 +344,7 @@
     }
   };
 
-  // Author Login (unchanged)
+  // Author Login remains unchanged.
   document.getElementById("author-login-btn").onclick = async () => {
     const email = document.getElementById("author-email").value.trim();
     const password = document.getElementById("author-password").value.trim();
