@@ -182,10 +182,7 @@
       <h3>🌱 Beta Reader</h3>
       <p><strong>$0/month</strong> – Full access during beta. No payment required.</p>
     </div>
-    <div class="pricing-card" id="plan-supporter">
-      <h3>🚀 Supporter</h3>
-      <p><strong>$5/month</strong> – Help fund Inkwave and get early access perks.</p>
-    </div>
+    <!-- Supporter card removed -->
     <div class="reader-signup-form" id="signup-form">
       <div class="form-group">
         <label for="signup-email">Email</label>
@@ -269,16 +266,10 @@
   document.getElementById("plan-beta").onclick = () => {
     selectedPlan = "beta";
     document.getElementById("plan-beta").classList.add("selected");
-    document.getElementById("plan-supporter").classList.remove("selected");
     signupForm.classList.add("active");
   };
 
-  document.getElementById("plan-supporter").onclick = () => {
-    selectedPlan = "supporter";
-    document.getElementById("plan-supporter").classList.add("selected");
-    document.getElementById("plan-beta").classList.remove("selected");
-    signupForm.classList.add("active");
-  };
+  // Removed plan-supporter event listener
 
   // Reader Signup remains unchanged.
   document.getElementById("signup-btn").onclick = async () => {
