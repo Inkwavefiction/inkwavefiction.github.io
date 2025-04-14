@@ -11,41 +11,33 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
   <style>
-    /* Global styles */
+    /* Global Styles */
     body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
-      background: #f5f5f7;
+      background: #fafafa;
       color: #333;
     }
     main {
-      max-width: 750px;
-      margin: 3rem auto;
-      padding: 2rem;
-      background-color: #fff;
-      border-radius: 10px;
-      box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.1);
-      transition: box-shadow 0.3s ease;
-    }
-    main:hover {
-      box-shadow: 0px 12px 36px rgba(0, 0, 0, 0.15);
+      max-width: 700px;
+      margin: 2rem auto;
+      padding: 0; /* removed the box style by omitting background, padding, border-radius and box-shadow */
     }
     .cover {
       width: 100%;
-      max-height: 450px;
+      max-height: 500px;
       object-fit: cover;
-      border-radius: 8px;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
     h1 {
       font-family: 'Playfair Display', serif;
       font-size: 3rem;
-      margin-bottom: 0.5rem;
+      margin: 1rem 0 0.5rem;
       color: #222;
     }
     .blurb {
       font-size: 1.2rem;
-      color: #666;
+      color: #555;
       margin-bottom: 1.5rem;
       line-height: 1.6;
     }
@@ -53,14 +45,13 @@
       display: flex;
       align-items: center;
       gap: 15px;
-      margin-bottom: 1.5rem;
+      margin-bottom: 1rem;
     }
     .author-box img {
       width: 50px;
       height: 50px;
       border-radius: 50%;
       object-fit: cover;
-      border: 2px solid #e0e0e0;
     }
     .author-box .name {
       font-weight: 600;
@@ -75,17 +66,17 @@
       color: #777;
     }
     .section-title {
-      font-size: 1.8rem;
-      color: #444;
-      margin-bottom: 1rem;
-      border-bottom: 2px solid #eee;
-      padding-bottom: 0.3rem;
+      font-size: 2rem;
+      color: #333;
+      margin-bottom: 0.5rem;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 0.25rem;
     }
     .section-content {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       line-height: 1.75;
       margin-bottom: 2rem;
-      color: #555;
+      color: #444;
     }
     .nav-buttons {
       display: flex;
@@ -97,15 +88,15 @@
     .nav-buttons button {
       padding: 0.6rem 1.2rem;
       font-size: 1rem;
-      background-color: #4a90e2;
+      background-color: #666;
       color: white;
       border: none;
-      border-radius: 6px;
+      border-radius: 4px;
       cursor: pointer;
       transition: background 0.3s ease;
     }
     .nav-buttons button:hover {
-      background-color: #357ABD;
+      background-color: #555;
     }
     .nav-buttons button:disabled {
       background-color: #ccc;
@@ -115,81 +106,91 @@
     .back-link {
       display: inline-block;
       margin-top: 1rem;
-      color: #4a90e2;
+      color: #333;
       text-decoration: none;
       font-size: 1rem;
-      transition: color 0.3s ease;
     }
     .back-link:hover {
-      color: #357ABD;
       text-decoration: underline;
     }
-    .show-comments-btn {
-      background-color: #e0e0e0;
-      color: #333;
-      border: none;
-      padding: 0.5rem 1rem;
-      border-radius: 4px;
-      cursor: pointer;
-      margin-bottom: 1.5rem;
-      transition: background 0.3s ease;
-    }
-    .show-comments-btn:hover {
-      background-color: #d0d0d0;
-    }
+    /* Comments & Replies styling */
     .comments-section {
-      display: none;
       margin-top: 2rem;
-      border-top: 1px solid #eee;
-      padding-top: 1.5rem;
+      padding-top: 1rem;
+      border-top: 1px solid #ddd;
+    }
+    .comments-section h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin-bottom: 1rem;
     }
     .comment {
       margin-bottom: 1.5rem;
-      padding-bottom: 1.5rem;
-      border-bottom: 1px solid #f0f0f0;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #eee;
     }
-    .comment .comment-author {
-      font-weight: 600;
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       margin-bottom: 0.5rem;
     }
-    .comment .comment-content {
+    .comment-header img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .comment-author {
+      font-weight: 600;
+    }
+    .comment-content {
       font-size: 1rem;
       line-height: 1.6;
-      color: #555;
+      color: #444;
+    }
+    .reply-btn {
+      background: none;
+      border: none;
+      color: #777;
+      cursor: pointer;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+    .reply-btn:hover {
+      text-decoration: underline;
+    }
+    .replies {
+      margin-left: 30px;
+      margin-top: 1rem;
     }
     textarea {
       width: 100%;
-      padding: 1rem;
+      padding: 0.75rem;
       font-size: 1rem;
       border: 1px solid #ccc;
-      border-radius: 8px;
+      border-radius: 4px;
       resize: vertical;
       margin-top: 0.5rem;
-      transition: border-color 0.3s ease;
     }
-    textarea:focus {
-      border-color: #4a90e2;
-      outline: none;
-    }
-    .post-comment-btn {
-      display: inline-block;
-      margin-top: 0.75rem;
-      background-color: #4a90e2;
+    .post-comment-btn, .post-reply-btn {
+      margin-top: 0.5rem;
+      background-color: #666;
       color: white;
       padding: 0.5rem 1rem;
       border: none;
-      border-radius: 6px;
+      border-radius: 4px;
       cursor: pointer;
       transition: background 0.3s ease;
     }
-    .post-comment-btn:hover {
-      background-color: #357ABD;
+    .post-comment-btn:hover, .post-reply-btn:hover {
+      background-color: #555;
     }
   </style>
 </head>
 <body>
   <main>
-    <!-- Cover image -->
+    <!-- Full-width cover image -->
     <img id="cover" class="cover" style="display:none" alt="Cover Image">
     <!-- Story Title -->
     <h1 id="title">Loading...</h1>
@@ -217,12 +218,12 @@
       <button id="favBtn">❤️ Favorite</button>
       <button id="followBtn">👤 Follow Author</button>
     </div>
-    <!-- Comments toggle -->
-    <button class="show-comments-btn" onclick="toggleComments()">Show Comments</button>
+    <!-- Comments Section with new comment and inline reply capability -->
     <div class="comments-section" id="commentsSection">
+      <h2>Comments</h2>
       <div id="commentList"></div>
-      <div style="margin-top: 1.5rem;">
-        <textarea id="newComment" rows="3" placeholder="Write a comment..."></textarea>
+      <div style="margin-top: 2rem;">
+        <textarea id="newComment" rows="3" placeholder="Write a new comment..."></textarea>
         <button class="post-comment-btn" onclick="postComment()">Post Comment</button>
       </div>
     </div>
@@ -237,7 +238,6 @@
       authDomain: "inkwave-549c0.firebaseapp.com",
       projectId: "inkwave-549c0"
     };
-
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
@@ -260,7 +260,6 @@
     const authorPhotoEl = document.getElementById("authorPhoto");
     const authorInfoBox = document.getElementById("authorInfo");
     const authorProfileLink = document.getElementById("authorProfileLink");
-    const commentsSection = document.getElementById("commentsSection");
     const commentList = document.getElementById("commentList");
 
     let sectionKeys = [];
@@ -292,12 +291,11 @@
       }
     };
 
-    // Favorite button functionality
     favBtn.onclick = async () => {
       if (!currentUser || !storyData || !authorId) return;
       favBtn.disabled = true;
       try {
-        // Add story to user's favorites
+        // Save story as favorite
         await db.collection("users").doc(currentUser.uid).collection("favorites").doc(storyId).set({
           id: storyId,
           title: storyData.title || "Untitled",
@@ -320,7 +318,6 @@
       }
     };
 
-    // Follow button functionality
     followBtn.onclick = async () => {
       if (!currentUser || !authorId) return;
       try {
@@ -339,42 +336,51 @@
       }
     };
 
-    function toggleComments() {
-      const isVisible = commentsSection.style.display === "block";
-      commentsSection.style.display = isVisible ? "none" : "block";
-      if (!isVisible) loadComments();
+    // Toggle reply box below a comment
+    function toggleReplyBox(commentId) {
+      const container = document.getElementById("reply-container-" + commentId);
+      if (container.innerHTML.trim() !== "") {
+        container.innerHTML = "";
+      } else {
+        container.innerHTML = `
+          <textarea rows="2" placeholder="Write a reply..."></textarea>
+          <button class="post-reply-btn" onclick="postReply('${commentId}')">Submit Reply</button>
+        `;
+      }
     }
 
-    async function loadComments() {
-      commentList.innerHTML = "Loading comments...";
-      const commentsSnap = await db.collection("comments")
-                                   .where("storyId", "==", storyId)
-                                   .orderBy("timestamp", "asc")
-                                   .get();
-
-      if (commentsSnap.empty) {
-        commentList.innerHTML = "<p>No comments yet.</p>";
-        return;
+    async function postReply(parentId) {
+      const container = document.getElementById("reply-container-" + parentId);
+      const textarea = container.querySelector("textarea");
+      const text = textarea.value.trim();
+      if (!text) return alert("Please write a reply.");
+      try {
+        const userDoc = await db.collection("users").doc(currentUser.uid).get();
+        const userData = userDoc.exists ? userDoc.data() : {};
+        const username = userData.displayName || "Anonymous";
+        const userPhotoURL = userData.photoURL || "https://placehold.co/32x32";
+        await db.collection("comments").add({
+          storyId,
+          userId: currentUser.uid,
+          text,
+          username,
+          userPhotoURL,
+          parentId: parentId,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          storyTitle: storyData.title || "Untitled"
+        });
+        textarea.value = "";
+        container.innerHTML = "";
+        loadComments();
+      } catch (err) {
+        console.error("Error posting reply:", err);
+        alert("Failed to post reply.");
       }
-
-      commentList.innerHTML = "";
-      commentsSnap.forEach(doc => {
-        const data = doc.data();
-        const div = document.createElement("div");
-        div.className = "comment";
-        div.innerHTML = `
-          <div style="display:flex; align-items:center; gap:10px; margin-bottom: 0.5rem;">
-            <img src="${data.userPhotoURL || 'https://placehold.co/32x32'}" alt="User" style="width:32px; height:32px; border-radius:50%; object-fit:cover;" />
-            <span class="comment-author">${data.username || "Anonymous"}</span>
-          </div>
-          <div class="comment-content">${data.text || ""}</div>
-        `;
-        commentList.appendChild(div);
-      });
     }
 
     async function postComment() {
-      const text = document.getElementById("newComment").value.trim();
+      const textarea = document.getElementById("newComment");
+      const text = textarea.value.trim();
       if (!text) return alert("Please write something first.");
       try {
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
@@ -390,11 +396,78 @@
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           storyTitle: storyData.title || "Untitled"
         });
-        document.getElementById("newComment").value = "";
+        textarea.value = "";
         loadComments();
       } catch (err) {
         console.error("Error posting comment:", err);
         alert("Something went wrong while posting your comment.");
+      }
+    }
+
+    async function loadComments() {
+      commentList.innerHTML = "Loading comments...";
+      try {
+        const commentsSnap = await db.collection("comments")
+          .where("storyId", "==", storyId)
+          .orderBy("timestamp", "asc")
+          .get();
+        if (commentsSnap.empty) {
+          commentList.innerHTML = "<p>No comments yet.</p>";
+          return;
+        }
+        let comments = [];
+        commentsSnap.forEach(doc => {
+          let data = doc.data();
+          data.id = doc.id;
+          comments.push(data);
+        });
+        // Separate top-level comments from replies (those having a parentId)
+        const topComments = comments.filter(c => !c.parentId);
+        const replies = {};
+        comments.filter(c => c.parentId).forEach(c => {
+          if (!replies[c.parentId]) {
+            replies[c.parentId] = [];
+          }
+          replies[c.parentId].push(c);
+        });
+        commentList.innerHTML = "";
+        topComments.forEach(c => {
+          const div = document.createElement("div");
+          div.className = "comment";
+          div.innerHTML = `
+            <div class="comment-header">
+              <img src="${c.userPhotoURL || 'https://placehold.co/32x32'}" alt="User">
+              <span class="comment-author">${c.username || "Anonymous"}</span>
+            </div>
+            <div class="comment-content">${c.text || ""}</div>
+            <button class="reply-btn" onclick="toggleReplyBox('${c.id}')">Reply</button>
+            <div class="reply-container" id="reply-container-${c.id}"></div>
+            <div class="replies" id="replies-${c.id}"></div>
+          `;
+          commentList.appendChild(div);
+          // Render any replies indented under the comment
+          if (replies[c.id]) {
+            const repliesDiv = div.querySelector("#replies-" + c.id);
+            replies[c.id].forEach(reply => {
+              const replyDiv = document.createElement("div");
+              replyDiv.className = "comment";
+              replyDiv.style.marginTop = "1rem";
+              replyDiv.innerHTML = `
+                <div class="comment-header">
+                  <img src="${reply.userPhotoURL || 'https://placehold.co/32x32'}" alt="User">
+                  <span class="comment-author">${reply.username || "Anonymous"}</span>
+                </div>
+                <div class="comment-content">${reply.text || ""}</div>
+                <button class="reply-btn" onclick="toggleReplyBox('${reply.id}')">Reply</button>
+                <div class="reply-container" id="reply-container-${reply.id}"></div>
+              `;
+              repliesDiv.appendChild(replyDiv);
+            });
+          }
+        });
+      } catch (err) {
+        console.error("Error loading comments:", err);
+        commentList.innerHTML = "<p>Error loading comments.</p>";
       }
     }
 
@@ -406,8 +479,8 @@
       currentUser = user;
       try {
         const snap = await db.collectionGroup("stories")
-                             .where("id", "==", storyId)
-                             .get();
+          .where("id", "==", storyId)
+          .get();
         if (snap.empty) {
           titleEl.textContent = "Story not found.";
           return;
@@ -415,14 +488,11 @@
         const doc = snap.docs[0];
         storyData = doc.data();
         authorId = doc.ref.parent.parent.id;
-
         // Increment view count
         const storyRef = db.collection("users").doc(authorId).collection("stories").doc(storyId);
         await storyRef.update({
           reads: firebase.firestore.FieldValue.increment(1)
         });
-
-        // Update UI with story details
         titleEl.textContent = storyData.title || "Untitled";
         blurbEl.textContent = storyData.blurb || "";
         if (storyData.coverUrl) {
@@ -433,10 +503,8 @@
         sectionKeys = storyData.sectionOrder || Object.keys(sections);
         currentIndex = 0;
         renderSection(currentIndex);
-
         likeCountEl.textContent = storyData.likes ?? 0;
         viewCountEl.textContent = storyData.reads ?? 0;
-
         const authorDoc = await db.collection("authors").doc(authorId).get();
         if (authorDoc.exists) {
           const aData = authorDoc.data();
@@ -445,17 +513,16 @@
           authorProfileLink.href = `author-profile.html?authorId=${authorId}`;
           authorInfoBox.style.display = "flex";
         }
-
-        // Check if story is already favorited
         const favDoc = await db.collection("users")
-                               .doc(currentUser.uid)
-                               .collection("favorites")
-                               .doc(storyId)
-                               .get();
+          .doc(currentUser.uid)
+          .collection("favorites")
+          .doc(storyId)
+          .get();
         if (favDoc.exists) {
           favBtn.disabled = true;
           favBtn.textContent = "Favorited";
         }
+        loadComments();
       } catch (err) {
         console.error("Error loading story:", err);
         titleEl.textContent = "Error loading story.";
