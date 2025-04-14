@@ -21,7 +21,12 @@
     main {
       max-width: 700px;
       margin: 2rem auto;
-      padding: 0; /* removed the box style by omitting background, padding, border-radius and box-shadow */
+      padding: 0;
+    }
+    /* Header Styles */
+    .header {
+      text-align: center;
+      padding: 0 1rem;
     }
     .cover {
       width: 100%;
@@ -43,6 +48,7 @@
     }
     .author-box {
       display: flex;
+      justify-content: center;
       align-items: center;
       gap: 15px;
       margin-bottom: 1rem;
@@ -60,35 +66,40 @@
     }
     .stats {
       display: flex;
+      justify-content: center;
       gap: 30px;
       margin: 1rem 0;
       font-size: 1rem;
       color: #777;
     }
+    /* Story Section Styles */
     .section-title {
       font-size: 2rem;
       color: #333;
       margin-bottom: 0.5rem;
       border-bottom: 1px solid #ddd;
       padding-bottom: 0.25rem;
+      text-align: left;
     }
     .section-content {
       font-size: 1.2rem;
       line-height: 1.75;
       margin-bottom: 2rem;
       color: #444;
+      text-align: left;
     }
+    /* Navigation Buttons */
     .nav-buttons {
       display: flex;
       flex-wrap: wrap;
-      justify-content: flex-end;
+      justify-content: center;
       gap: 10px;
       margin-bottom: 1.5rem;
     }
     .nav-buttons button {
       padding: 0.6rem 1.2rem;
       font-size: 1rem;
-      background-color: #666;
+      background-color: #789a91;
       color: white;
       border: none;
       border-radius: 4px;
@@ -96,7 +107,7 @@
       transition: background 0.3s ease;
     }
     .nav-buttons button:hover {
-      background-color: #555;
+      background-color: #647a81;
     }
     .nav-buttons button:disabled {
       background-color: #ccc;
@@ -106,23 +117,25 @@
     .back-link {
       display: inline-block;
       margin-top: 1rem;
-      color: #333;
+      color: #789a91;
       text-decoration: none;
       font-size: 1rem;
     }
     .back-link:hover {
       text-decoration: underline;
     }
-    /* Comments & Replies styling */
+    /* Comments & Replies Styling */
     .comments-section {
       margin-top: 2rem;
       padding-top: 1rem;
       border-top: 1px solid #ddd;
+      text-align: left;
     }
     .comments-section h2 {
       font-family: 'Playfair Display', serif;
       font-size: 2rem;
       margin-bottom: 1rem;
+      color: #333;
     }
     .comment {
       margin-bottom: 1.5rem;
@@ -143,6 +156,7 @@
     }
     .comment-author {
       font-weight: 600;
+      color: #789a91;
     }
     .comment-content {
       font-size: 1rem;
@@ -152,7 +166,7 @@
     .reply-btn {
       background: none;
       border: none;
-      color: #777;
+      color: #789a91;
       cursor: pointer;
       font-size: 0.9rem;
       margin-top: 0.5rem;
@@ -175,7 +189,7 @@
     }
     .post-comment-btn, .post-reply-btn {
       margin-top: 0.5rem;
-      background-color: #666;
+      background-color: #789a91;
       color: white;
       padding: 0.5rem 1rem;
       border: none;
@@ -184,41 +198,44 @@
       transition: background 0.3s ease;
     }
     .post-comment-btn:hover, .post-reply-btn:hover {
-      background-color: #555;
+      background-color: #647a81;
     }
   </style>
 </head>
 <body>
   <main>
-    <!-- Full-width cover image -->
-    <img id="cover" class="cover" style="display:none" alt="Cover Image">
-    <!-- Story Title -->
-    <h1 id="title">Loading...</h1>
-    <!-- Story Blurb -->
-    <div class="blurb" id="blurb"></div>
-    <!-- Author info -->
-    <div id="authorInfo" class="author-box" style="display: none;">
-      <a id="authorProfileLink" href="#" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: inherit;">
-        <img id="authorPhoto" src="" alt="Author Photo">
-        <div class="name" id="authorName"></div>
-      </a>
+    <!-- Header Section -->
+    <div class="header">
+      <!-- Full-width cover image -->
+      <img id="cover" class="cover" style="display:none" alt="Cover Image">
+      <!-- Story Title -->
+      <h1 id="title">Loading...</h1>
+      <!-- Story Blurb -->
+      <div class="blurb" id="blurb"></div>
+      <!-- Author info -->
+      <div id="authorInfo" class="author-box" style="display: none;">
+        <a id="authorProfileLink" href="#" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: inherit;">
+          <img id="authorPhoto" src="" alt="Author Photo">
+          <div class="name" id="authorName"></div>
+        </a>
+      </div>
+      <!-- Stats -->
+      <div class="stats">
+        <div>Views: <span id="viewCount">0</span></div>
+        <div>Likes: <span id="likeCount">0</span></div>
+      </div>
     </div>
-    <!-- Stats -->
-    <div class="stats">
-      <div>Views: <span id="viewCount">0</span></div>
-      <div>Likes: <span id="likeCount">0</span></div>
-    </div>
-    <!-- Section content -->
+    <!-- Story Section (left aligned) -->
     <div class="section-title" id="section-name"></div>
     <div class="section-content" id="section-content"></div>
-    <!-- Navigation buttons -->
+    <!-- Navigation Buttons -->
     <div class="nav-buttons">
       <button id="prevBtn">← Previous</button>
       <button id="nextBtn">Next →</button>
       <button id="favBtn">❤️ Favorite</button>
       <button id="followBtn">👤 Follow Author</button>
     </div>
-    <!-- Comments Section with new comment and inline reply capability -->
+    <!-- Comments Section with Inline Reply Capability -->
     <div class="comments-section" id="commentsSection">
       <h2>Comments</h2>
       <div id="commentList"></div>
@@ -227,8 +244,10 @@
         <button class="post-comment-btn" onclick="postComment()">Post Comment</button>
       </div>
     </div>
-    <!-- Back to stories link -->
-    <a href="explore.html" class="back-link">← Back to stories</a>
+    <!-- Back to Stories Link (centered) -->
+    <div style="text-align: center;">
+      <a href="explore.html" class="back-link">← Back to stories</a>
+    </div>
   </main>
 
   <script>
@@ -421,7 +440,7 @@
           data.id = doc.id;
           comments.push(data);
         });
-        // Separate top-level comments from replies (those having a parentId)
+        // Separate top-level comments from replies (those with a parentId)
         const topComments = comments.filter(c => !c.parentId);
         const replies = {};
         comments.filter(c => c.parentId).forEach(c => {
