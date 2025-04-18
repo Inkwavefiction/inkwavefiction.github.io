@@ -361,10 +361,10 @@
       if (container.innerHTML.trim() !== "") {
         container.innerHTML = "";
       } else {
-        container.innerHTML = 
+        container.innerHTML = `
           <textarea rows="2" placeholder="Write a reply..."></textarea>
           <button class="post-reply-btn" onclick="postReply('${commentId}')">Submit Reply</button>
-        ;
+        `;
       }
     }
 
@@ -453,7 +453,7 @@
         topComments.forEach(c => {
           const div = document.createElement("div");
           div.className = "comment";
-          div.innerHTML = 
+          div.innerHTML = `
             <div class="comment-header">
               <img src="${c.userPhotoURL || 'https://placehold.co/32x32'}" alt="User">
               <span class="comment-author">${c.username || "Anonymous"}</span>
@@ -462,7 +462,7 @@
             <button class="reply-btn" onclick="toggleReplyBox('${c.id}')">Reply</button>
             <div class="reply-container" id="reply-container-${c.id}"></div>
             <div class="replies" id="replies-${c.id}"></div>
-          ;
+          `;
           commentList.appendChild(div);
           // Render any replies indented under the comment
           if (replies[c.id]) {
@@ -471,7 +471,7 @@
               const replyDiv = document.createElement("div");
               replyDiv.className = "comment";
               replyDiv.style.marginTop = "1rem";
-              replyDiv.innerHTML = 
+              replyDiv.innerHTML = `
                 <div class="comment-header">
                   <img src="${reply.userPhotoURL || 'https://placehold.co/32x32'}" alt="User">
                   <span class="comment-author">${reply.username || "Anonymous"}</span>
@@ -479,7 +479,7 @@
                 <div class="comment-content">${reply.text || ""}</div>
                 <button class="reply-btn" onclick="toggleReplyBox('${reply.id}')">Reply</button>
                 <div class="reply-container" id="reply-container-${reply.id}"></div>
-              ;
+              `;
               repliesDiv.appendChild(replyDiv);
             });
           }
@@ -529,7 +529,7 @@
           const aData = authorDoc.data();
           authorNameEl.textContent = aData.displayName || "Unknown Author";
           authorPhotoEl.src = aData.photoURL || "https://placehold.co/48x48";
-          authorProfileLink.href = author-profile.html?authorId=${authorId};
+          authorProfileLink.href = `author-profile.html?authorId=${authorId}`;
           authorInfoBox.style.display = "flex";
         }
         const favDoc = await db.collection("users")
