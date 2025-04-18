@@ -230,7 +230,17 @@
       const div = document.createElement("div");
       div.className = "section";
       div.onclick = () => switchSection(name);
-      div.innerHTML = `<span contenteditable="true" onblur="renameSection('${name}', this.innerText)">📄 ${name}</span>`;
+      const span = document.createElement("span");
+      span.textContent = name;
+      span.addEventListener('dblclick', () => {
+        span.contentEditable = true;
+        span.focus();
+      });
+      span.addEventListener('blur', () => {
+        span.contentEditable = false;
+        renameSection(name, span.innerText);
+      });
+      div.appendChild(span);
       container.appendChild(div);
     });
   }
@@ -255,7 +265,7 @@
 
   function highlightSection(name) {
     document.querySelectorAll(".section").forEach(sec => {
-      sec.style.backgroundColor = sec.textContent.includes(name) ? "#c8dad3" : "#e8ecf0";
+      sec.style.backgroundColor = sec.textContent === name ? "#c8dad3" : "#e8ecf0";
     });
   }
 
