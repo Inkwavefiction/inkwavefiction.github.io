@@ -376,7 +376,8 @@
       try {
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const userData = userDoc.exists ? userDoc.data() : {};
-        const username = userData.displayName || "Anonymous";
+        // FIX: use saved username field first
+        const username = userData.username || userData.displayName || "Anonymous";
         const userPhotoURL = userData.photoURL || "https://placehold.co/32x32";
         await db.collection("comments").add({
           storyId,
@@ -404,7 +405,8 @@
       try {
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const userData = userDoc.exists ? userDoc.data() : {};
-        const username = userData.displayName || "Anonymous";
+        // FIX: use saved username field first
+        const username = userData.username || userData.displayName || "Anonymous";
         const userPhotoURL = userData.photoURL || "https://placehold.co/32x32";
         await db.collection("comments").add({
           storyId,
@@ -440,13 +442,10 @@
           data.id = doc.id;
           comments.push(data);
         });
-        // Separate top-level comments from replies (those with a parentId)
         const topComments = comments.filter(c => !c.parentId);
         const replies = {};
         comments.filter(c => c.parentId).forEach(c => {
-          if (!replies[c.parentId]) {
-            replies[c.parentId] = [];
-          }
+          if (!replies[c.parentId]) replies[c.parentId] = [];
           replies[c.parentId].push(c);
         });
         commentList.innerHTML = "";
@@ -460,11 +459,10 @@
             </div>
             <div class="comment-content">${c.text || ""}</div>
             <button class="reply-btn" onclick="toggleReplyBox('${c.id}')">Reply</button>
-            <div class="reply-container" id="reply-container-${c.id}"></div>
+            <div class="reply-container" id="replycontainer-${c.id}"></div>
             <div class="replies" id="replies-${c.id}"></div>
           `;
           commentList.appendChild(div);
-          // Render any replies indented under the comment
           if (replies[c.id]) {
             const repliesDiv = div.querySelector("#replies-" + c.id);
             replies[c.id].forEach(reply => {
@@ -478,7 +476,7 @@
                 </div>
                 <div class="comment-content">${reply.text || ""}</div>
                 <button class="reply-btn" onclick="toggleReplyBox('${reply.id}')">Reply</button>
-                <div class="reply-container" id="reply-container-${reply.id}"></div>
+                <div class="reply-container" id="replycontainer-${reply.id}"></div>
               `;
               repliesDiv.appendChild(replyDiv);
             });
@@ -507,11 +505,8 @@
         const doc = snap.docs[0];
         storyData = doc.data();
         authorId = doc.ref.parent.parent.id;
-        // Increment view count
         const storyRef = db.collection("users").doc(authorId).collection("stories").doc(storyId);
-        await storyRef.update({
-          reads: firebase.firestore.FieldValue.increment(1)
-        });
+        await storyRef.update({ reads: firebase.firestore.FieldValue.increment(1) });
         titleEl.textContent = storyData.title || "Untitled";
         blurbEl.textContent = storyData.blurb || "";
         if (storyData.coverUrl) {
@@ -532,11 +527,7 @@
           authorProfileLink.href = `author-profile.html?authorId=${authorId}`;
           authorInfoBox.style.display = "flex";
         }
-        const favDoc = await db.collection("users")
-          .doc(currentUser.uid)
-          .collection("favorites")
-          .doc(storyId)
-          .get();
+        const favDoc = await db.collection("users").doc(currentUser.uid).collection("favorites").doc(storyId).get();
         if (favDoc.exists) {
           favBtn.disabled = true;
           favBtn.textContent = "Favorited";
