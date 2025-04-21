@@ -94,6 +94,7 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Firebase App, Auth and Firestore Libraries -->
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
@@ -126,7 +127,6 @@
       <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
       <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
       <li class="nav-item"><a class="nav-link" href="explore.html">Go to Dashboard</a></li>
-      <li class="nav-item"><a class="nav-link" href="become-author.html">Become an Author</a></li>
     `;
     heroTitle.textContent = "Welcome Back!";
     heroText.style.display = "none";
@@ -139,7 +139,6 @@
       <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
       <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
       <li class="nav-item"><a class="nav-link" href="author-dashboard.html">Go to Dashboard</a></li>
-      <li class="nav-item"><a class="nav-link" href="become-reader.html">Become a Reader</a></li>
     `;
     heroTitle.textContent = "Welcome Back!";
     heroText.style.display = "none";
@@ -156,8 +155,11 @@
       </div>`;
     firebase.auth().onAuthStateChanged(user => {
       if (user) {
-        db.collection("users").doc(user.uid).collection("stories")
-          .where("status", "==", "published").get()
+        db.collection("users")
+          .doc(user.uid)
+          .collection("stories")
+          .where("status", "==", "published")
+          .get()
           .then(snapshot => {
             if (snapshot.empty) {
               content.innerHTML = `
@@ -186,7 +188,8 @@
               storiesHTML += `</div>`;
               content.innerHTML = storiesHTML;
             }
-          }).catch(error => {
+          })
+          .catch(error => {
             console.error("Error loading author stories: ", error);
             content.innerHTML = `
               <h2 class="text-center">Your Stories</h2>
@@ -206,19 +209,6 @@
           </div>`;
       }
     });
-  } else if (role === "both") {
-    nav.innerHTML = `
-      <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
-      <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
-      <li class="nav-item"><a class="nav-link" href="explore.html">Reader Dashboard</a></li>
-      <li class="nav-item"><a class="nav-link" href="author-dashboard.html">Author Dashboard</a></li>
-    `;
-    heroTitle.textContent = "Welcome Back!";
-    heroText.style.display = "none";
-    mainCTA.textContent = "Go to Dashboards";
-    mainCTA.href = "dashboards.html";
-    footerCTA.style.display = "none";
-    content.innerHTML = "";
   } else {
     nav.innerHTML = `
       <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
@@ -235,12 +225,12 @@
     footerCTA.href = "become-author.html";
   }
   
-  // Append the Feedback link to the navigation
+  // Append the Feedback link to the navigation (redirects to feedback.html)
   nav.innerHTML += `<li class="nav-item"><a class="nav-link" href="feedback.html" id="feedbackLink">Feedback</a></li>`;
   
-  // Dynamic Featured Stories for non-authors & non-both
+  // Dynamic Featured Stories for reader and guest views (author view remains unchanged)
   (function loadFeaturedStoriesForNonAuthors() {
-    if (role === "author" || role === "both") return;
+    if (role === "author") return;
     db.collectionGroup("stories")
       .where("status", "==", "published")
       .orderBy("likes", "desc")
@@ -276,3 +266,5 @@
 </script>
 </body>
 </html>
+
+
