@@ -107,11 +107,17 @@
   </style>
 </head>
 <body>
+  <!-- ensure index.html knows you’re a reader -->
+  <script>
+    sessionStorage.setItem('userRole','reader');
+  </script>
 
   <div class="sidebar">
-    <a href="index.html" style="text-decoration: none; color: inherit;">
+    <a href="index.html"
+       onclick="sessionStorage.setItem('userRole','reader')"
+       style="text-decoration: none; color: inherit;">
       <h2>Inkwave</h2>
-  </a>
+    </a>
     <a href="favorites.html" class="nav-link">📚 Favorites</a>
     <a href="comments.html" class="nav-link">💬 Comments</a>
     <a href="following.html" class="nav-link active">👤 Following</a>
@@ -153,7 +159,12 @@
       }
 
       const followList = document.getElementById("following-list");
-      const ref = db.collection("users").doc(user.uid).collection("following").orderBy("timestamp", "desc");
+      const ref = db
+        .collection("users")
+        .doc(user.uid)
+        .collection("following")
+        .orderBy("timestamp", "desc");
+
       const snapshot = await ref.get();
       followList.innerHTML = "";
 
