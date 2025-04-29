@@ -15,17 +15,8 @@
       text-align: center;
       color: black;
     }
-    .hero h1 {
-      font-size: 3rem;
-      font-weight: bold;
-      color: black;
-      margin-bottom: 1rem;
-    }
-    .hero p {
-      font-size: 1.3rem;
-      color: #333;
-      margin-bottom: 1.5rem;
-    }
+    .hero h1 { font-size: 3rem; font-weight: bold; margin-bottom: 1rem; }
+    .hero p { font-size: 1.3rem; color: #333; margin-bottom: 1.5rem; }
     .story-card {
       margin-bottom: 20px;
       background: white;
@@ -33,238 +24,281 @@
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
-    .theme-toggle {
-      cursor: pointer;
-      font-size: 18px;
-      padding: 10px;
-      position: absolute;
-      top: 10px;
-      right: 20px;
-    }
+    .theme-toggle { cursor: pointer; font-size: 18px; padding: 10px; position: absolute; top: 10px; right: 20px; }
     .dark-mode { background-color: #1e1e1e; color: white; }
     .dark-mode .card { background-color: #2a2a2a; color: white; }
     .dark-mode .navbar { background: #1a252f; }
-    .animated-button {
-      transition: all 0.3s ease-in-out;
-    }
-    .animated-button:hover {
-      transform: scale(1.1);
-    }
-    .btn-primary {
-      background-color: #0056b3;
-      color: white;
-    }
+    .animated-button { transition: all 0.3s ease-in-out; }
+    .animated-button:hover { transform: scale(1.1); }
+    .btn-primary { background-color: #0056b3; color: white; }
     .btn-outline-light {
       background-color: #444;
       color: white;
       border-color: #222;
     }
-    .btn-outline-light:hover {
-      background-color: #666;
-    }
+    .btn-outline-light:hover { background-color: #666; }
   </style>
 </head>
 <body>
 
-<span class="theme-toggle">🌙</span>
+  <span class="theme-toggle">🌙</span>
 
-<nav class="navbar navbar-expand-lg">
-  <div class="container">
-    <a class="navbar-brand" href="#">Inkwave</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto" id="nav-links"></ul>
+  <nav class="navbar navbar-expand-lg">
+    <div class="container">
+      <a class="navbar-brand" href="#">Inkwave</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto" id="nav-links"></ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Feedback Modal -->
+  <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="feedbackModalLabel">Feedback</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="feedbackForm">
+            <div class="mb-3">
+              <label for="feedbackInput" class="form-label">Your Feedback</label>
+              <textarea class="form-control" id="feedbackInput" rows="3" required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Submit Feedback</button>
+          </form>
+        </div>
+      </div>
     </div>
   </div>
-</nav>
 
-<div class="hero">
-  <h1 id="hero-title">Welcome to Inkwave</h1>
-  <p id="hero-text">Discover, read, and share amazing fiction.</p>
-  <a href="stories.html" class="btn btn-primary btn-lg animated-button" id="mainCTA">Explore Stories</a>
-</div>
+  <!-- Hero -->
+  <div class="hero">
+    <h1 id="hero-title">Welcome to Inkwave</h1>
+    <p id="hero-text">Discover, read, and share amazing fiction.</p>
+    <a href="stories.html" class="btn btn-primary btn-lg animated-button" id="mainCTA">Explore Stories</a>
+  </div>
 
-<div class="container mt-5" id="contentSection"></div>
+  <!-- Dynamic Content -->
+  <div class="container mt-5" id="contentSection"></div>
 
-<footer class="text-center mt-5 py-3 bg-light">
-  <a href="become-author.html" class="btn btn-sm btn-outline-dark animated-button" id="footerCTA">Become an Author</a>
-  <p class="mt-3">© 2025 Inkwave. All rights reserved.</p>
-</footer>
+  <footer class="text-center mt-5 py-3 bg-light">
+    <p class="mt-3">© 2025 Inkwave. All rights reserved.</p>
+  </footer>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- Firebase App, Auth and Firestore Libraries -->
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script>
+    // Theme toggle
+    document.querySelector(".theme-toggle").addEventListener("click", () => {
+      document.body.classList.toggle("dark-mode");
+    });
 
-<script>
-  document.querySelector(".theme-toggle").addEventListener("click", () => {
-    document.body.classList.toggle("dark-mode");
-  });
+    // Firebase init
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-  // Initialize Firebase
-  const firebaseConfig = {
-    apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
-    authDomain: "inkwave-549c0.firebaseapp.com",
-    projectId: "inkwave-549c0"
-  };
-  firebase.initializeApp(firebaseConfig);
-  const db = firebase.firestore();
+    // Role detection
+    const role = sessionStorage.getItem("userRole") || localStorage.getItem("userRole");
+    const nav = document.getElementById("nav-links");
+    const heroTitle = document.getElementById("hero-title");
+    const heroText = document.getElementById("hero-text");
+    const mainCTA = document.getElementById("mainCTA");
+    const content = document.getElementById("contentSection");
 
-  const role = sessionStorage.getItem("userRole") || localStorage.getItem("userRole");
-  const nav = document.getElementById("nav-links");
-  const heroTitle = document.getElementById("hero-title");
-  const heroText = document.getElementById("hero-text");
-  const mainCTA = document.getElementById("mainCTA");
-  const footerCTA = document.getElementById("footerCTA");
-  const content = document.getElementById("contentSection");
+    if (role === "reader") {
+      // Reader view
+      nav.innerHTML = `
+        <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="stories.html">Stories</a></li>
+        <li class="nav-item"><a class="nav-link" href="become-author.html">Sign Up as Author</a></li>
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#feedbackModal" href="#">Feedback</a></li>
+      `;
+      heroTitle.textContent = "Welcome Back!";
+      heroText.style.display = "none";
+      mainCTA.textContent = "Go to Stories";
+      mainCTA.href = "stories.html";
 
-  // Set navigation and hero based on role
-  if (role === "reader") {
-    nav.innerHTML = `
-      <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
-      <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
-      <li class="nav-item"><a class="nav-link" href="explore.html">Go to Dashboard</a></li>
-    `;
-    heroTitle.textContent = "Welcome Back!";
-    heroText.style.display = "none";
-    mainCTA.textContent = "Go to Dashboard";
-    mainCTA.href = "explore.html";
-    footerCTA.textContent = "Become an Author";
-    footerCTA.href = "become-author.html";
-  } else if (role === "author") {
-    nav.innerHTML = `
-      <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
-      <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
-      <li class="nav-item"><a class="nav-link" href="author-dashboard.html">Go to Dashboard</a></li>
-    `;
-    heroTitle.textContent = "Welcome Back!";
-    heroText.style.display = "none";
-    mainCTA.textContent = "Go to Dashboard";
-    mainCTA.href = "author-dashboard.html";
-    footerCTA.textContent = "Become a Reader";
-    footerCTA.href = "become-reader.html";
-    content.innerHTML = `
-      <h2 class="text-center">Your Stories</h2>
-      <div class="row">
-        <div class="col-md-12 text-center">
-          <p>Loading your stories...</p>
-        </div>
-      </div>`;
-    firebase.auth().onAuthStateChanged(user => {
-      if (user) {
-        db.collection("users")
-          .doc(user.uid)
-          .collection("stories")
-          .where("status", "==", "published")
-          .get()
-          .then(snapshot => {
-            if (snapshot.empty) {
-              content.innerHTML = `
-                <h2 class="text-center">Your Stories</h2>
-                <div class="row">
-                  <div class="col-md-12 text-center">
-                    <p>You haven't added any stories yet. Start writing today!</p>
-                  </div>
-                </div>`;
-            } else {
-              let storiesHTML = `<h2 class="text-center">Your Stories</h2><div class="row">`;
-              snapshot.forEach(doc => {
-                const story = doc.data();
-                storiesHTML += `
-                  <div class="col-md-4">
-                    <div class="card story-card">
-                      <div class="card-body">
-                        <h5 class="card-title">${story.title || "Untitled"}</h5>
-                        <p class="card-text">${story.blurb || "No description available."}</p>
-                        <a href="story.html?storyId=${story.id}" class="btn btn-sm btn-primary animated-button">Read More</a>
-                      </div>
+      // Featured Stories
+      db.collectionGroup("stories")
+        .where("status", "==", "published")
+        .orderBy("likes", "desc")
+        .limit(3)
+        .get()
+        .then(snap => {
+          let html = "<h2 class='text-center'>Featured Stories</h2><div class='row'>";
+          if (snap.empty) {
+            html += "<p class='text-center'>No featured stories yet.</p>";
+          } else {
+            snap.forEach(doc => {
+              const s = doc.data();
+              html += `
+                <div class="col-md-4">
+                  <div class="card story-card">
+                    <div class="card-body">
+                      <h5>${s.title || "Untitled"}</h5>
+                      <p>${s.blurb || "No description."}</p>
+                      <a href="story.html?storyId=${s.id}" class="btn btn-sm btn-primary animated-button">Read More</a>
                     </div>
                   </div>
-                `;
-              });
-              storiesHTML += `</div>`;
-              content.innerHTML = storiesHTML;
-            }
-          })
-          .catch(error => {
-            console.error("Error loading author stories: ", error);
-            content.innerHTML = `
-              <h2 class="text-center">Your Stories</h2>
-              <div class="row">
-                <div class="col-md-12 text-center">
-                  <p>Error loading your stories.</p>
-                </div>
-              </div>`;
-          });
-      } else {
-        content.innerHTML = `
-          <h2 class="text-center">Your Stories</h2>
-          <div class="row">
-            <div class="col-md-12 text-center">
-              <p>Please log in to view your stories.</p>
-            </div>
-          </div>`;
-      }
-    });
-  } else {
-    nav.innerHTML = `
-      <li class="nav-item"><a class="nav-link" href="#">Home</a></li>
-      <li class="nav-item"><a class="nav-link" href="stories.html">Stories</a></li>
-      <li class="nav-item"><a class="nav-link" href="become-author.html">Submit</a></li>
-      <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
-      <li class="nav-item"><a class="nav-link" href="login.html">Login / Signup</a></li>
-    `;
-    heroTitle.textContent = "Welcome to Inkwave";
-    heroText.style.display = "block";
-    mainCTA.textContent = "Explore Stories";
-    mainCTA.href = "stories.html";
-    footerCTA.textContent = "Become an Author";
-    footerCTA.href = "become-author.html";
-  }
-  
-  // Append the Feedback link to the navigation (redirects to feedback.html)
-  nav.innerHTML += `<li class="nav-item"><a class="nav-link" href="feedback.html" id="feedbackLink">Feedback</a></li>`;
-  
-  // Dynamic Featured Stories for reader and guest views (author view remains unchanged)
-  (function loadFeaturedStoriesForNonAuthors() {
-    if (role === "author") return;
-    db.collectionGroup("stories")
-      .where("status", "==", "published")
-      .orderBy("likes", "desc")
-      .limit(3)
-      .get()
-      .then(snapshot => {
-        if (snapshot.empty) {
-          content.innerHTML = "<h2 class='text-center'>Featured Stories</h2><p class='text-center'>No featured stories available.</p>";
-          return;
-        }
-        let dynamicHTML = "<h2 class='text-center'>Featured Stories</h2><div class='row'>";
-        snapshot.forEach(doc => {
-          const story = doc.data();
-          dynamicHTML += `
-            <div class="col-md-4">
-              <div class="card story-card">
-                <div class="card-body">
-                  <h5 class="card-title">${story.title || "Untitled"}</h5>
-                  <p class="card-text">${story.blurb || "No description available."}</p>
-                  <a href="story.html?storyId=${story.id}" class="btn btn-sm btn-primary animated-button">Read More</a>
-                </div>
-              </div>
-            </div>
-          `;
+                </div>`;
+            });
+          }
+          html += "</div>";
+          content.innerHTML = html;
         });
-        dynamicHTML += "</div>";
-        content.innerHTML = dynamicHTML;
-      })
-      .catch(error => {
-        console.error("Error loading dynamic featured stories:", error);
+
+    } else if (role === "author") {
+      // Author view
+      nav.innerHTML = `
+        <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+        <li class="nav-item"><a class="nav-link" href="become-reader.html">Sign Up as Reader</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#feedbackModal" href="#">Feedback</a></li>
+      `;
+      heroTitle.textContent = "Welcome Back!";
+      heroText.style.display = "none";
+      mainCTA.textContent = "Create New Story";
+      mainCTA.href = "author-dashboard.html";
+
+      // Your Stories
+      firebase.auth().onAuthStateChanged(user => {
+        let html = "<h2 class='text-center'>Your Stories</h2><div class='row'>";
+        if (!user) {
+          html += `<div class="col-12 text-center"><p>Please log in to view.</p></div>`;
+        } else {
+          db.collection("users").doc(user.uid).collection("stories")
+            .where("status","==","published")
+            .get().then(snap => {
+              if (snap.empty) {
+                html += `<div class="col-12 text-center"><p>No stories yet.</p></div>`;
+              } else {
+                snap.forEach(doc => {
+                  const s = doc.data();
+                  html += `
+                    <div class="col-md-4">
+                      <div class="card story-card">
+                        <div class="card-body">
+                          <h5>${s.title || "Untitled"}</h5>
+                          <p>${s.blurb || "No description."}</p>
+                          <a href="story.html?storyId=${s.id}" class="btn btn-sm btn-primary animated-button">Read</a>
+                        </div>
+                      </div>
+                    </div>`;
+                });
+              }
+              html += "</div>";
+              content.innerHTML = html;
+            });
+        }
       });
-  })();
-</script>
+
+    } else if (role === "both") {
+      // Both view
+      nav.innerHTML = `
+        <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="storiesDropdown" role="button" data-bs-toggle="dropdown">Stories</a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li><a class="dropdown-item" href="#" id="featuredLink">Featured</a></li>
+            <li><a class="dropdown-item" href="#" id="yourLink">Your Stories</a></li>
+          </ul>
+        </li>
+        <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
+        <li class="nav-item"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#feedbackModal" href="#">Feedback</a></li>
+      `;
+      heroText.style.display = "none";
+      mainCTA.style.display = "none";
+      // Default to Featured
+      function loadFeatured() {
+        db.collectionGroup("stories").where("status","==","published")
+          .orderBy("likes","desc").limit(3)
+          .get().then(snap => {
+            let html = "<h2 class='text-center'>Featured Stories</h2><div class='row'>";
+            snap.forEach(doc => {
+              const s = doc.data();
+              html += `
+                <div class="col-md-4">
+                  <div class="card story-card">
+                    <h5>${s.title}</h5>
+                    <p>${s.blurb}</p>
+                    <a href="story.html?storyId=${s.id}" class="btn btn-sm btn-primary animated-button">Read More</a>
+                  </div>
+                </div>`;
+            });
+            html += "</div>";
+            content.innerHTML = html;
+          });
+      }
+      function loadYour() {
+        firebase.auth().onAuthStateChanged(user => {
+          let html = "<h2 class='text-center'>Your Stories</h2><div class='row'>";
+          if (!user) {
+            html += `<div class="col-12 text-center"><p>Please log in.</p></div>`;
+          } else {
+            db.collection("users").doc(user.uid).collection("stories")
+              .where("status","==","published")
+              .get().then(snap => {
+                snap.forEach(doc => {
+                  const s = doc.data();
+                  html += `
+                    <div class="col-md-4">
+                      <div class="card story-card">
+                        <h5>${s.title}</h5>
+                        <p>${s.blurb}</p>
+                        <a href="story.html?storyId=${s.id}" class="btn btn-sm btn-primary animated-button">Read</a>
+                      </div>
+                    </div>`;
+                });
+                if (snap.empty) {
+                  html += `<div class="col-12 text-center"><p>No stories yet.</p></div>`;
+                }
+                html += "</div>";
+                content.innerHTML = html;
+              });
+          }
+        });
+      }
+      document.addEventListener("DOMContentLoaded", loadFeatured);
+      document.getElementById("featuredLink").addEventListener("click", e => { e.preventDefault(); loadFeatured(); });
+      document.getElementById("yourLink").addEventListener("click", e => { e.preventDefault(); loadYour(); });
+
+    } else {
+      // Guest view
+      nav.innerHTML = `
+        <li class="nav-item"><a class="nav-link active" href="#">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="stories.html">Stories</a></li>
+        <li class="nav-item"><a class="nav-link" href="become-author.html">Sign Up as Author</a></li>
+        <li class="nav-item"><a class="nav-link" href="login.html">Login / Signup</a></li>
+      `;
+      heroTitle.textContent = "Welcome to Inkwave";
+      heroText.style.display = "block";
+      mainCTA.textContent = "Explore Stories";
+      mainCTA.href = "stories.html";
+      content.innerHTML = "";
+    }
+
+    // Feedback form handler (simple stub: just clear & close)
+    document.getElementById("feedbackForm").addEventListener("submit", e => {
+      e.preventDefault();
+      // TODO: send feedback data to your server or Firestore
+      alert("Thanks for your feedback!");
+      document.getElementById("feedbackInput").value = "";
+      const modal = bootstrap.Modal.getInstance(document.getElementById("feedbackModal"));
+      modal.hide();
+    });
+  </script>
 </body>
 </html>
-
-
