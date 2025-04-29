@@ -221,165 +221,173 @@
   </style>
 </head>
 <body>
+  <!-- ensure index.html knows you’re a reader -->
+  <script>
+    sessionStorage.setItem('userRole','reader');
+  </script>
 
-<div class="sidebar">
-  <a href="index.html" style="text-decoration: none; color: inherit;"><h2>Inkwave</h2></a>
-  <a href="favorites.html" class="nav-link">📚 Favorites</a>
-  <a href="comments.html" class="nav-link">💬 Comments</a>
-  <a href="following.html" class="nav-link">👤 Following</a>
-  <a href="explore.html" class="nav-link active">📰 Explore Stories</a>
-  <a href="settings.html" class="nav-link">⚙️ Settings</a>
-</div>
+  <div class="sidebar">
+    <a href="index.html"
+       onclick="sessionStorage.setItem('userRole','reader')"
+       style="text-decoration: none; color: inherit;">
+      <h2>Inkwave</h2>
+    </a>
+    <a href="favorites.html" class="nav-link">📚 Favorites</a>
+    <a href="comments.html" class="nav-link">💬 Comments</a>
+    <a href="following.html" class="nav-link">👤 Following</a>
+    <a href="explore.html" class="nav-link active">📰 Explore Stories</a>
+    <a href="settings.html" class="nav-link">⚙️ Settings</a>
+  </div>
 
-<div class="main">
-  <h1>📖 Explore Stories</h1>
-  <input type="text" class="search-bar" placeholder="Search stories..." id="storySearch" />
-  <div id="storyGrid" class="story-grid"><p>Loading stories...</p></div>
-</div>
+  <div class="main">
+    <h1>📖 Explore Stories</h1>
+    <input type="text" class="search-bar" placeholder="Search stories..." id="storySearch" />
+    <div id="storyGrid" class="story-grid"><p>Loading stories...</p></div>
+  </div>
 
-<!-- Modal -->
-<div id="storyModal" class="modal">
-  <div class="modal-content">
-    <span class="close-button">&times;</span>
-    <div class="modal-header">
-      <h2 id="modalTitle">Story Title</h2>
-      <p id="modalAuthor">by Author Name</p>
-    </div>
-    <p id="modalBlurb">Full blurb goes here...</p>
-    <div id="modalMeta">
-      <span id="modalGenre" class="badge genre"></span>
-      <div id="modalTags" style="margin: 0.5rem 0;"></div>
-    </div>
-    <h4 style="margin-top: 1.5rem;">Sections</h4>
-    <ul id="modalSections" class="section-list"></ul>
-    <div style="margin-top: 2rem; text-align: right;">
-      <button id="startReading">📖 Start Reading</button>
+  <!-- Modal -->
+  <div id="storyModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <div class="modal-header">
+        <h2 id="modalTitle">Story Title</h2>
+        <p id="modalAuthor">by Author Name</p>
+      </div>
+      <p id="modalBlurb">Full blurb goes here...</p>
+      <div id="modalMeta">
+        <span id="modalGenre" class="badge genre"></span>
+        <div id="modalTags" style="margin: 0.5rem 0;"></div>
+      </div>
+      <h4 style="margin-top: 1.5rem;">Sections</h4>
+      <ul id="modalSections" class="section-list"></ul>
+      <div style="margin-top: 2rem; text-align: right;">
+        <button id="startReading">📖 Start Reading</button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Firebase + Script -->
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
-    authDomain: "inkwave-549c0.firebaseapp.com",
-    projectId: "inkwave-549c0"
-  };
+  <!-- Firebase + Script -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0"
+    };
 
-  firebase.initializeApp(firebaseConfig);
-  const auth = firebase.auth();
-  const db = firebase.firestore();
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
 
-  const modal = document.getElementById("storyModal");
-  const modalTitle = document.getElementById("modalTitle");
-  const modalAuthor = document.getElementById("modalAuthor");
-  const modalBlurb = document.getElementById("modalBlurb");
-  const modalGenre = document.getElementById("modalGenre");
-  const modalTags = document.getElementById("modalTags");
-  const modalSections = document.getElementById("modalSections");
-  const startReading = document.getElementById("startReading");
+    const modal = document.getElementById("storyModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalAuthor = document.getElementById("modalAuthor");
+    const modalBlurb = document.getElementById("modalBlurb");
+    const modalGenre = document.getElementById("modalGenre");
+    const modalTags = document.getElementById("modalTags");
+    const modalSections = document.getElementById("modalSections");
+    const startReading = document.getElementById("startReading");
 
-  document.querySelector(".close-button").onclick = () => modal.style.display = "none";
-  window.onclick = e => { if (e.target === modal) modal.style.display = "none"; };
+    document.querySelector(".close-button").onclick = () => modal.style.display = "none";
+    window.onclick = e => { if (e.target === modal) modal.style.display = "none"; };
 
-  function openModal(storyId) {
-    db.collectionGroup("stories").where("id", "==", storyId).limit(1).get().then(async snap => {
-      if (snap.empty) return alert("Story not found.");
-      const doc = snap.docs[0];
-      const data = doc.data();
-      const authorId = doc.ref.parent.parent.id;
+    function openModal(storyId) {
+      db.collectionGroup("stories").where("id", "==", storyId).limit(1).get().then(async snap => {
+        if (snap.empty) return alert("Story not found.");
+        const doc = snap.docs[0];
+        const data = doc.data();
+        const authorId = doc.ref.parent.parent.id;
 
-      modalTitle.textContent = data.title || "Untitled";
-      modalBlurb.textContent = data.blurb || "No description available.";
-      modalGenre.textContent = data.genre || "";
-      modalGenre.style.display = data.genre ? "inline-block" : "none";
-      modalTags.innerHTML = (data.tags || []).map(t => `<span class="tag">${t}</span>`).join(" ");
+        modalTitle.textContent = data.title || "Untitled";
+        modalBlurb.textContent = data.blurb || "No description available.";
+        modalGenre.textContent = data.genre || "";
+        modalGenre.style.display = data.genre ? "inline-block" : "none";
+        modalTags.innerHTML = (data.tags || []).map(t => `<span class="tag">${t}</span>`).join(" ");
 
-      modalSections.innerHTML = "";
-      const sections = Object.keys(data.sections || {});
-      if (sections.length === 0) {
-        modalSections.innerHTML = "<li>No sections</li>";
-      } else {
-        sections.forEach(name => {
-          modalSections.innerHTML += `<li>${name}</li>`;
-        });
-      }
+        modalSections.innerHTML = "";
+        const sections = Object.keys(data.sections || {});
+        if (sections.length === 0) {
+          modalSections.innerHTML = "<li>No sections</li>";
+        } else {
+          sections.forEach(name => {
+            modalSections.innerHTML += `<li>${name}</li>`;
+          });
+        }
 
-      const authorSnap = await db.collection("authors").doc(authorId).get();
-      modalAuthor.textContent = authorSnap.exists
-        ? `by ${authorSnap.data().displayName || "Unknown Author"}`
-        : "by Unknown Author";
+        const authorSnap = await db.collection("authors").doc(authorId).get();
+        modalAuthor.textContent = authorSnap.exists
+          ? `by ${authorSnap.data().displayName || "Unknown Author"}`
+          : "by Unknown Author";
 
-      startReading.onclick = () => {
-        window.location.href = `story.html?storyId=${storyId}`;
-      };
+        startReading.onclick = () => {
+          window.location.href = `story.html?storyId=${storyId}`;
+        };
 
-      modal.style.display = "block";
-    });
-  }
-
-  auth.onAuthStateChanged(async user => {
-    if (!user) {
-      alert("Please log in first.");
-      window.location.href = "login.html";
-      return;
+        modal.style.display = "block";
+      });
     }
 
-    const uid = user.uid;
-    const favSnapshot = await db.collection("users").doc(uid).collection("favorites").get();
-    const favoriteIds = new Set();
-    favSnapshot.forEach(doc => favoriteIds.add(doc.data().id));
-    loadStories(favoriteIds);
-  });
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        alert("Please log in first.");
+        window.location.href = "login.html";
+        return;
+      }
 
-  async function loadStories(favoriteIds) {
-    const grid = document.getElementById("storyGrid");
-    const searchInput = document.getElementById("storySearch");
-    grid.innerHTML = "";
-
-    const snapshot = await db.collectionGroup("stories").where("status", "==", "published").get();
-
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      const div = document.createElement("div");
-      div.className = "story-card";
-      div.onclick = () => openModal(data.id);
-
-      const heart = favoriteIds.has(data.id) ? `<div class="heart-icon">❤️</div>` : "";
-      const typeBadge = data.type === "book"
-        ? `<span class="badge book">📘 Full Book</span>`
-        : `<span class="badge short">📖 Short Story</span>`;
-      const statusBadge = data.finished
-        ? `<span class="badge finished">✅ Finished</span>`
-        : `<span class="badge in-progress">🕓 In Progress</span>`;
-      const genreBadge = data.genre
-        ? `<span class="badge genre">${data.genre}</span>` : "";
-      const tagHTML = (Array.isArray(data.tags) ? data.tags : [])
-        .map(tag => `<span class="tag">${tag}</span>`).join(" ");
-
-      div.innerHTML = `
-        ${heart}
-        <div class="story-title">${data.title || "Untitled"}</div>
-        <div class="story-info">${typeBadge} ${statusBadge} ${genreBadge} ${tagHTML}</div>
-        <div class="story-blurb">${data.blurb || "No description available."}</div>
-      `;
-
-      grid.appendChild(div);
+      const uid = user.uid;
+      const favSnapshot = await db.collection("users").doc(uid).collection("favorites").get();
+      const favoriteIds = new Set();
+      favSnapshot.forEach(doc => favoriteIds.add(doc.data().id));
+      loadStories(favoriteIds);
     });
 
-    searchInput.oninput = () => {
-      const query = searchInput.value.toLowerCase();
-      const cards = grid.querySelectorAll(".story-card");
-      cards.forEach(card => {
-        const title = card.querySelector(".story-title").innerText.toLowerCase();
-        const blurb = card.querySelector(".story-blurb").innerText.toLowerCase();
-        card.style.display = (title.includes(query) || blurb.includes(query)) ? "block" : "none";
+    async function loadStories(favoriteIds) {
+      const grid = document.getElementById("storyGrid");
+      const searchInput = document.getElementById("storySearch");
+      grid.innerHTML = "";
+
+      const snapshot = await db.collectionGroup("stories").where("status", "==", "published").get();
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "story-card";
+        div.onclick = () => openModal(data.id);
+
+        const heart = favoriteIds.has(data.id) ? `<div class="heart-icon">❤️</div>` : "";
+        const typeBadge = data.type === "book"
+          ? `<span class="badge book">📘 Full Book</span>`
+          : `<span class="badge short">📖 Short Story</span>`;
+        const statusBadge = data.finished
+          ? `<span class="badge finished">✅ Finished</span>`
+          : `<span class="badge in-progress">🕓 In Progress</span>`;
+        const genreBadge = data.genre
+          ? `<span class="badge genre">${data.genre}</span>` : "";
+        const tagHTML = (Array.isArray(data.tags) ? data.tags : [])
+          .map(tag => `<span class="tag">${tag}</span>`).join(" ");
+
+        div.innerHTML = `
+          ${heart}
+          <div class="story-title">${data.title || "Untitled"}</div>
+          <div class="story-info">${typeBadge} ${statusBadge} ${genreBadge} ${tagHTML}</div>
+          <div class="story-blurb">${data.blurb || "No description available."}</div>
+        `;
+
+        grid.appendChild(div);
       });
-    };
-  }
-</script>
+
+      searchInput.oninput = () => {
+        const query = searchInput.value.toLowerCase();
+        const cards = grid.querySelectorAll(".story-card");
+        cards.forEach(card => {
+          const title = card.querySelector(".story-title").innerText.toLowerCase();
+          const blurb = card.querySelector(".story-blurb").innerText.toLowerCase();
+          card.style.display = (title.includes(query) || blurb.includes(query)) ? "block" : "none";
+        });
+      };
+    }
+  </script>
 </body>
 </html>
