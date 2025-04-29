@@ -115,11 +115,17 @@
   </style>
 </head>
 <body>
+  <!-- ensure index.html knows you’re a reader -->
+  <script>
+    sessionStorage.setItem('userRole','reader');
+  </script>
 
   <div class="sidebar">
-    <a href="index.html" style="text-decoration: none; color: inherit;">
+    <a href="index.html"
+       onclick="sessionStorage.setItem('userRole','reader')"
+       style="text-decoration: none; color: inherit;">
       <h2>Inkwave</h2>
-  </a>
+    </a>
     <a href="favorites.html" class="nav-link">📚 Favorites</a>
     <a href="comments.html" class="nav-link active">💬 Comments</a>
     <a href="following.html" class="nav-link">👤 Following</a>
@@ -179,7 +185,7 @@
             <div class="comment-meta">${new Date(c.timestamp?.toDate()).toLocaleString()}</div>
             <strong>${c.storyTitle || "Unknown Story"}</strong>
             <p>${c.text}</p>
-            <button class="delete-btn" onclick="deleteComment('${doc.id}')">🗑️ Delete</button> <!-- 🔥 -->
+            <button class="delete-btn" onclick="deleteComment('${doc.id}')">🗑️ Delete</button>
           `;
           commentList.appendChild(div);
         });
