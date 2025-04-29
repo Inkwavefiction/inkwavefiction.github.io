@@ -133,11 +133,17 @@
   </style>
 </head>
 <body>
+  <!-- ensure index.html knows you’re a reader -->
+  <script>
+    sessionStorage.setItem('userRole','reader');
+  </script>
 
   <div class="sidebar">
-    <a href="index.html" style="text-decoration: none; color: inherit;">
+    <a href="index.html"
+       onclick="sessionStorage.setItem('userRole','reader')"
+       style="text-decoration: none; color: inherit;">
       <h2>Inkwave</h2>
-  </a>
+    </a>
     <a href="favorites.html" class="nav-link active">📚 Favorites</a>
     <a href="comments.html" class="nav-link">💬 Comments</a>
     <a href="following.html" class="nav-link">👤 Following</a>
@@ -179,24 +185,29 @@
       const list = document.getElementById("favorites-list");
       list.innerHTML = "";
 
-      const favRef = await db.collection("users").doc(uid).collection("favorites").orderBy("timestamp", "desc").get();
+      const favRef = await db
+        .collection("users")
+        .doc(uid)
+        .collection("favorites")
+        .orderBy("timestamp", "desc")
+        .get();
 
       if (favRef.empty) {
-        list.innerHTML = <div class="card">You haven’t favorited any stories yet.</div>;
+        list.innerHTML = '<div class="card">You haven’t favorited any stories yet.</div>';
         return;
       }
 
       favRef.forEach(doc => {
         const s = doc.data();
         const card = document.createElement("a");
-        card.href = story.html?storyId=${s.id};
+        card.href = `story.html?storyId=${s.id}`;
         card.className = "card";
-        card.innerHTML = 
+        card.innerHTML = `
           <div class="heart-icon">♥️</div>
-          ${s.cover ? <img src="${s.cover}" alt="Cover Image"> : ""}
+          ${s.cover ? `<img src="${s.cover}" alt="Cover Image">` : ""}
           <div class="story-title">${s.title}</div>
           <div class="blurb">${s.blurb || "No description available."}</div>
-        ;
+        `;
         list.appendChild(card);
       });
     });
