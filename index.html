@@ -10,29 +10,58 @@
     .navbar { background: #2c3e50; }
     .navbar-brand, .nav-link { color: white !important; }
     .hero {
-      background: url('https://source.unsplash.com/1600x900/?writing,notebook') no-repeat center/center/cover;
+      background: url('https://source.unsplash.com/1600x900/?writing,notebook') no-repeat center center/cover;
       padding: 100px 20px;
       text-align: center;
       color: black;
     }
-    .hero h1 { font-size: 3rem; font-weight: bold; margin-bottom: 1rem; }
-    .hero p { font-size: 1.3rem; color: #333; margin-bottom: 1.5rem; }
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: bold;
+      color: black;
+      margin-bottom: 1rem;
+    }
+    .hero p {
+      font-size: 1.3rem;
+      color: #333;
+      margin-bottom: 1.5rem;
+    }
     .story-card {
       margin-bottom: 20px;
       background: white;
       padding: 20px;
       border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
-    .theme-toggle { cursor: pointer; font-size: 18px; padding: 10px; position: absolute; top: 10px; right: 20px; }
+    .theme-toggle {
+      cursor: pointer;
+      font-size: 18px;
+      padding: 10px;
+      position: absolute;
+      top: 10px;
+      right: 20px;
+    }
     .dark-mode { background-color: #1e1e1e; color: white; }
     .dark-mode .card { background-color: #2a2a2a; color: white; }
     .dark-mode .navbar { background: #1a252f; }
-    .animated-button { transition: all 0.3s ease-in-out; }
-    .animated-button:hover { transform: scale(1.1); }
-    .btn-primary { background-color: #0056b3; color: white; }
-    .btn-outline-light { background-color: #444; color: white; border-color: #222; }
-    .btn-outline-light:hover { background-color: #666; }
+    .animated-button {
+      transition: all 0.3s ease-in-out;
+    }
+    .animated-button:hover {
+      transform: scale(1.1);
+    }
+    .btn-primary {
+      background-color: #0056b3;
+      color: white;
+    }
+    .btn-outline-light {
+      background-color: #444;
+      color: white;
+      border-color: #222;
+    }
+    .btn-outline-light:hover {
+      background-color: #666;
+    }
   </style>
 </head>
 <body>
@@ -51,7 +80,7 @@
     </div>
   </nav>
 
-  <!-- Feedback Modal -->
+  <!-- Feedback Modal (unchanged) -->
   <div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel">
     <div class="modal-dialog">
       <div class="modal-content">
@@ -76,6 +105,11 @@
     <h1 id="hero-title">Welcome to Inkwave</h1>
     <p id="hero-text">Discover, read, and share amazing fiction.</p>
     <a href="stories.html" class="btn btn-primary btn-lg animated-button" id="mainCTA">Explore Stories</a>
+    <!-- toggle for BOTH view -->
+    <div id="toggleButtons" class="mt-3" style="display:none;">
+      <button id="btnFeatured" class="btn btn-outline-light me-2">Featured Stories</button>
+      <button id="btnYour"     class="btn btn-outline-light">Your Stories</button>
+    </div>
   </div>
 
   <div class="container mt-5" id="contentSection"></div>
@@ -104,8 +138,20 @@
     const db = firebase.firestore();
     const auth = firebase.auth();
 
-    // Utility: load top 3 featured stories
-    function loadFeaturedSection() {
+    // Elements
+    const role        = sessionStorage.getItem("userRole") || localStorage.getItem("userRole");
+    const nav         = document.getElementById("nav-links");
+    const heroTitle   = document.getElementById("hero-title");
+    const heroText    = document.getElementById("hero-text");
+    const mainCTA     = document.getElementById("mainCTA");
+    const toggleGroup = document.getElementById("toggleButtons");
+    const btnFeatured = document.getElementById("btnFeatured");
+    const btnYour     = document.getElementById("btnYour");
+    const content     = document.getElementById("contentSection");
+
+    // Load Featured (for both/reader/guest)
+    function loadFeatured() {
+      content.innerHTML = "<h2 class='text-center'>Featured Stories</h2><p class='text-center'>Loading…</p>";
       db.collectionGroup("stories")
         .where("status","==","published")
         .orderBy("likes","desc")
@@ -114,7 +160,7 @@
         .then(snap => {
           let html = "<h2 class='text-center'>Featured Stories</h2><div class='row'>";
           if (snap.empty) {
-            html += "<p class='text-center'>No featured stories yet.</p>";
+            html += "<p class='text-center'>No featured stories available.</p>";
           } else {
             snap.forEach(doc => {
               const s = doc.data();
@@ -122,8 +168,8 @@
                 <div class="col-md-4">
                   <div class="card story-card">
                     <div class="card-body">
-                      <h5>${s.title || "Untitled"}</h5>
-                      <p>${s.blurb || "No description."}</p>
+                      <h5>${s.title||"Untitled"}</h5>
+                      <p>${s.blurb||"No description."}</p>
                       <a href="story.html?storyId=${s.id}" class="btn btn-sm btn-primary animated-button">Read More</a>
                     </div>
                   </div>
@@ -135,145 +181,97 @@
         });
     }
 
-    // Role detection
-    const role = sessionStorage.getItem("userRole") || localStorage.getItem("userRole");
-    const nav       = document.getElementById("nav-links");
-    const heroTitle = document.getElementById("hero-title");
-    const heroText  = document.getElementById("hero-text");
-    const mainCTA   = document.getElementById("mainCTA");
-    const content   = document.getElementById("contentSection");
+    // Load Your Stories (for author/both)
+    function loadYour() {
+      content.innerHTML = "<h2 class='text-center'>Your Stories</h2><p class='text-center'>Loading…</p>";
+      auth.onAuthStateChanged(user => {
+        if (!user) {
+          content.innerHTML = "<p class='text-center'>Please log in to view your stories.</p>";
+          return;
+        }
+        db.collection("users").doc(user.uid).collection("stories")
+          .where("status","==","published")
+          .get()
+          .then(snap => {
+            let html = "<h2 class='text-center'>Your Stories</h2><div class='row'>";
+            if (snap.empty) {
+              html += "<p class='text-center'>You haven't added any stories yet.</p>";
+            } else {
+              snap.forEach(doc => {
+                const s = doc.data();
+                html += `
+                  <div class="col-md-4">
+                    <div class="card story-card">
+                      <div class="card-body">
+                        <h5>${s.title||"Untitled"}</h5>
+                        <p>${s.blurb||"No description."}</p>
+                        <a href="story.html?storyId=${doc.id}" class="btn btn-sm btn-primary animated-button">Read More</a>
+                      </div>
+                    </div>
+                  </div>`;
+              });
+            }
+            html += "</div>";
+            content.innerHTML = html;
+          });
+      });
+    }
 
+    // Branch by role
     if (role === "reader") {
-      // Reader view
       nav.innerHTML = `
-        <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="reader-dashboard.html">Dashboard</a></li>
         <li class="nav-item"><a class="nav-link" href="stories.html">Stories</a></li>
-        <li class="nav-item"><a class="nav-link" href="become-author.html">Sign Up as Author</a></li>
         <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#feedbackModal" href="#">Feedback</a></li>
       `;
       heroTitle.textContent = "Welcome Back!";
       heroText.style.display = "none";
-      mainCTA.textContent = "Go to Stories";
+      mainCTA.textContent = "Browse Stories";
       mainCTA.href = "stories.html";
-      loadFeaturedSection();
+      toggleGroup.style.display = "none";
+      loadFeatured();
 
     } else if (role === "author") {
-      // Author view
       nav.innerHTML = `
-        <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="author-dashboard.html">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="stories.html">Stories</a></li>
         <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
-        <li class="nav-item"><a class="nav-link" href="become-reader.html">Sign Up as Reader</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#feedbackModal" href="#">Feedback</a></li>
       `;
       heroTitle.textContent = "Welcome Back!";
       heroText.style.display = "none";
       mainCTA.textContent = "Create New Story";
       mainCTA.href = "author-dashboard.html";
-
-      // Load “Your Stories”
-      auth.onAuthStateChanged(user => {
-        let html = "<h2 class='text-center'>Your Stories</h2><div class='row'>";
-        if (!user) {
-          html += `<div class="col-12 text-center"><p>Please log in to view.</p></div>`;
-          html += "</div>";
-          content.innerHTML = html;
-        } else {
-          db.collection("users").doc(user.uid).collection("stories")
-            .where("status","==","published")
-            .get().then(snap => {
-              if (snap.empty) {
-                html += `<div class="col-12 text-center"><p>No stories yet.</p></div>`;
-              } else {
-                snap.forEach(doc => {
-                  const s = doc.data();
-                  html += `
-                    <div class="col-md-4">
-                      <div class="card story-card">
-                        <div class="card-body">
-                          <h5>${s.title || "Untitled"}</h5>
-                          <p>${s.blurb || "No description."}</p>
-                          <a href="story.html?storyId=${s.id}" class="btn btn-sm btn-primary animated-button">Read</a>
-                        </div>
-                      </div>
-                    </div>`;
-                });
-              }
-              html += "</div>";
-              content.innerHTML = html;
-            });
-        }
-      });
+      toggleGroup.style.display = "none";
+      // loadYour() happens in author branch if you want your stories here instead
 
     } else if (role === "both") {
-      // Both view
+      // *** Updated Both View ***
       nav.innerHTML = `
-        <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="dashDropdown" role="button" data-bs-toggle="dropdown">Dashboard</a>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="reader-dashboard.html">Reader Dashboard</a></li>
-            <li><a class="dropdown-item" href="author-dashboard.html">Author Dashboard</a></li>
-          </ul>
-        </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="storiesDropdown" role="button" data-bs-toggle="dropdown">Stories</a>
-          <ul class="dropdown-menu dropdown-menu-end">
-            <li><a class="dropdown-item" href="#" id="featuredLink">Featured</a></li>
-            <li><a class="dropdown-item" href="#" id="yourLink">Your Stories</a></li>
-          </ul>
-        </li>
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="reader-dashboard.html">Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" href="stories.html">Stories</a></li>
         <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#feedbackModal" href="#">Feedback</a></li>
       `;
+      heroTitle.textContent = "WELCOME BACK TO INKWAVE!";
       heroText.style.display = "none";
-      mainCTA.style.display = "none";
-
-      // Featured vs. Your toggle
-      document.addEventListener("DOMContentLoaded", loadFeaturedSection);
-      document.getElementById("featuredLink").addEventListener("click", e => {
-        e.preventDefault(); loadFeaturedSection();
-      });
-      document.getElementById("yourLink").addEventListener("click", e => {
-        e.preventDefault();
-        let html = "<h2 class='text-center'>Your Stories</h2><div class='row'>";
-        auth.onAuthStateChanged(user => {
-          if (!user) {
-            html += `<div class="col-12 text-center"><p>Please log in.</p></div>`;
-            html += "</div>";
-            content.innerHTML = html;
-          } else {
-            db.collection("users").doc(user.uid).collection("stories")
-              .where("status","==","published")
-              .get().then(snap => {
-                if (snap.empty) {
-                  html += `<div class="col-12 text-center"><p>No stories yet.</p></div>`;
-                } else {
-                  snap.forEach(doc => {
-                    const s = doc.data();
-                    html += `
-                      <div class="col-md-4">
-                        <div class="card story-card">
-                          <h5>${s.title}</h5>
-                          <p>${s.blurb}</p>
-                          <a href="story.html?storyId=${s.id}" class="btn btn-sm btn-primary animated-button">Read</a>
-                        </div>
-                      </div>`;
-                  });
-                }
-                html += "</div>";
-                content.innerHTML = html;
-              });
-          }
-        });
-      });
+      mainCTA.textContent = "Stories";
+      mainCTA.href = "stories.html";
+      // show toggle
+      toggleGroup.style.display = "block";
+      btnFeatured.addEventListener("click", loadFeatured);
+      btnYour.    addEventListener("click", loadYour);
+      // default
+      loadFeatured();
 
     } else {
-      // Guest view (non-signed-up)
+      // Guest view
       nav.innerHTML = `
-        <li class="nav-item"><a class="nav-link active" href="index.html">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="stories.html">Stories</a></li>
         <li class="nav-item"><a class="nav-link" href="become-author.html">Sign Up as Author</a></li>
         <li class="nav-item"><a class="nav-link" href="login.html">Login / Signup</a></li>
@@ -283,7 +281,8 @@
       heroText.style.display = "block";
       mainCTA.textContent = "Explore Stories";
       mainCTA.href = "stories.html";
-      loadFeaturedSection();
+      toggleGroup.style.display = "none";
+      loadFeatured();
     }
 
     // Feedback form stub
