@@ -174,7 +174,7 @@
     }
 
     if (role === "reader") {
-      // reader-only tweaks
+      /* reader-only nav */
       document.querySelector(".navbar-brand").classList.add("ms-auto");
       nav.classList.remove("ms-auto");
       nav.classList.add("me-auto");
@@ -195,14 +195,14 @@
       loadFeatured();
 
     } else if (role === "author") {
-      // author-only tweaks
+      /* author-only nav */
       document.querySelector(".navbar-brand").classList.add("ms-auto");
       nav.classList.remove("ms-auto");
       nav.classList.add("me-auto");
 
       nav.innerHTML = `
         <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
-        <li class="nav-item"><a class="nav-link" href="login.html">Reader Sign up</a></li>
+        <li class="nav-item"><a class="nav-link" href="reader-signup.html">Reader Sign Up</a></li>
         <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#feedbackModal" href="#">Feedback</a></li>
       `;
@@ -213,7 +213,7 @@
       mainCTA.href              = "author-dashboard.html";
       toggleGroup.style.display = "none";
 
-      // load author stories below CTA
+      /* load author stories */
       content.innerHTML = `
         <h2 class="text-center">Your Stories</h2>
         <div class="row">
@@ -256,7 +256,11 @@
       });
 
     } else if (role === "both") {
-      // leave the "both" variation exactly as-is
+      /* --- FIXED “both” NAV: links on left, brand on right --- */
+      document.querySelector(".navbar-brand").classList.add("ms-auto");
+      nav.classList.remove("ms-auto");
+      nav.classList.add("me-auto");
+
       nav.innerHTML = `
         <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="#">Dashboard</a></li>
@@ -273,7 +277,7 @@
       loadFeatured();
 
     } else {
-      // guest tweaks
+      /* guest nav */
       document.querySelector(".navbar-brand").classList.add("ms-auto");
       nav.classList.remove("ms-auto");
       nav.classList.add("me-auto");
