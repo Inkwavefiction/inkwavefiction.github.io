@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">    
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -73,7 +73,10 @@
     <h1 id="hero-title">Welcome to Inkwave</h1>
     <p id="hero-text">Discover, read, and share amazing fiction.</p>
     <a id="mainCTA" class="btn btn-primary btn-lg animated-button" href="stories.html">Explore Stories</a>
-    <div id="toggleButtons" class="mt-3" style="display:none;"></div>
+    <div id="toggleButtons" class="mt-3" style="display:none;">
+      <button id="btnFeatured" class="btn btn-outline-light me-2">Featured Stories</button>
+      <button id="btnYour"     class="btn btn-outline-light">Your Stories</button>
+    </div>
   </div>
 
   <div class="container mt-5" id="contentSection"></div>
@@ -107,6 +110,8 @@
     const heroText    = document.getElementById("hero-text");
     const mainCTA     = document.getElementById("mainCTA");
     const toggleGroup = document.getElementById("toggleButtons");
+    const btnFeatured = document.getElementById("btnFeatured");
+    const btnYour     = document.getElementById("btnYour");
     const content     = document.getElementById("contentSection");
 
     function loadFeatured() {
@@ -122,8 +127,8 @@
           } else {
             snap.forEach(doc => {
               const s = doc.data();
-              html += `
-                <div class="col-md-4">
+              html += 
+                `<div class="col-md-4">
                   <div class="card story-card">
                     <div class="card-body">
                       <h5>${s.title||"Untitled"}</h5>
@@ -155,8 +160,8 @@
             } else {
               snap.forEach(doc => {
                 const s = doc.data();
-                html += `
-                  <div class="col-md-4">
+                html += 
+                  `<div class="col-md-4">
                     <div class="card story-card">
                       <div class="card-body">
                         <h5>${s.title||"Untitled"}</h5>
@@ -174,19 +179,15 @@
     }
 
     if (role === "reader") {
-      /* reader-only nav */
-      document.querySelector(".navbar-brand").classList.add("ms-auto");
-      nav.classList.remove("ms-auto");
-      nav.classList.add("me-auto");
-
+      // Readers only
       nav.innerHTML = `
         <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
-        <li class="nav-item"><a class="nav-link" href="become-author.html">Author Application</a></li>
+        <li class="nav-item"><a class="nav-link" href="author-application.html">Author Application</a></li>
         <li class="nav-item"><a class="nav-link" href="stories.html">Stories</a></li>
         <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#feedbackModal" href="#">Feedback</a></li>
       `;
-      heroTitle.textContent     = "Welcome Back! g";
+      heroTitle.textContent     = "Welcome Back!";
       heroText.style.display    = "none";
       mainCTA.style.display     = "inline-block";
       mainCTA.textContent       = "Dashboard";
@@ -195,14 +196,10 @@
       loadFeatured();
 
     } else if (role === "author") {
-      /* author-only nav */
-      document.querySelector(".navbar-brand").classList.add("ms-auto");
-      nav.classList.remove("ms-auto");
-      nav.classList.add("me-auto");
-
+      // Authors only
       nav.innerHTML = `
         <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
-        <li class="nav-item"><a class="nav-link" href="reader-signup.html">Reader Sign Up</a></li>
+        <li class="nav-item"><a class="nav-link" href="reader-signup.html">Reader Sign up</a></li>
         <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#feedbackModal" href="#">Feedback</a></li>
       `;
@@ -212,8 +209,7 @@
       mainCTA.textContent       = "Dashboard";
       mainCTA.href              = "author-dashboard.html";
       toggleGroup.style.display = "none";
-
-      /* load author stories */
+      // load author stories
       content.innerHTML = `
         <h2 class="text-center">Your Stories</h2>
         <div class="row">
@@ -221,7 +217,7 @@
         </div>`;
       auth.onAuthStateChanged(user => {
         if (!user) {
-          content.innerHTML = `<p class="text-center">Please log in to view your stories.</p>`;
+          content.innerHTML = "<p class='text-center'>Please log in to view your stories.</p>";
           return;
         }
         db.collection("users").doc(user.uid).collection("stories")
@@ -232,11 +228,11 @@
                 <h2 class="text-center">Your Stories</h2>
                 <p class="text-center">You haven't added any stories yet.</p>`;
             } else {
-              let html = `<h2 class="text-center">Your Stories</h2><div class="row">`;
+              let html = "<h2 class='text-center'>Your Stories</h2><div class='row'>";
               snapshot.forEach(doc => {
                 const s = doc.data();
-                html += `
-                  <div class="col-md-4">
+                html += 
+                  `<div class="col-md-4">
                     <div class="card story-card">
                       <div class="card-body">
                         <h5>${s.title||"Untitled"}</h5>
@@ -246,21 +242,17 @@
                     </div>
                   </div>`;
               });
-              html += `</div>`;
+              html += "</div>";
               content.innerHTML = html;
             }
           })
           .catch(() => {
-            content.innerHTML = `<p class="text-center">Error loading your stories.</p>`;
+            content.innerHTML = "<p class='text-center'>Error loading your stories.</p>";
           });
       });
 
     } else if (role === "both") {
-      /* --- FIXED “both” NAV: links on left, brand on right --- */
-      document.querySelector(".navbar-brand").classList.add("ms-auto");
-      nav.classList.remove("ms-auto");
-      nav.classList.add("me-auto");
-
+      // BOTH version (unchanged)
       nav.innerHTML = `
         <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="#">Dashboard</a></li>
@@ -272,32 +264,29 @@
       heroText.style.display      = "none";
       mainCTA.style.display       = "none";
       toggleGroup.style.display   = "block";
-      document.getElementById("btnFeatured").addEventListener("click", loadFeatured);
-      document.getElementById("btnYour").addEventListener("click", loadYour);
+      btnFeatured.addEventListener("click", loadFeatured);
+      btnYour.addEventListener("click", loadYour);
       loadFeatured();
 
     } else {
-      /* guest nav */
-      document.querySelector(".navbar-brand").classList.add("ms-auto");
-      nav.classList.remove("ms-auto");
-      nav.classList.add("me-auto");
-
+      // Guests
       nav.innerHTML = `
         <li class="nav-item"><a class="nav-link" href="index.html">Home</a></li>
         <li class="nav-item"><a class="nav-link" href="about.html">About</a></li>
         <li class="nav-item"><a class="nav-link" href="stories.html">Stories</a></li>
         <li class="nav-item"><a class="nav-link" href="login.html">Sign Up/Login</a></li>
-        <li class="nav-item"><a class="nav-link" href="become-author.html">Author Application</a></li>
+        <li class="nav-item"><a class="nav-link" href="author-application.html">Author Application</a></li>
         <li class="nav-item"><a class="nav-link" data-bs-toggle="modal" data-bs-target="#feedbackModal" href="#">Feedback</a></li>
       `;
       heroTitle.textContent     = "Welcome to Inkwave!";
       heroText.style.display    = "none";
       mainCTA.style.display     = "none";
-      toggleGroup.innerHTML     = `
-        <a href="become-author.html" class="btn btn-outline-light me-2">Apply For Author</a>
-        <a href="stories.html" class="btn btn-outline-light">Stories</a>
-      `;
+      // two buttons for guests
       toggleGroup.style.display = "block";
+      toggleGroup.innerHTML = `
+        <a href="author-application.html" class="btn btn-primary btn-lg animated-button me-2">Apply For Author</a>
+        <a href="stories.html" class="btn btn-primary btn-lg animated-button">Stories</a>
+      `;
       loadFeatured();
     }
 
