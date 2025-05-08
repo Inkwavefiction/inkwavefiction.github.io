@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>window.allowedRoles = ["author","both"];</script>
+  <script src="role-guard.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inkwave - Financial Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --accent: #4f8dc0;
+      --white: #ffffff;
+      --border: #e0e0e0;
+      --sidebar-bg: #111;
+      --sidebar-width: 300px;
+      --container-bg: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      color: var(--white);
+      padding: 2rem 1.5rem;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      font-weight: 600;
+    }
+    .section { margin-bottom: 2rem; }
+    .section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #aaa;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+    }
+    .nav-link {
+      display: block;
+      margin: 0.5rem 0;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 1rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 500;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+    .nav-link:hover { background-color: #1e1e1e; }
+    .main {
+      margin-left: var(--sidebar-width);
+      padding: 2.5rem;
+      flex: 1;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background: var(--accent);
+      color: var(--white);
+      border-radius: 6px;
+      margin-bottom: 30px;
+    }
+    .header h1 { font-size: 2.5rem; margin: 0; }
+    .header p { font-size: 1rem; margin-top: 5px; }
+    .container {
+      background: var(--container-bg);
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    #overview p { font-size: 1rem; margin-bottom: 20px; line-height: 1.5; }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 15px; }
+    table, th, td { border: 1px solid var(--border); }
+    th, td { padding: 10px; text-align: left; }
+    th { background: var(--accent); color: var(--white); }
+    section { margin-bottom: 2rem; }
+    section h2 {
+      font-family: 'Playfair Display', serif;
+      color: var(--accent);
+      margin-bottom: 1rem;
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 0.5rem;
+      font-size: 1.5rem;
+    }
+    .cash-out-btn {
+      display: inline-block;
+      background: var(--accent);
+      color: var(--white);
+      border: none;
+      padding: 10px 20px;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .cash-out-btn:hover { background: #3c7ba3; }
+    .beta-note { margin-top: 10px; font-size: 0.9rem; color: var(--muted); }
+    hr { border: 0; border-top: 1px solid var(--border); margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2><a href="index.html" style="text-decoration:none;color:inherit;">Inkwave</a></h2>
+    <div class="section">
+      <div class="section-title">Core</div>
+      <a class="nav-link" onclick="sessionStorage.setItem('userRole','author'); window.location.href='author-dashboard.html'">🏠 Dashboard</a>
+      <a class="nav-link" onclick="sessionStorage.setItem('userRole','author'); window.location.href='earnings.html'">💰 Financial Dashboard</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Writing Tools</div>
+      <a class="nav-link" onclick="window.location.href='blurb-generator.html'">🧠 Blurb Generator 🚧</a>
+      <a class="nav-link" onclick="window.location.href='grammar.html'">📝 Grammar Fixer 🚧</a>
+      <a class="nav-link" onclick="window.location.href='story-templates.html'">📄 Story Templates</a>
+      <a class="nav-link" onclick="window.location.href='formatting.tools.html'">📈 Graphing Plots 🚧</a>
+      <a class="nav-link" onclick="window.location.href='genre-tags.html'">🏷️ Genre & Tags</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Testing & Feedback</div>
+      <a class="nav-link" onclick="window.location.href='A-B.html'">🧪 A/B Testing 🚧</a>
+      <a class="nav-link" onclick="window.location.href='reader-heatmap.html'">🔥 Reader Heatmap 🚧</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Publishing</div>
+      <a class="nav-link" onclick="window.location.href='checklist.html'">✅ Checklist</a>
+      <a class="nav-link" onclick="window.location.href='cover-generator.html'">🖼️ Cover Generator 🚧</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Productivity</div>
+      <a class="nav-link" onclick="window.location.href='inkie-chat.html'">🤖 Inky Assistant 🚧</a>
+      <a class="nav-link" onclick="window.location.href='settings-author.html'">⚙️ Settings</a>
+    </div>
+    <div class="section">
+      <div class="section-title">Reader</div>
+      <a class="nav-link" onclick="sessionStorage.setItem('userRole','reader'); window.location.href='favorites.html'">📚 Favorites</a>
+      <a class="nav-link" onclick="sessionStorage.setItem('userRole','reader'); window.location.href='comments.html'">💬 Comments</a>
+      <a class="nav-link" onclick="sessionStorage.setItem('userRole','reader'); window.location.href='following.html'">👤 Following</a>
+      <a class="nav-link" onclick="sessionStorage.setItem('userRole','reader'); window.location.href='explore.html'">📰 Explore Stories</a>
+      <a class="nav-link" onclick="sessionStorage.setItem('userRole','reader'); window.location.href='settings.html'">⚙️ Reader Settings</a>
+    </div>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="main">
+    <div class="header">
+      <h1>Financial Dashboard</h1>
+      <p>Your Earnings and Payouts</p>
+    </div>
+    <div class="container">
+      <!-- Overview Paragraph -->
+      <section id="overview">
+        <p>We believe in rewarding storytellers fairly—and that means sharing a meaningful portion of our monthly revenue with the authors who power the platform. Each month, a dedicated payout pool is distributed to stories based on performance...</p>
+      </section>
+      <!-- Earnings Summary Section -->
+      <section id="earnings-summary">
+        <h2>Your Earnings</h2>
+        <table>...</table>
+      </section>
+      <!-- Cash Out Section -->
+      <section id="cash-out">
+        <h2>Cash Out</h2>
+        <button id="cashOutBtn" class="cash-out-btn">Cash Out</button>
+        <p class="beta-note">Note: Beta testing—no funds exchanged yet.</p>
+      </section>
+    </div>
+  </div>
+
+  <!-- Firebase, Auth & Dashboard Script -->
+  <script type="module">/* unchanged script */</script>
+</body>
+</html>
