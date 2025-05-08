@@ -107,8 +107,7 @@
     .badge.book { background-color: #5a4e8f; }
     .badge.short { background-color: #b6648d; }
     .badge.finished { background-color: #1F77DE; }
-    .badge.in-progress { background-color: #64B676; }
-    .badge.genre { background-color: #FFA500; }
+    .badge.in-progress { background-color: #64B676; }\n    .badge.genre { background-color: #FFA500; }
     .tag { background-color: #e0e0e0; color: #333; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.75rem; }
     .story-blurb { font-size: 0.9rem; color: var(--muted); }
     .heart-icon { position: absolute; top: 10px; right: 10px; font-size: 1.2rem; color: #e25555; }
@@ -128,38 +127,38 @@
     <div class="section">
       <div class="section-title">Core</div>
       <div id="nav-dashboard" class="nav-link active" onclick="showAuthor()">🏠 Dashboard</div>
-      <div class="nav-link" onclick="showEarnings()">💰 Earnings 🚧</div>
+      <div class="nav-link" onclick="sessionStorage.setItem('userRole','author'); window.location.href='earnings.html'">💰 Earnings 🚧</div>
     </div>
     <div class="section">
       <div class="section-title">Writing Tools</div>
-      <div class="nav-link">🧠 Blurb Generator 🚧</div>
-      <div class="nav-link">📝 Grammar Fixer 🚧</div>
-      <div class="nav-link">📄 Story Templates</div>
-      <div class="nav-link">📈 Graphing Plots 🚧</div>
-      <div class="nav-link">🏷️ Genre & Tags</div>
+      <div class="nav-link" onclick="window.location.href='blurb-generator.html'">🧠 Blurb Generator 🚧</div>
+      <div class="nav-link" onclick="window.location.href='grammar.html'">📝 Grammar Fixer 🚧</div>
+      <div class="nav-link" onclick="window.location.href='story-templates.html'">📄 Story Templates</div>
+      <div class="nav-link" onclick="window.location.href='formatting.tools.html'">📈 Graphing Plots 🚧</div>
+      <div class="nav-link" onclick="window.location.href='genre-tags.html'">🏷️ Genre & Tags</div>
     </div>
     <div class="section">
       <div class="section-title">Testing & Feedback</div>
-      <div class="nav-link">🧪 A/B Testing 🚧</div>
-      <div class="nav-link">🔥 Reader Heatmap 🚧</div>
+      <div class="nav-link" onclick="window.location.href='A-B.html'">🧪 A/B Testing 🚧</div>
+      <div class="nav-link" onclick="window.location.href='reader-heatmap.html'">🔥 Reader Heatmap 🚧</div>
     </div>
     <div class="section">
       <div class="section-title">Publishing</div>
-      <div class="nav-link">✅ Checklist</div>
-      <div class="nav-link">🖼️ Cover Generator 🚧</div>
+      <div class="nav-link" onclick="window.location.href='checklist.html'">✅ Checklist</div>
+      <div class="nav-link" onclick="window.location.href='cover-generator.html'">🖼️ Cover Generator 🚧</div>
     </div>
     <div class="section">
-      <div class="section-title">Productivity</div>
-      <div class="nav-link">🤖 Inky Assistant 🚧</div>
-      <div class="nav-link">⚙️ Settings</div>
+      <div class="section-title">Productivity</n></div>
+      <div class="nav-link" onclick="window.location.href='inkie-chat.html'">🤖 Inky Assistant 🚧</div>
+      <div class="nav-link" onclick="window.location.href='settings-author.html'">⚙️ Settings</div>
     </div>
     <div class="section">
       <div class="section-title">Reader</div>
       <div id="nav-favorites" class="nav-link" onclick="showReader('favorites')">📚 Favorites</div>
-      <div class="nav-link" onclick="showReader('comments')">💬 Comments</div>
-      <div class="nav-link" onclick="showReader('following')">👤 Following</div>
+      <div id="nav-comments" class="nav-link" onclick="showReader('comments')">💬 Comments</div>
+      <div id="nav-following" class="nav-link" onclick="showReader('following')">👤 Following</div>
       <div id="nav-explore" class="nav-link" onclick="showReader('explore')">📰 Explore Stories</div>
-      <div class="nav-link" onclick="showReader('settings')">⚙️ Reader Settings</div>
+      <div id="nav-reader-settings" class="nav-link" onclick="showReader('settings')">⚙️ Reader Settings</div>
     </div>
   </div>
 
@@ -171,7 +170,7 @@
         <p style="color: var(--muted);">Welcome back, Author!</p>
       </div>
       <div style="display: flex; gap: 10px;">
-        <button class="btn" onclick="showHome()">🔙 Back to Inkwave Main</button>
+        <button class="btn" onclick="window.location.href='index.html'">🔙 Back to Inkwave Main</button>
         <button class="btn" onclick="createNewStory()">+ New Story</button>
       </div>
     </div>
@@ -188,8 +187,8 @@
 
   <!-- Reader Main -->
   <div id="readerMain" class="main" style="display:none;">
-    <h1>📖 Explore Stories</h1>
-    <input type="text" class="search-bar" placeholder="Search stories..." id="storySearch" />
+    <h1 id="readerTitle">📖 Explore Stories</h1>
+    <input type="text" class="search-bar" placeholder="Search stories..." id="storySearch" style="display:block;margin-bottom:1.5rem;" />
     <div id="storyGrid" class="story-grid"><p>Loading stories...</p></div>
 
     <!-- Modal -->
@@ -220,10 +219,9 @@
     const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // Navigation
+    // Navigation helpers
     function clearActive() {
-      document.querySelectorAll('.nav-link').forEach(n=>n.classList.remove('active'));
-    }
+      document.querySelectorAll('.nav-link').forEach(n=>n.classList.remove('active')); }
     function showAuthor() {
       clearActive(); document.getElementById('nav-dashboard').classList.add('active');
       document.getElementById('readerMain').style.display='none';
@@ -232,28 +230,35 @@
     }
     function showReader(section) {
       clearActive();
-      const idMap = { favorites:'nav-favorites', explore:'nav-explore' };
+      const idMap = {
+        favorites:'nav-favorites', comments:'nav-comments', following:'nav-following', explore:'nav-explore', settings:'nav-reader-settings'
+      };
       if(idMap[section]) document.getElementById(idMap[section]).classList.add('active');
-      document.getElementById('authorMain').style.display='none';
-      document.getElementById('readerMain').style.display='block';
-      if(section==='explore') loadReader();
-      // other sections can be implemented similarly
+      if(section==='explore') {
+        document.getElementById('readerTitle').textContent='📖 Explore Stories';
+        document.getElementById('storySearch').style.display='block';
+        document.getElementById('authorMain').style.display='none';
+        document.getElementById('readerMain').style.display='block';
+        loadReader();
+      } else {
+        sessionStorage.setItem('userRole','reader');
+        window.location.href = section + '.html';
+      }
     }
-    function showHome() { window.location.href='index.html'; }
 
-    // Author Data
+    // Author actions
     function createNewStory() { const newId='story-'+Date.now(); localStorage.setItem('currentStoryId',newId); window.location.href='new-story.html'; }
     function openStory(id){ localStorage.setItem('currentStoryId',id); window.location.href='new-story.html'; }
     function deleteStory(id,el){ if(!confirm('Delete this story?')) return; const user=auth.currentUser; db.collection('users').doc(user.uid).collection('stories').doc(id).delete().then(_=>el.closest('tr').remove()); }
-    function loadAuthorStories(){ const user=auth.currentUser; if(!user) return; db.collection('users').doc(user.uid).collection('stories').get().then(snap=>{ const table=document.getElementById('story-table'); table.innerHTML=''; if(snap.empty){table.innerHTML='<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>'; return;} let reads=0,likes=0,earnings=0; snap.forEach(doc=>{ const s=doc.data(); reads+=s.reads||0; likes+=s.likes||0; earnings+=s.revenue||0; const tr=document.createElement('tr'); tr.innerHTML=`<td><a href="#" class="story-link" onclick="openStory('${doc.id}')">${s.title||'(Untitled)'}</a></td><td>${s.reads||''}</td><td>${s.likes||''}</td><td>$${(s.revenue||0).toFixed(2)}</td><td><span class="badge ${s.status==='published'? 'published':'draft'}">${(s.status||'draft').charAt(0).toUpperCase()+ (s.status||'draft').slice(1)}</span><span style="margin-left:10px;cursor:pointer;color:crimson;" onclick="deleteStory('${doc.id}',this)">🗑</span></td>`; table.appendChild(tr);}); document.getElementById('total-reads').textContent=reads;document.getElementById('total-likes').textContent=likes;document.getElementById('total-earnings').textContent='$'+earnings.toFixed(2);}); }
+    function loadAuthorStories(){ const user=auth.currentUser; if(!user) return; db.collection('users').doc(user.uid).collection('stories').get().then(snap=>{ const table=document.getElementById('story-table'); table.innerHTML=''; if(snap.empty){ table.innerHTML='<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>'; return; } let reads=0,likes=0,earnings=0; snap.forEach(doc=>{ const s=doc.data(); reads+=s.reads||0; likes+=s.likes||0; earnings+=s.revenue||0; const tr=document.createElement('tr'); tr.innerHTML=`<td><a href="#" class="story-link" onclick="openStory('${doc.id}')">${s.title||'(Untitled)'}</a></td><td>${s.reads||''}</td><td>${s.likes||''}</td><td>$${(s.revenue||0).toFixed(2)}</td><td><span class="badge ${s.status==='published'? 'published':'draft'}">${(s.status||'draft').charAt(0).toUpperCase()+ (s.status||'draft').slice(1)}</span><span style="margin-left:10px;cursor:pointer;color:crimson;" onclick="deleteStory('${doc.id}',this)">🗑</span></td>`; table.appendChild(tr); }); document.getElementById('total-reads').textContent=reads; document.getElementById('total-likes').textContent=likes; document.getElementById('total-earnings').textContent='$'+earnings.toFixed(2); }); }
 
-    // Reader Data
-    const modal=document.getElementById('storyModal'); const modalTitle=document.getElementById('modalTitle'); const modalAuthor=document.getElementById('modalAuthor'); const modalBlurb=document.getElementById('modalBlurb'); const modalGenre=document.getElementById('modalGenre'); const modalTags=document.getElementById('modalTags'); const modalSections=document.getElementById('modalSections'); const startReading=document.getElementById('startReading'); document.querySelector('.close-button').onclick=_=>modal.style.display='none'; window.onclick=e=>{ if(e.target===modal) modal.style.display='none'; };
-    function openModal(id){ db.collectionGroup('stories').where('id','==',id).limit(1).get().then(async snap=>{ if(snap.empty) return alert('Story not found.'); const doc=snap.docs[0]; const d=doc.data(); modalTitle.textContent=d.title||'Untitled'; modalBlurb.textContent=d.blurb||'No description.'; modalGenre.textContent=d.genre||''; modalGenre.style.display=d.genre?'inline-block':'none'; modalTags.innerHTML=(d.tags||[]).map(t=>`<span class="tag">${t}</span>`).join(' '); const secs=Object.keys(d.sections||{}); modalSections.innerHTML=secs.length?secs.map(n=>`<li>${n}</li>`).join(''): '<li>No sections</li>'; const authSnap=await db.collection('authors').doc(doc.ref.parent.parent.id).get(); modalAuthor.textContent=authSnap.exists?`by ${authSnap.data().displayName}`:'by Unknown'; startReading.onclick=_=>window.location.href=`story.html?storyId=${id}`; modal.style.display='block'; }); }
-    function loadReader(){ const grid=document.getElementById('storyGrid'); const search=document.getElementById('storySearch'); auth.onAuthStateChanged(async user=>{ if(!user) return; const favs=await db.collection('users').doc(user.uid).collection('favorites').get(); const favSet=new Set(favs.docs.map(d=>d.data().id)); const snap=await db.collectionGroup('stories').where('status','==','published').get(); grid.innerHTML=''; snap.forEach(doc=>{ const d=doc.data(); const div=document.createElement('div'); div.className='story-card'; div.onclick=_=>openModal(d.id); const heart=favSet.has(d.id)?'<div class="heart-icon">❤️</div>':''; const typeBadge=d.type==='book'?'<span class="badge book">📘 Full Book</span>':'<span class="badge short">📖 Short Story</span>'; const statBadge=d.finished?'<span class="badge finished">✅ Finished</span>':'<span class="badge in-progress">🕓 In Progress</span>'; const genreBadge=d.genre?`<span class="badge genre">${d.genre}</span>`:''; const tags=(d.tags||[]).map(t=>`<span class="tag">${t}</span>`).join(' '); div.innerHTML=`${heart}<div class="story-title">${d.title||'Untitled'}</div><div class="story-info">${typeBadge} ${statBadge} ${genreBadge} ${tags}</div><div class="story-blurb">${d.blurb||'No description'}</div>`; grid.appendChild(div); }); search.oninput=_=>{ const q=search.value.toLowerCase(); grid.querySelectorAll('.story-card').forEach(c=>{ const title=c.querySelector('.story-title').innerText.toLowerCase(); const blurb=c.querySelector('.story-blurb').innerText.toLowerCase(); c.style.display=(title.includes(q)||blurb.includes(q))?'block':'none'; }); }; }); }
+    // Reader actions
+    const modal=document.getElementById('storyModal'); document.querySelector('.close-button').onclick=_=>modal.style.display='none'; window.onclick=e=>{ if(e.target===modal) modal.style.display='none'; };
+    function openModal(id){ db.collectionGroup('stories').where('id','==',id).limit(1).get().then(async snap=>{ if(snap.empty) return alert('Story not found.'); const doc=snap.docs[0], d=doc.data(); document.getElementById('modalTitle').textContent=d.title||'Untitled'; document.getElementById('modalBlurb').textContent=d.blurb||'No description'; const genreEl=document.getElementById('modalGenre'); genreEl.textContent=d.genre||''; genreEl.style.display=d.genre?'inline-block':'none'; document.getElementById('modalTags').innerHTML=(d.tags||[]).map(t=>`<span class="tag">${t}</span>`).join(''); const secs=Object.keys(d.sections||{}); document.getElementById('modalSections').innerHTML=secs.length?secs.map(n=>`<li>${n}</li>`).join(''):'<li>No sections</li>'; const aSnap=await db.collection('authors').doc(doc.ref.parent.parent.id).get(); document.getElementById('modalAuthor').textContent=aSnap.exists?`by ${aSnap.data().displayName}`:'by Unknown'; document.getElementById('startReading').onclick=_=>window.location.href=`story.html?storyId=${id}`; modal.style.display='block'; }); }
+    function loadReader(){ auth.onAuthStateChanged(async user=>{ if(!user) return; const favs=await db.collection('users').doc(user.uid).collection('favorites').get(); const favSet=new Set(favs.docs.map(d=>d.data().id)); const snap=await db.collectionGroup('stories').where('status','==','published').get(); const grid=document.getElementById('storyGrid'); grid.innerHTML=''; snap.forEach(doc=>{ const d=doc.data(); const div=document.createElement('div'); div.className='story-card'; div.onclick=_=>openModal(d.id); const heart=favSet.has(d.id)?'<div class="heart-icon">❤️</div>':''; const typeBadge=d.type==='book'?'<span class="badge book">📘 Full Book</span>':'<span class="badge short">📖 Short Story</span>'; const statBadge=d.finished?'<span class="badge finished">✅ Finished</span>':'<span class="badge in-progress">🕓 In Progress</span>'; const genreBadge=d.genre?`<span class="badge genre">${d.genre}</span>`:''; const tags=(d.tags||[]).map(t=>`<span class="tag">${t}</span>`).join(' '); div.innerHTML=`${heart}<div class="story-title">${d.title||'Untitled'}</div><div class="story-info">${typeBadge} ${statBadge} ${genreBadge} ${tags}</div><div class="story-blurb">${d.blurb||'No description'}</div>`; grid.appendChild(div); }); document.getElementById('storySearch').oninput=_=>{ const q= document.getElementById('storySearch').value.toLowerCase(); document.querySelectorAll('.story-card').forEach(c=>{ const title=c.querySelector('.story-title').innerText.toLowerCase(); const blurb=c.querySelector('.story-blurb').innerText.toLowerCase(); c.style.display=(title.includes(q)||blurb.includes(q))?'block':'none'; }); }; }); }
 
-    // Auth state
-    auth.onAuthStateChanged(user=>{ if(!user){alert('Please log in.'); return;} showAuthor(); loadAuthorStories(); });
+    // On load
+    auth.onAuthStateChanged(user=>{ if(!user){ alert('Please log in.'); return; } showAuthor(); });
   </script>
 </body>
 </html>
