@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>window.allowedRoles = ["author","reader","both"];</script>
+  <script src="role-guard.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inkwave Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --accent-author: #789a91;
+      --accent-reader: #4f8dc0;
+      --white: #ffffff;
+      --border: #e0e0e0;
+      --sidebar-bg: #111;
+      --sidebar-width: 300px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      color: var(--white);
+      padding: 2rem 1.5rem;
+      position: fixed;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .section { margin-bottom: 2rem; }
+    .section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #aaa;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+    }
+    .nav-link {
+      display: block;
+      margin: 0.5rem 0;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 1rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 500;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+    .nav-link:hover, .nav-link.active { background-color: #1e1e1e; }
+    .main {
+      margin-left: var(--sidebar-width);
+      padding: 2.5rem;
+      flex: 1;
+    }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    h1 { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .btn {
+      background-color: var(--accent-author);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 4px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+    .btn:hover { background-color: #5f7f76; }
+    /* Author stats & table */
+    .stats { display: flex; gap: 1.5rem; margin-bottom: 2.5rem; }
+    .stat-box { flex: 1; background: var(--white); padding: 1.25rem; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+    .stat-box h4 { font-size: 1rem; color: var(--accent-author); margin-bottom: 0.25rem; font-weight: 500; }
+    .stat-box p { font-size: 1.6rem; font-weight: 600; }
+    table { width: 100%; background: var(--white); border: 1px solid var(--border); border-collapse: collapse; border-radius: 6px; overflow: hidden; }
+    th, td { text-align: left; padding: 0.85rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+    th { background: #eef3f1; color: #555; text-transform: uppercase; letter-spacing: 0.03em; font-size: 0.8rem; }
+    tr:hover { background-color: #f9f9f9; }
+    .story-link { color: var(--accent-author); text-decoration: none; font-weight: 500; }
+    .story-link:hover { text-decoration: underline; }
+    .badge { font-size: 0.75rem; font-weight: 500; padding: 0.3rem 0.6rem; border-radius: 12px; display: inline-block; }
+    .badge.published { background-color: #d7f0e5; color: #2b7a5e; }
+    .badge.draft { background-color: #e8e8e8; color: #555; }
+    .no-stories { text-align: center; color: var(--muted); padding: 2rem 0; font-style: italic; }
+    /* Reader grid */
+    .search-bar { margin-bottom: 1.5rem; padding: 0.5rem; width: 100%; max-width: 400px; font-size: 1rem; }
+    .story-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .story-card { background: var(--white); padding: 1rem; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: transform 0.2s; position: relative; cursor: pointer; }
+    .story-card:hover { transform: scale(1.01); }
+    .story-title { font-weight: 600; font-size: 1.1rem; margin-bottom: 0.4rem; }
+    .story-info { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; }
+    .badge.book { background-color: #5a4e8f; }
+    .badge.short { background-color: #b6648d; }
+    .badge.finished { background-color: #1F77DE; }
+    .badge.in-progress { background-color: #64B676; }
+    .badge.genre { background-color: #FFA500; }
+    .tag { background-color: #e0e0e0; color: #333; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.75rem; }
+    .story-blurb { font-size: 0.9rem; color: var(--muted); }
+    .heart-icon { position: absolute; top: 10px; right: 10px; font-size: 1.2rem; color: #e25555; }
+    /* Modal */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8); }
+    .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border-radius: 8px; width: 40%; max-height: 80vh; overflow-y: auto; position: relative; }
+    .close-button { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; }
+    .modal-header h2 { margin-bottom: 0.3rem; }
+    .modal-header p { color: var(--muted); font-size: 0.9rem; }
+    .section-list { list-style-type: disc; padding-left: 1.5rem; margin-top: 0.5rem; font-size: 1.05rem; font-weight: 500; color: #333; }
+    .section-list li { margin-bottom: 0.4rem; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <h2 onclick="showAuthor()">Inkwave</h2>
+    <div class="section">
+      <div class="section-title">Core</div>
+      <div id="nav-dashboard" class="nav-link active" onclick="showAuthor()">🏠 Dashboard</div>
+      <div class="nav-link" onclick="showEarnings()">💰 Earnings 🚧</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Writing Tools</div>
+      <div class="nav-link">🧠 Blurb Generator 🚧</div>
+      <div class="nav-link">📝 Grammar Fixer 🚧</div>
+      <div class="nav-link">📄 Story Templates</div>
+      <div class="nav-link">📈 Graphing Plots 🚧</div>
+      <div class="nav-link">🏷️ Genre & Tags</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Testing & Feedback</div>
+      <div class="nav-link">🧪 A/B Testing 🚧</div>
+      <div class="nav-link">🔥 Reader Heatmap 🚧</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Publishing</div>
+      <div class="nav-link">✅ Checklist</div>
+      <div class="nav-link">🖼️ Cover Generator 🚧</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Productivity</div>
+      <div class="nav-link">🤖 Inky Assistant 🚧</div>
+      <div class="nav-link">⚙️ Settings</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Reader</div>
+      <div id="nav-favorites" class="nav-link" onclick="showReader('favorites')">📚 Favorites</div>
+      <div class="nav-link" onclick="showReader('comments')">💬 Comments</div>
+      <div class="nav-link" onclick="showReader('following')">👤 Following</div>
+      <div id="nav-explore" class="nav-link" onclick="showReader('explore')">📰 Explore Stories</div>
+      <div class="nav-link" onclick="showReader('settings')">⚙️ Reader Settings</div>
+    </div>
+  </div>
+
+  <!-- Author Main -->
+  <div id="authorMain" class="main">
+    <div class="header">
+      <div>
+        <h1>Dashboard</h1>
+        <p style="color: var(--muted);">Welcome back, Author!</p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn" onclick="showHome()">🔙 Back to Inkwave Main</button>
+        <button class="btn" onclick="createNewStory()">+ New Story</button>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat-box"><h4>Total Reads</h4><p id="total-reads">0</p></div>
+      <div class="stat-box"><h4>Total Likes</h4><p id="total-likes">0</p></div>
+      <div class="stat-box"><h4>Total Earnings</h4><p id="total-earnings">$0.00</p></div>
+    </div>
+    <table>
+      <thead><tr><th>Title</th><th>Reads</th><th>Likes</th><th>Revenue</th><th>Status</th></tr></thead>
+      <tbody id="story-table"><tr><td colspan="5" class="no-stories">Loading your stories...</td></tr></tbody>
+    </table>
+  </div>
+
+  <!-- Reader Main -->
+  <div id="readerMain" class="main" style="display:none;">
+    <h1>📖 Explore Stories</h1>
+    <input type="text" class="search-bar" placeholder="Search stories..." id="storySearch" />
+    <div id="storyGrid" class="story-grid"><p>Loading stories...</p></div>
+
+    <!-- Modal -->
+    <div id="storyModal" class="modal">
+      <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <div class="modal-header">
+          <h2 id="modalTitle">Story Title</h2>
+          <p id="modalAuthor">by Author</p>
+        </div>
+        <p id="modalBlurb">Full blurb goes here...</p>
+        <div id="modalMeta"><span id="modalGenre" class="badge genre"></span><div id="modalTags" style="margin:0.5rem 0;"></div></div>
+        <h4 style="margin-top:1.5rem;">Sections</h4>
+        <ul id="modalSections" class="section-list"></ul>
+        <div style="margin-top:2rem; text-align:right;"><button id="startReading">📖 Start Reading</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = { apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE", authDomain: "inkwave-549c0.firebaseapp.com", projectId: "inkwave-549c0" };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // Navigation
+    function clearActive() {
+      document.querySelectorAll('.nav-link').forEach(n=>n.classList.remove('active'));
+    }
+    function showAuthor() {
+      clearActive(); document.getElementById('nav-dashboard').classList.add('active');
+      document.getElementById('readerMain').style.display='none';
+      document.getElementById('authorMain').style.display='block';
+      loadAuthorStories();
+    }
+    function showReader(section) {
+      clearActive();
+      const idMap = { favorites:'nav-favorites', explore:'nav-explore' };
+      if(idMap[section]) document.getElementById(idMap[section]).classList.add('active');
+      document.getElementById('authorMain').style.display='none';
+      document.getElementById('readerMain').style.display='block';
+      if(section==='explore') loadReader();
+      // other sections can be implemented similarly
+    }
+    function showHome() { window.location.href='index.html'; }
+
+    // Author Data
+    function createNewStory() { const newId='story-'+Date.now(); localStorage.setItem('currentStoryId',newId); window.location.href='new-story.html'; }
+    function openStory(id){ localStorage.setItem('currentStoryId',id); window.location.href='new-story.html'; }
+    function deleteStory(id,el){ if(!confirm('Delete this story?')) return; const user=auth.currentUser; db.collection('users').doc(user.uid).collection('stories').doc(id).delete().then(_=>el.closest('tr').remove()); }
+    function loadAuthorStories(){ const user=auth.currentUser; if(!user) return; db.collection('users').doc(user.uid).collection('stories').get().then(snap=>{ const table=document.getElementById('story-table'); table.innerHTML=''; if(snap.empty){table.innerHTML='<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>'; return;} let reads=0,likes=0,earnings=0; snap.forEach(doc=>{ const s=doc.data(); reads+=s.reads||0; likes+=s.likes||0; earnings+=s.revenue||0; const tr=document.createElement('tr'); tr.innerHTML=`<td><a href="#" class="story-link" onclick="openStory('${doc.id}')">${s.title||'(Untitled)'}</a></td><td>${s.reads||''}</td><td>${s.likes||''}</td><td>$${(s.revenue||0).toFixed(2)}</td><td><span class="badge ${s.status==='published'? 'published':'draft'}">${(s.status||'draft').charAt(0).toUpperCase()+ (s.status||'draft').slice(1)}</span><span style="margin-left:10px;cursor:pointer;color:crimson;" onclick="deleteStory('${doc.id}',this)">🗑</span></td>`; table.appendChild(tr);}); document.getElementById('total-reads').textContent=reads;document.getElementById('total-likes').textContent=likes;document.getElementById('total-earnings').textContent='$'+earnings.toFixed(2);}); }
+
+    // Reader Data
+    const modal=document.getElementById('storyModal'); const modalTitle=document.getElementById('modalTitle'); const modalAuthor=document.getElementById('modalAuthor'); const modalBlurb=document.getElementById('modalBlurb'); const modalGenre=document.getElementById('modalGenre'); const modalTags=document.getElementById('modalTags'); const modalSections=document.getElementById('modalSections'); const startReading=document.getElementById('startReading'); document.querySelector('.close-button').onclick=_=>modal.style.display='none'; window.onclick=e=>{ if(e.target===modal) modal.style.display='none'; };
+    function openModal(id){ db.collectionGroup('stories').where('id','==',id).limit(1).get().then(async snap=>{ if(snap.empty) return alert('Story not found.'); const doc=snap.docs[0]; const d=doc.data(); modalTitle.textContent=d.title||'Untitled'; modalBlurb.textContent=d.blurb||'No description.'; modalGenre.textContent=d.genre||''; modalGenre.style.display=d.genre?'inline-block':'none'; modalTags.innerHTML=(d.tags||[]).map(t=>`<span class="tag">${t}</span>`).join(' '); const secs=Object.keys(d.sections||{}); modalSections.innerHTML=secs.length?secs.map(n=>`<li>${n}</li>`).join(''): '<li>No sections</li>'; const authSnap=await db.collection('authors').doc(doc.ref.parent.parent.id).get(); modalAuthor.textContent=authSnap.exists?`by ${authSnap.data().displayName}`:'by Unknown'; startReading.onclick=_=>window.location.href=`story.html?storyId=${id}`; modal.style.display='block'; }); }
+    function loadReader(){ const grid=document.getElementById('storyGrid'); const search=document.getElementById('storySearch'); auth.onAuthStateChanged(async user=>{ if(!user) return; const favs=await db.collection('users').doc(user.uid).collection('favorites').get(); const favSet=new Set(favs.docs.map(d=>d.data().id)); const snap=await db.collectionGroup('stories').where('status','==','published').get(); grid.innerHTML=''; snap.forEach(doc=>{ const d=doc.data(); const div=document.createElement('div'); div.className='story-card'; div.onclick=_=>openModal(d.id); const heart=favSet.has(d.id)?'<div class="heart-icon">❤️</div>':''; const typeBadge=d.type==='book'?'<span class="badge book">📘 Full Book</span>':'<span class="badge short">📖 Short Story</span>'; const statBadge=d.finished?'<span class="badge finished">✅ Finished</span>':'<span class="badge in-progress">🕓 In Progress</span>'; const genreBadge=d.genre?`<span class="badge genre">${d.genre}</span>`:''; const tags=(d.tags||[]).map(t=>`<span class="tag">${t}</span>`).join(' '); div.innerHTML=`${heart}<div class="story-title">${d.title||'Untitled'}</div><div class="story-info">${typeBadge} ${statBadge} ${genreBadge} ${tags}</div><div class="story-blurb">${d.blurb||'No description'}</div>`; grid.appendChild(div); }); search.oninput=_=>{ const q=search.value.toLowerCase(); grid.querySelectorAll('.story-card').forEach(c=>{ const title=c.querySelector('.story-title').innerText.toLowerCase(); const blurb=c.querySelector('.story-blurb').innerText.toLowerCase(); c.style.display=(title.includes(q)||blurb.includes(q))?'block':'none'; }); }; }); }
+
+    // Auth state
+    auth.onAuthStateChanged(user=>{ if(!user){alert('Please log in.'); return;} showAuthor(); loadAuthorStories(); });
+  </script>
+</body>
+</html>
