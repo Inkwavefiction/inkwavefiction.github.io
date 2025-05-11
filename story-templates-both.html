@@ -1,0 +1,352 @@
+<!-- Skipping header/doctype for brevity -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>window.allowedRoles = ["author","both"];</script>
+  <script src="role-guard.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inkwave - Story Templates</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --accent: #A3C4DC;
+      --white: #ffffff;
+      --border: #e0e0e0;
+      --container-bg: #ffffff;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+    }
+
+    .sidebar {
+      width: 300px;
+      background: #111;
+      color: #fff;
+      padding: 2rem 1.5rem;
+      height: 100vh;
+      position: fixed;
+      overflow-y: auto;
+    }
+
+    .sidebar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      font-weight: 600;
+    }
+
+    .section { margin-bottom: 2rem; }
+
+    .section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #aaa;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+    }
+
+    .nav-link {
+      display: block;
+      margin: 0.5rem 0;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 1rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+
+    .nav-link:hover {
+      background-color: #1e1e1e;
+    }
+
+    .main {
+      margin-left: 300px;
+      padding: 2.5rem;
+      flex: 1;
+    }
+
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 6px;
+      margin-bottom: 30px;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      margin: 0;
+    }
+
+    .header p {
+      font-size: 1.2rem;
+      margin-top: 10px;
+    }
+
+    .container {
+      background: var(--container-bg);
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 25px;
+    }
+
+    .tab-link {
+      padding: 12px 24px;
+      background: #e9edf1;
+      margin-right: 8px;
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+      font-size: 16px;
+      font-weight: 500;
+      position: relative;
+      text-decoration: none;
+      color: inherit;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+
+    .tab-link:hover {
+      background: #dce3ea;
+    }
+
+    .tab-link.active {
+      background: var(--container-bg);
+      border-bottom: 3px solid var(--accent);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+
+    .btn:hover {
+      background: #7aa7d1;
+    }
+
+    .template-card {
+      border: 1px solid var(--border);
+      padding: 20px;
+      margin-bottom: 15px;
+      border-radius: 6px;
+      background: #fdfdfd;
+      transition: background 0.3s, box-shadow 0.3s;
+      position: relative;
+    }
+
+    .template-card:hover {
+      background: #f0f4f8;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    }
+
+    .template-card pre {
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 0.9rem;
+      color: #333;
+      margin-top: 1rem;
+    }
+
+    .delete-btn {
+      position: absolute;
+      left: 10px;
+      top: 18px;
+      background: transparent;
+      border: none;
+      font-size: 1rem;
+      color: #999;
+      cursor: pointer;
+    }
+
+    .delete-btn:hover {
+      color: red;
+    }
+
+    .success-msg {
+      margin-bottom: 20px;
+      font-weight: 600;
+      color: green;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+   <div class="sidebar">
+    <h2 onclick="showAuthor()">Inkwave</h2>
+    <div class="section">
+      <div class="section-title">Core</div>
+      <div id="nav-dashboard" class="nav-link active" onclick="showAuthor()">🏠 Dashboard</div>
+      <div class="nav-link" onclick="sessionStorage.setItem('userRole','author'); window.location.href='earnings-both.html'">
+        💰 Earnings 🚧
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Writing Tools</div>
+      <div class="nav-link" onclick="window.location.href='blurb-generator-both.html'">🧠 Blurb Generator 🚧</div>
+      <div class="nav-link" onclick="window.location.href='grammar-both.html'">📝 Grammar Fixer 🚧</div>
+      <div class="nav-link" onclick="window.location.href='story-templates-both.html'">📄 Story Templates</div>
+      <div class="nav-link" onclick="window.location.href='formatting-tools-both.html'">📈 Graphing Plots 🚧</div>
+      <div class="nav-link" onclick="window.location.href='genre-tags-both.html'">🏷️ Genre & Tags</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Testing & Feedback</div>
+      <div class="nav-link" onclick="window.location.href='A-B-both.html'">🧪 A/B Testing 🚧</div>
+      <div class="nav-link" onclick="window.location.href='reader-heatmap-both.html'">🔥 Reader Heatmap 🚧</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Publishing</div>
+      <div class="nav-link" onclick="window.location.href='checklist-both.html'">✅ Checklist</div>
+      <div class="nav-link" onclick="window.location.href='cover-generator-both.html'">🖼️ Cover Generator 🚧</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Productivity</div>
+      <div class="nav-link" onclick="window.location.href='inkie-chat-both.html'">🤖 Inky Assistant 🚧</div>
+      <div class="nav-link" onclick="window.location.href='settings-author-both.html'">⚙️ Settings</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Reader</div>
+      <div class="nav-link" onclick="window.location.href='favorites-both.html'">📚 Favorites</div>
+      <div class="nav-link" onclick="window.location.href='comments-both.html'">💬 Comments</div>
+      <div class="nav-link" onclick="window.location.href='following-both.html'">👤 Following</div>
+      <div class="nav-link" onclick="window.location.href='explore-both.html'">
+        📰 Explore Stories
+      </div>
+      <div class="nav-link" onclick="window.location.href='settings-both.html'">⚙️ Reader Settings</div>
+    </div>
+  </div>
+  <!-- Main Content -->
+  <div class="main">
+    <div class="header">
+      <h1>Story Templates</h1>
+      <p>Your ultimate toolkit for crafting brilliant narratives</p>
+    </div>
+
+    <div class="container">
+      <div class="tabs">
+        <button class="tab-link active">My Templates</button>
+        <a href="all-templates-both.html" class="tab-link">All Templates</a>
+      </div>
+
+      <div id="templateSavedNotice" class="success-msg" style="display: none;">
+        ✅ Template successfully added!
+      </div>
+
+      <button class="btn" onclick="window.location.href='new-template-both.html'">➕ New Template</button>
+
+      <div id="myTemplatesContainer">Loading your templates...</div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0",
+      storageBucket: "inkwave-549c0.appspot.com",
+      messagingSenderId: "1084811926133",
+      appId: "1:1084811926133:web:auto-generated"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    const auth = firebase.auth();
+
+    function loadUserTemplates(user) {
+      const container = document.getElementById('myTemplatesContainer');
+      container.innerHTML = '';
+
+      db.collection('users')
+        .doc(user.uid)
+        .collection('templates')
+        .orderBy('createdAt', 'desc')
+        .get()
+        .then(snapshot => {
+          if (snapshot.empty) {
+            container.innerHTML = '<p>No templates saved yet.</p>';
+          } else {
+            snapshot.forEach(doc => {
+              const data = doc.data();
+              const div = document.createElement('div');
+              div.className = 'template-card';
+              div.innerHTML = `
+                <button class="delete-btn" onclick="deleteTemplate('${doc.id}')">🗑</button>
+                <h3 style="padding-left: 28px;">${data.title}</h3>
+                <p>Type: ${data.type || 'Custom'}</p>
+                <pre>${data.content}</pre>
+              `;
+              container.appendChild(div);
+            });
+          }
+        })
+        .catch(err => {
+          console.error("Failed to load templates:", err);
+          container.innerHTML = '<p>Error loading templates.</p>';
+        });
+    }
+
+    function deleteTemplate(templateId) {
+      const user = firebase.auth().currentUser;
+      if (!user) return alert("You must be logged in.");
+
+      if (!confirm("Delete this template?")) return;
+
+      db.collection("users")
+        .doc(user.uid)
+        .collection("templates")
+        .doc(templateId)
+        .delete()
+        .then(() => {
+          alert("Deleted.");
+          loadUserTemplates(user); // reload templates
+        })
+        .catch(err => {
+          console.error("Error deleting template:", err);
+          alert("Failed to delete.");
+        });
+    }
+
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        loadUserTemplates(user);
+      } else {
+        document.getElementById("myTemplatesContainer").innerHTML = "<p>Please log in to view your templates.</p>";
+      }
+    });
+
+    if (window.location.search.includes('saved=true')) {
+      document.getElementById('templateSavedNotice').style.display = 'block';
+    }
+  </script>
+</body>
+</html>
