@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>window.allowedRoles = ["author","both"];</script>
+  <script src="role-guard.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Feature Under Development – Inkwave</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #fafafa;
+      --text: #222;
+      --accent: #B9def3;
+      --white: #ffffff;
+      --border: #e0e0e0;
+      --sidebar-bg: #111;
+      --container-bg: #ffffff;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+    /* Sidebar – full version */
+    .sidebar {
+      width: 300px;
+      background: var(--sidebar-bg);
+      color: var(--white);
+      padding: 2rem 1.5rem;
+      height: 100vh;
+      position: fixed;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      font-weight: 600;
+    }
+    .sidebar .section {
+      margin-bottom: 2rem;
+    }
+    .section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #aaa;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+    }
+    .nav-link {
+      display: block;
+      margin: 0.5rem 0;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 1rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .nav-link:hover {
+      background-color: #1e1e1e;
+    }
+    /* Main Content Area */
+    .main {
+      margin-left: 300px;
+      padding: 2.5rem;
+      flex: 1;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background: var(--accent);
+      color: var(--text);
+      border-radius: 6px;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      margin: 0;
+    }
+    .container {
+      background: var(--container-bg);
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .note {
+      font-size: 1.1rem;
+      line-height: 1.6;
+      color: var(--text);
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+   <div class="sidebar">
+    <h2 onclick="showAuthor()">Inkwave</h2>
+    <div class="section">
+      <div class="section-title">Core</div>
+      <div id="nav-dashboard" class="nav-link active" onclick="showAuthor()">🏠 Dashboard</div>
+      <div class="nav-link" onclick="sessionStorage.setItem('userRole','author'); window.location.href='earnings-both.html'">
+        💰 Earnings 🚧
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Writing Tools</div>
+      <div class="nav-link" onclick="window.location.href='blurb-generator-both.html'">🧠 Blurb Generator 🚧</div>
+      <div class="nav-link" onclick="window.location.href='grammar-both.html'">📝 Grammar Fixer 🚧</div>
+      <div class="nav-link" onclick="window.location.href='story-templates-both.html'">📄 Story Templates</div>
+      <div class="nav-link" onclick="window.location.href='formatting-tools-both.html'">📈 Graphing Plots 🚧</div>
+      <div class="nav-link" onclick="window.location.href='genre-tags-both.html'">🏷️ Genre & Tags</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Testing & Feedback</div>
+      <div class="nav-link" onclick="window.location.href='A-B-both.html'">🧪 A/B Testing 🚧</div>
+      <div class="nav-link" onclick="window.location.href='reader-heatmap-both.html'">🔥 Reader Heatmap 🚧</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Publishing</div>
+      <div class="nav-link" onclick="window.location.href='checklist-both.html'">✅ Checklist</div>
+      <div class="nav-link" onclick="window.location.href='cover-generator-both.html'">🖼️ Cover Generator 🚧</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Productivity</div>
+      <div class="nav-link" onclick="window.location.href='inkie-chat-both.html'">🤖 Inky Assistant 🚧</div>
+      <div class="nav-link" onclick="window.location.href='settings-author-both.html'">⚙️ Settings</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Reader</div>
+      <div class="nav-link" onclick="window.location.href='favorites-both.html'">📚 Favorites</div>
+      <div class="nav-link" onclick="window.location.href='comments-both.html'">💬 Comments</div>
+      <div class="nav-link" onclick="window.location.href='following-both.html'">👤 Following</div>
+      <div class="nav-link" onclick="window.location.href='explore-both.html'">
+        📰 Explore Stories
+      </div>
+      <div class="nav-link" onclick="window.location.href='settings-both.html'">⚙️ Reader Settings</div>
+    </div>
+  </div>
+  
+  <!-- Main Content Area -->
+  <div class="main">
+    <div class="header">
+      <h1>Feature Under Development</h1>
+    </div>
+    <div class="container">
+      <p class="note">
+This feature is currently in development. Once it's finished, you'll be able to run your writing through the tool and receive a fully edited version of your story, along with a detailed list of all the changes made.      </p>
+    </div>
+  </div>
+</body>
+</html>
