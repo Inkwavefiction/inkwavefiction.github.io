@@ -1,18 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>window.allowedRoles = ["author","both"];</script>
-  <script src="role-guard.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Inkwave - Financial Dashboard</title>
+  <script>
+    // Allowed roles for role-guard.js
+    window.allowedRoles = ["author", "both"];
+    // Stub so showAuthor() calls don’t blow up
+    function showAuthor() {
+      console.log("showAuthor() called – implement view switch here.");
+    }
+  </script>
+  <script src="role-guard.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --bg: #f5f8f7;
       --text: #1e1e1e;
       --muted: #6a6a6a;
-      --accent: #4f8dc0; /* Accent color for financial dashboard */
+      --accent: #4f8dc0;
       --white: #ffffff;
       --border: #e0e0e0;
       --sidebar-bg: #111;
@@ -27,7 +34,6 @@
       display: flex;
       min-height: 100vh;
     }
-    /* Sidebar */
     .sidebar {
       width: var(--sidebar-width);
       background: var(--sidebar-bg);
@@ -42,6 +48,7 @@
       font-size: 1.8rem;
       margin-bottom: 2rem;
       font-weight: 600;
+      cursor: pointer;
     }
     .section { margin-bottom: 2rem; }
     .section-title {
@@ -62,9 +69,10 @@
       border-radius: 4px;
       font-weight: 500;
       transition: background 0.2s;
+      cursor: pointer;
     }
     .nav-link:hover { background-color: #1e1e1e; }
-    /* Main Content Area */
+    .nav-link.active { background-color: #333; }
     .main {
       margin-left: var(--sidebar-width);
       padding: 2.5rem;
@@ -117,13 +125,14 @@
   </style>
 </head>
 <body>
-  <!-- Sidebar -->
   <div class="sidebar">
     <h2 onclick="showAuthor()">Inkwave</h2>
     <div class="section">
       <div class="section-title">Core</div>
       <div id="nav-dashboard" class="nav-link active" onclick="showAuthor()">🏠 Dashboard</div>
-      <div class="nav-link" onclick="sessionStorage.setItem('userRole','author'); window.location.href='earnings-both.html'">💰 Earnings 🚧</div>
+      <div class="nav-link" onclick="sessionStorage.setItem('userRole','author'); window.location.href='earnings-both.html'">
+        💰 Earnings 🚧
+      </div>
     </div>
     <div class="section">
       <div class="section-title">Writing Tools</div>
@@ -144,31 +153,32 @@
       <div class="nav-link" onclick="window.location.href='cover-generator.html'">🖼️ Cover Generator 🚧</div>
     </div>
     <div class="section">
-      <div class="section-title">Productivity</n></div>
+      <div class="section-title">Productivity</div>
       <div class="nav-link" onclick="window.location.href='inkie-chat.html'">🤖 Inky Assistant 🚧</div>
       <div class="nav-link" onclick="window.location.href='settings-author.html'">⚙️ Settings</div>
     </div>
     <div class="section">
       <div class="section-title">Reader</div>
       <div class="nav-link" onclick="window.location.href='favorites.html'">📚 Favorites</div>
-      <div class="nav-link" onclick="window.location.href='comments.html'"> 💬 Comments </div>
-      <div class="nav-link" onclick="window.location.href='following.html'">👤 Following </div>
-      <div class="nav-link" onclick="window.location.href='explore.html'"📰 Explore Stories</div>
+      <div class="nav-link" onclick="window.location.href='comments.html'">💬 Comments</div>
+      <div class="nav-link" onclick="window.location.href='following.html'">👤 Following</div>
+      <div class="nav-link" onclick="window.location.href='explore.html'">
+        📰 Explore Stories
+      </div>
       <div class="nav-link" onclick="window.location.href='settings.html'">⚙️ Reader Settings</div>
+    </div>
   </div>
 
-  <!-- Main Content Area -->
   <div class="main">
     <div class="header">
       <h1>Financial Dashboard</h1>
       <p>Your Earnings and Payouts</p>
     </div>
     <div class="container">
-      <!-- Overview Paragraph -->
       <section id="overview">
         <p>We believe in rewarding storytellers fairly—and that means sharing a meaningful portion of our monthly revenue with the authors who power the platform. Each month, a dedicated payout pool is distributed to stories based on performance, so the more views your story earns, the more you take home. Our tiered system ensures that top-performing stories get the biggest rewards, while even newer or smaller stories still earn based on their readership. As our subscriber base and income grow, so does the size of the payout pool—giving you the chance to earn more every single month. It’s a model built to scale with your success.</p>
       </section>
-      <!-- Earnings Summary Section -->
+
       <section id="earnings-summary">
         <h2>Your Earnings</h2>
         <table>
@@ -185,7 +195,7 @@
         </table>
         <p id="totalBalance"><strong>Total Balance:</strong> $0.00</p>
       </section>
-      <!-- Cash Out Section -->
+
       <section id="cash-out">
         <h2>Cash Out</h2>
         <button id="cashOutBtn" class="cash-out-btn">Cash Out</button>
@@ -195,11 +205,12 @@
       </section>
     </div>
   </div>
-  <!-- Firebase, Auth & Dashboard Script -->
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-app.js";
     import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -211,6 +222,7 @@
     const appFirebase = initializeApp(firebaseConfig);
     const db = getFirestore(appFirebase);
     const auth = getAuth(appFirebase);
+
     async function loadPublishedStories(currentUserId) {
       const stories = [];
       try {
@@ -225,6 +237,7 @@
       }
       return stories;
     }
+
     async function updateDashboard(currentUserId) {
       const publishedStories = await loadPublishedStories(currentUserId);
       const totalRevenue = 0;
@@ -237,7 +250,9 @@
         { name: "Tier 4", min: 61, max: 70, percentage: 0.10, type: "equal", maxStories: 10 },
         { name: "Open Tier", min: 1, max: 60, percentage: 0.20, type: "proportional" }
       ];
+
       publishedStories.forEach(story => { story.payout = 0; });
+
       tiers.forEach(tier => {
         let storiesInTier = publishedStories.filter(story => story.reads >= tier.min && story.reads <= tier.max);
         if (tier.type === "equal" && storiesInTier.length > 0) {
@@ -250,13 +265,17 @@
         } else if (tier.type === "proportional" && storiesInTier.length > 0) {
           const totalReadsInTier = storiesInTier.reduce((sum, story) => sum + story.reads, 0);
           storiesInTier.forEach(story => {
-            story.payout = totalReadsInTier > 0 ? (story.reads / totalReadsInTier) * (payoutPool * tier.percentage) : 0;
+            story.payout = totalReadsInTier > 0
+              ? (story.reads / totalReadsInTier) * (payoutPool * tier.percentage)
+              : 0;
           });
         }
       });
+
       const tbody = document.getElementById("storiesTableBody");
       tbody.innerHTML = "";
       let totalBalance = 0;
+
       if (publishedStories.length === 0) {
         tbody.innerHTML = "<tr><td colspan='3'>No published stories found.</td></tr>";
       } else {
@@ -267,8 +286,10 @@
           tbody.appendChild(tr);
         });
       }
-      document.getElementById("totalBalance").innerHTML = `<strong>Total Balance:</strong> $${totalBalance.toFixed(2)}`;
+      document.getElementById("totalBalance").innerHTML =
+        `<strong>Total Balance:</strong> $${totalBalance.toFixed(2)}`;
     }
+
     onAuthStateChanged(auth, (user) => {
       if (user) {
         updateDashboard(user.uid);
@@ -276,7 +297,8 @@
         console.log("No user signed in.");
       }
     });
-    document.getElementById("cashOutBtn").addEventListener("click", function() {
+
+    document.getElementById("cashOutBtn").addEventListener("click", () => {
       alert("Cash Out functionality is currently in beta. No funds will be exchanged at this time.");
     });
   </script>
