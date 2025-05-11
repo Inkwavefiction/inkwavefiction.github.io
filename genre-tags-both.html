@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>window.allowedRoles = ["author","both"];</script>
+  <script src="role-guard.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inkwave - Dictionary of Tags & Genres</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --accent: #93B0AC;
+      --white: #ffffff;
+      --border: #e0e0e0;
+      --sidebar-bg: #111;
+      --container-bg: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+    /* Original Sidebar */
+    .sidebar {
+      width: 300px;
+      background: var(--sidebar-bg);
+      color: var(--white);
+      padding: 2rem 1.5rem;
+      height: 100vh;
+      position: fixed;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      font-weight: 600;
+    }
+    .sidebar .section {
+      margin-bottom: 2rem;
+    }
+    .section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #aaa;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+    }
+    .nav-link {
+      display: block;
+      margin: 0.5rem 0;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 1rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .nav-link:hover {
+      background-color: #1e1e1e;
+    }
+    /* Main Content Area */
+    .main {
+      margin-left: 300px;
+      padding: 2.5rem;
+      flex: 1;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background: var(--accent);
+      color: var(--white);
+      border-radius: 6px;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      font-size: 2.5rem;
+      margin: 0;
+    }
+    /* Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 25px;
+    }
+    .tab {
+      padding: 12px 24px;
+      background: #e9edf1;
+      border: none;
+      cursor: pointer;
+      margin-right: 8px;
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+      font-size: 16px;
+      font-weight: 500;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .tab:hover {
+      background: #dce3ea;
+    }
+    .tab.active {
+      background: var(--container-bg);
+      border-bottom: 3px solid var(--accent);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    .tab-content {
+      display: none;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .container {
+      background: var(--container-bg);
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    /* Dropdown styling using details/summary */
+    details {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      margin-bottom: 10px;
+      padding: 10px;
+      background: #fff;
+    }
+    summary {
+      font-weight: 600;
+      cursor: pointer;
+      color: var(--accent);
+      outline: none;
+    }
+    details[open] summary {
+      margin-bottom: 10px;
+    }
+    details p {
+      margin-left: 20px;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+    /* Subcategory headings for Tags */
+    .subcategory {
+      margin-top: 20px;
+    }
+    .subcategory h2 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      color: var(--accent);
+      border-bottom: 2px solid var(--accent);
+      padding-bottom: 5px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Original Sidebar -->
+  <div class="sidebar">
+    <h2 onclick="showAuthor()">Inkwave</h2>
+    <div class="section">
+      <div class="section-title">Core</div>
+      <div id="nav-dashboard" class="nav-link active" onclick="showAuthor()">🏠 Dashboard</div>
+      <div class="nav-link" onclick="sessionStorage.setItem('userRole','author'); window.location.href='earnings-both.html'">
+        💰 Earnings 🚧
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Writing Tools</div>
+      <div class="nav-link" onclick="window.location.href='blurb-generator-both.html'">🧠 Blurb Generator 🚧</div>
+      <div class="nav-link" onclick="window.location.href='grammar-both.html'">📝 Grammar Fixer 🚧</div>
+      <div class="nav-link" onclick="window.location.href='story-templates-both.html'">📄 Story Templates</div>
+      <div class="nav-link" onclick="window.location.href='formatting-tools-both.html'">📈 Graphing Plots 🚧</div>
+      <div class="nav-link" onclick="window.location.href='genre-tags-both.html'">🏷️ Genre & Tags</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Testing & Feedback</div>
+      <div class="nav-link" onclick="window.location.href='A-B-both.html'">🧪 A/B Testing 🚧</div>
+      <div class="nav-link" onclick="window.location.href='reader-heatmap-both.html'">🔥 Reader Heatmap 🚧</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Publishing</div>
+      <div class="nav-link" onclick="window.location.href='checklist-both.html'">✅ Checklist</div>
+      <div class="nav-link" onclick="window.location.href='cover-generator-both.html'">🖼️ Cover Generator 🚧</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Productivity</div>
+      <div class="nav-link" onclick="window.location.href='inkie-chat-both.html'">🤖 Inky Assistant 🚧</div>
+      <div class="nav-link" onclick="window.location.href='settings-author-both.html'">⚙️ Settings</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Reader</div>
+      <div class="nav-link" onclick="window.location.href='favorites-both.html'">📚 Favorites</div>
+      <div class="nav-link" onclick="window.location.href='comments-both.html'">💬 Comments</div>
+      <div class="nav-link" onclick="window.location.href='following-both.html'">👤 Following</div>
+      <div class="nav-link" onclick="window.location.href='explore-both.html'">
+        📰 Explore Stories
+      </div>
+      <div class="nav-link" onclick="window.location.href='settings-both.html'">⚙️ Reader Settings</div>
+    </div>
+  </div>
+  
+  <!-- Main Content -->
+  <div class="main">
+    <div class="header">
+      <h1>Dictionary of Tags & Genres</h1>
+    </div>
+    <div class="container">
+      <!-- Tab Buttons -->
+      <div class="tabs">
+        <button class="tab active" id="genresTab">Genres</button>
+        <button class="tab" id="tagsTab">Tags</button>
+      </div>
+      
+      <!-- Genres Tab Content (Alphabetically sorted) -->
+      <div id="genresContent" class="tab-content active">
+        <!-- Sorted Alphabetically -->
+        <details>
+          <summary>Adventure</summary>
+          <p>How to tell: If your characters are constantly on the move, facing danger, and never get a break, you’ve got adventure. Plot = journey.</p>
+        </details>
+        <details>
+          <summary>Coming-of-Age</summary>
+          <p>How to tell: If your character starts young or immature and grows into who they’re meant to be by the end, that’s coming-of-age. Angst is required.</p>
+        </details>
+        <details>
+          <summary>Comedy</summary>
+          <p>How to tell: If your main goal is to make the reader laugh—even if bad stuff happens—it’s comedy. Jokes per page should be high.</p>
+        </details>
+        <details>
+          <summary>Crime</summary>
+          <p>How to tell: If criminals, law enforcement, or the justice system are front and center, it’s crime fiction. Think heists, detectives, mafias.</p>
+        </details>
+        <details>
+          <summary>Cyberpunk</summary>
+          <p>How to tell: If your world is high-tech, full of hackers, dystopian corporations, neon lights, and social decay, welcome to cyberpunk.</p>
+        </details>
+        <details>
+          <summary>Dark Fantasy</summary>
+          <p>How to tell: If it’s fantasy but grim, violent, morally twisted, or disturbing—it’s dark fantasy. Think "Game of Thrones" but darker.</p>
+        </details>
+        <details>
+          <summary>Drama</summary>
+          <p>How to tell: If the plot is mostly emotional or interpersonal conflict with little external action, it’s drama. Expect crying or brooding.</p>
+        </details>
+        <details>
+          <summary>Dystopian</summary>
+          <p>How to tell: If society has collapsed or gone full-totalitarian and your characters are stuck surviving or rebelling—it’s dystopian.</p>
+        </details>
+        <details>
+          <summary>Fairy Tale / Mythic</summary>
+          <p>How to tell: If your story has moral lessons, archetypes, talking animals, or magical justice, and feels timeless—it’s mythic or fairy tale-inspired.</p>
+        </details>
+        <details>
+          <summary>Fantasy</summary>
+          <p>How to tell: If your book has magic, made-up creatures, kingdoms, or anything that doesn’t exist in our world—fantasy. Bonus points if there’s a chosen one.</p>
+        </details>
+        <details>
+          <summary>Gothic</summary>
+          <p>How to tell: If it’s creepy, old, dramatic, and drenched in mood—especially with haunted mansions or decaying aristocrats—it’s gothic.</p>
+        </details>
+        <details>
+          <summary>Historical Fiction</summary>
+          <p>How to tell: If your story is set in a real historical time/place and tries to feel accurate to that era (with made-up people), it’s historical fiction.</p>
+        </details>
+        <details>
+          <summary>Horror</summary>
+          <p>How to tell: If your book is meant to scare, disturb, or creep people out, congrats—it’s horror. Doesn’t need gore, but it helps.</p>
+        </details>
+        <details>
+          <summary>Magical Realism</summary>
+          <p>How to tell: If your world is normal but weird magical stuff happens and no one acts like it’s weird—that’s magical realism.</p>
+        </details>
+        <details>
+          <summary>Mystery</summary>
+          <p>How to tell: If someone dies, disappears, or something shady happens and the whole book is about solving it—it’s mystery. Big clue trails, red herrings, the works.</p>
+        </details>
+        <details>
+          <summary>Noir</summary>
+          <p>How to tell: If your world is grimy, cynical, and full of morally grey characters, and the tone is dark and gritty—you’re writing noir. Bonus if it rains a lot.</p>
+        </details>
+        <details>
+          <summary>Paranormal</summary>
+          <p>How to tell: If ghosts, psychics, or unexplained supernatural junk are central, but it’s not full-on fantasy—it’s paranormal.</p>
+        </details>
+        <details>
+          <summary>Post-Apocalyptic</summary>
+          <p>How to tell: If the world already ended and people are living in the ruins, scavenging, or dying from disease, you’re post-apocalyptic.</p>
+        </details>
+        <details>
+          <summary>Psychological</summary>
+          <p>How to tell: If the mind is the battlefield—unreliable narrators, mental breakdowns, and emotional manipulation—it’s psychological fiction.</p>
+        </details>
+        <details>
+          <summary>Satire</summary>
+          <p>How to tell: If your book is mocking society, politics, or culture while pretending to be serious—it’s satire. Sharp wit required.</p>
+        </details>
+        <details>
+          <summary>Science Fiction (Sci-Fi)</summary>
+          <p>How to tell: If there’s futuristic tech, space travel, AI, or science-based “what if?” concepts, you're in sci-fi territory. If your world obeys fake physics, it's sci-fi.</p>
+        </details>
+        <details>
+          <summary>Slice of Life</summary>
+          <p>How to tell: If literally nothing major happens but you focus on the beauty, pain, or monotony of everyday life—slice of life. Vibes over plot.</p>
+        </details>
+        <details>
+          <summary>Steampunk</summary>
+          <p>How to tell: If your world is retro-futuristic with gears, steam-powered tech, airships, and Victorian aesthetics, it’s steampunk.</p>
+        </details>
+        <details>
+          <summary>Surrealism</summary>
+          <p>How to tell: If your book reads like a fever dream or makes no logical sense on purpose, and you're blending reality and fantasy with symbolism—surrealism.</p>
+        </details>
+        <details>
+          <summary>Thriller</summary>
+          <p>How to tell: If the book moves fast and the reader’s sweating with tension, it's a thriller. Stakes are high, often life-or-death, and plot drives everything.</p>
+        </details>
+        <details>
+          <summary>Tragedy</summary>
+          <p>How to tell: If everything goes to hell by the end, and someone important dies or loses it all, you’re writing a tragedy. Happy endings not allowed.</p>
+        </details>
+        <details>
+          <summary>Urban Fiction</summary>
+          <p>How to tell: If it’s set in a modern inner-city with gritty realism, slang-heavy dialogue, and raw themes—urban fiction.</p>
+        </details>
+        <details>
+          <summary>Western</summary>
+          <p>How to tell: If it’s set in the American frontier with cowboys, outlaws, and saloons, you’re writing a western. Gunslingers or bust.</p>
+        </details>
+      </div>
+      
+      <!-- Tags Tab Content (Subcategories with alphabetical dropdowns) -->
+      <div id="tagsContent" class="tab-content">
+        <!-- Concept / Structure Tags -->
+        <div class="subcategory">
+          <h2>Concept / Structure Tags</h2>
+          <details>
+            <summary>Epistolary</summary>
+            <p>How to tell: Told through letters, emails, journal entries, or texts. You're spying on the characters.</p>
+          </details>
+          <details>
+            <summary>Experimental Format</summary>
+            <p>How to tell: The structure breaks rules: poetry chunks, mixed media, footnotes, etc.</p>
+          </details>
+          <details>
+            <summary>Framed Narrative</summary>
+            <p>How to tell: A story within a story. Somebody’s telling the tale from the outside.</p>
+          </details>
+          <details>
+            <summary>Multiple POVs</summary>
+            <p>How to tell: More than one character gets the spotlight. Big for ensemble casts or dual narratives.</p>
+          </details>
+          <details>
+            <summary>Nonlinear Timeline</summary>
+            <p>How to tell: The story jumps around in time. Flashbacks, flash-forwards, scrambled scenes.</p>
+          </details>
+          <details>
+            <summary>Open Ending</summary>
+            <p>How to tell: No real resolution. Leaves readers wondering, arguing, or crying.</p>
+          </details>
+          <details>
+            <summary>Plot Twist Central</summary>
+            <p>How to tell: The plot flips at least once hard enough to break necks. Think “WHAT JUST HAPPENED” moments.</p>
+          </details>
+          <details>
+            <summary>Stream of Consciousness</summary>
+            <p>How to tell: The prose is raw thought. No filters, no pause, just brain vomit (in a good way).</p>
+          </details>
+          <details>
+            <summary>Unreliable Narrator</summary>
+            <p>How to tell: The person telling the story is full of it (lying, delusional, or just wrong).</p>
+          </details>
+          <details>
+            <summary>Vignette-Style</summary>
+            <p>How to tell: Short, snapshot scenes loosely strung together. Less plot, more mood.</p>
+          </details>
+        </div>
+        
+        <!-- World / Setting / Society Tags -->
+        <div class="subcategory">
+          <h2>World / Setting / Society Tags</h2>
+          <details>
+            <summary>Alternate History</summary>
+            <p>How to tell: History took a turn and now things are different but familiar.</p>
+          </details>
+          <details>
+            <summary>Closed Society</summary>
+            <p>How to tell: The world has strict rules, hierarchy, or surveillance. Not always dystopia, but always controlling.</p>
+          </details>
+          <details>
+            <summary>Cultural Deep-Dive</summary>
+            <p>How to tell: Explores a specific culture’s traditions, language, or worldview deeply. Not just a setting—it's the soul.</p>
+          </details>
+          <details>
+            <summary>Hyper-Realism</summary>
+            <p>How to tell: No fantasy, no tech, no flair. Real-life drama cranked to 11.</p>
+          </details>
+          <details>
+            <summary>Isolated Setting</summary>
+            <p>How to tell: Characters are stuck somewhere (island, cabin, ship, apocalypse). No escape, no outside world.</p>
+          </details>
+          <details>
+            <summary>Symbolic World</summary>
+            <p>How to tell: The world reflects the theme (e.g., decaying house = mental breakdown). Heavy on metaphor.</p>
+          </details>
+          <details>
+            <summary>Timeless Setting</summary>
+            <p>How to tell: The story could happen at any time. No phones, no references. Feels mythic or suspended in reality.</p>
+          </details>
+          <details>
+            <summary>Utopian on the Surface</summary>
+            <p>How to tell: Everything looks perfect… until it isn’t. The cracks are the plot.</p>
+          </details>
+        </div>
+        
+        <!-- Character-Centric Tags -->
+        <div class="subcategory">
+          <h2>Character-Centric Tags</h2>
+          <details>
+            <summary>Antihero Arc</summary>
+            <p>How to tell: Starts selfish, stays messy, maybe gets better. Maybe not.</p>
+          </details>
+          <details>
+            <summary>Burnout Hero</summary>
+            <p>How to tell: The protagonist is tired, done, and dragging themselves forward anyway. Great for gritty stories.</p>
+          </details>
+          <details>
+            <summary>Charismatic Villain</summary>
+            <p>How to tell: The villain steals every scene. Might outshine the protagonist. Might be the protagonist.</p>
+          </details>
+          <details>
+            <summary>Internal Conflict Heavy</summary>
+            <p>How to tell: Most of the story’s tension comes from inside the character. Less gunfights, more existential crises.</p>
+          </details>
+          <details>
+            <summary>Morally Grey Protagonist</summary>
+            <p>How to tell: Your main character is not a good person. Readers might love or hate them, or both.</p>
+          </details>
+          <details>
+            <summary>Naive Outsider</summary>
+            <p>How to tell: The main character is new to the world/setting and doesn’t understand the rules. Forces exposition naturally.</p>
+          </details>
+          <details>
+            <summary>Obsessed Character</summary>
+            <p>How to tell: A character’s fixated on something or someone. Plot revolves around their obsession.</p>
+          </details>
+          <details>
+            <summary>Power Struggle</summary>
+            <p>How to tell: Constant battle for control in relationships, politics, or survival.</p>
+          </details>
+        </div>
+        
+        <!-- Tone / Mood Tags -->
+        <div class="subcategory">
+          <h2>Tone / Mood Tags</h2>
+          <details>
+            <summary>Bittersweet</summary>
+            <p>How to tell: Happy and sad at once. Endings hit you in the soul.</p>
+          </details>
+          <details>
+            <summary>Bleak and Brutal</summary>
+            <p>How to tell: No sugarcoating. World sucks, people suck, but you're still reading.</p>
+          </details>
+          <details>
+            <summary>Claustrophobic Atmosphere</summary>
+            <p>How to tell: Everything feels tight, tense, or inescapable. Not always horror, but often unnerving.</p>
+          </details>
+          <details>
+            <summary>Dreamlike</summary>
+            <p>How to tell: Surreal, floaty, and possibly confusing. Like wandering through a foggy memory.</p>
+          </details>
+          <details>
+            <summary>Hopepunk</summary>
+            <p>How to tell: Characters fight for good because it’s hard. Emotionally honest, idealistic, raw.</p>
+          </details>
+          <details>
+            <summary>Lyrical Prose</summary>
+            <p>How to tell: The writing reads like poetry. Not about what happens—about how it's told.</p>
+          </details>
+          <details>
+            <summary>Melancholic Vibe</summary>
+            <p>How to tell: A soft sadness throughout. Not full tragedy, just emotionally heavy.</p>
+          </details>
+          <details>
+            <summary>Tense Silence</summary>
+            <p>How to tell: Big moments told with restraint. The weight of what isn’t said matters more.</p>
+          </details>
+        </div>
+        
+        <!-- Theme-Driven Tags -->
+        <div class="subcategory">
+          <h2>Theme-Driven Tags</h2>
+          <details>
+            <summary>Belonging vs Isolation</summary>
+            <p>How to tell: Characters either trying to fit in or break free from what defines them.</p>
+          </details>
+          <details>
+            <summary>Cycle of Violence</summary>
+            <p>How to tell: The story explores how violence repeats—through families, systems, or vengeance.</p>
+          </details>
+          <details>
+            <summary>Grief as a Character</summary>
+            <p>How to tell: Loss shapes everything. It haunts the plot, drives choices, and doesn’t go away.</p>
+          </details>
+          <details>
+            <summary>Identity Crisis</summary>
+            <p>How to tell: The main theme is about discovering who the hell you are, or being torn between selves.</p>
+          </details>
+          <details>
+            <summary>Memory and Truth</summary>
+            <p>How to tell: What actually happened? What do we remember happened? Reality’s bending.</p>
+          </details>
+          <details>
+            <summary>Power and Corruption</summary>
+            <p>How to tell: A rise to power that slowly rots the person from the inside.</p>
+          </details>
+          <details>
+            <summary>Survival at Any Cost</summary>
+            <p>How to tell: The story is about what you’ll sacrifice to keep living—morals included.</p>
+          </details>
+        </div>
+        
+        <!-- Other Weird-But-Useful Tags -->
+        <div class="subcategory">
+          <h2>Other Weird-But-Useful Tags</h2>
+          <details>
+            <summary>Character Study</summary>
+            <p>How to tell: Deep dive into one person’s psyche. Not about what happens—about them.</p>
+          </details>
+          <details>
+            <summary>Concept-Driven</summary>
+            <p>How to tell: The whole book exists to explore one “what if?” idea. Plot’s just along for the ride.</p>
+          </details>
+          <details>
+            <summary>Dialogue-Heavy</summary>
+            <p>How to tell: People talk a lot. The tension is in the words, not the action.</p>
+          </details>
+          <details>
+            <summary>Literary Vibes</summary>
+            <p>How to tell: Character-driven, rich writing, heavy themes. The “I’m serious fiction” flex.</p>
+          </details>
+          <details>
+            <summary>Myth-Inspired</summary>
+            <p>How to tell: The story echoes ancient myths, archetypes, or legendary tales in a new skin.</p>
+          </details>
+          <details>
+            <summary>Philosophical</summary>
+            <p>How to tell: The book exists to ask big questions. Answers optional.</p>
+          </details>
+          <details>
+            <summary>Quiet Book</summary>
+            <p>How to tell: Low on plot, high on reflection. Calm, introspective, slow-paced.</p>
+          </details>
+          <details>
+            <summary>Social Commentary</summary>
+            <p>How to tell: The story has things to say about real-world issues, and it's not being subtle.</p>
+          </details>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+  <script>
+    // Simple tab-switching functionality
+    const genresTab = document.getElementById('genresTab');
+    const tagsTab = document.getElementById('tagsTab');
+    const genresContent = document.getElementById('genresContent');
+    const tagsContent = document.getElementById('tagsContent');
+
+    genresTab.addEventListener('click', () => {
+      genresTab.classList.add('active');
+      tagsTab.classList.remove('active');
+      genresContent.classList.add('active');
+      tagsContent.classList.remove('active');
+    });
+
+    tagsTab.addEventListener('click', () => {
+      tagsTab.classList.add('active');
+      genresTab.classList.remove('active');
+      tagsContent.classList.add('active');
+      genresContent.classList.remove('active');
+    });
+  </script>
+</body>
+</html>
