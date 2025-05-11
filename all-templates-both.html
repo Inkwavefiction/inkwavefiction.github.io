@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>window.allowedRoles = ["author","both"];</script>
+  <script src="role-guard.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inkwave - All Templates</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --accent: #A3C4DC; /* Haze Blue */
+      --white: #ffffff;
+      --border: #e0e0e0;
+      --sidebar-bg: #111;
+      --container-bg: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+    }
+    /* Sidebar */
+    .sidebar {
+      width: 300px;
+      background: var(--sidebar-bg);
+      color: #fff;
+      padding: 2rem 1.5rem;
+      height: 100vh;
+      position: fixed;
+      overflow-y: auto;
+    }
+    .sidebar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      margin-bottom: 2rem;
+      font-weight: 600;
+    }
+    .sidebar .section { margin-bottom: 2rem; }
+    .section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #aaa;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+    }
+    .nav-link {
+      display: block;
+      margin: 0.5rem 0;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 1rem;
+      padding: 0.4rem 0.6rem;
+      border-radius: 4px;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .nav-link:hover { background-color: #1e1e1e; }
+    /* Main Content */
+    .main {
+      margin-left: 300px;
+      padding: 2.5rem;
+      flex: 1;
+    }
+    .header {
+      text-align: center;
+      padding: 20px 0;
+      background: var(--accent);
+      color: #fff;
+      border-radius: 6px;
+      margin-bottom: 30px;
+    }
+    .header h1 { font-size: 2.5rem; margin: 0; }
+    .header p { font-size: 1.2rem; margin-top: 10px; }
+    .container {
+      background: var(--container-bg);
+      padding: 30px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    /* Top Tabs */
+    .tabs {
+      display: flex;
+      border-bottom: 2px solid var(--border);
+      margin-bottom: 25px;
+    }
+    .tab-link {
+      padding: 12px 24px;
+      background: #e9edf1;
+      border: none;
+      cursor: pointer;
+      margin-right: 8px;
+      border-top-left-radius: 6px;
+      border-top-right-radius: 6px;
+      transition: background 0.3s, box-shadow 0.3s;
+      font-size: 16px;
+      font-weight: 500;
+    }
+    .tab-link:hover { background: #dce3ea; }
+    .tab-link.active {
+      background: var(--container-bg);
+      border-bottom: 3px solid var(--accent);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+    /* Templates Grid */
+    .templates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .template-card {
+      border: 1px solid var(--border);
+      background: #fdfdfd;
+      padding: 20px;
+      border-radius: 6px;
+      transition: background 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+      min-height: 120px; /* long rectangle */
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .template-card:hover {
+      background: #f0f4f8;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    }
+    .template-card h3 { font-size: 1.2rem; margin-bottom: 8px; }
+    .template-card p { font-size: 0.95rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <h2 onclick="showAuthor()">Inkwave</h2>
+    <div class="section">
+      <div class="section-title">Core</div>
+      <div id="nav-dashboard" class="nav-link active" onclick="showAuthor()">🏠 Dashboard</div>
+      <div class="nav-link" onclick="sessionStorage.setItem('userRole','author'); window.location.href='earnings-both.html'">
+        💰 Earnings 🚧
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Writing Tools</div>
+      <div class="nav-link" onclick="window.location.href='blurb-generator-both.html'">🧠 Blurb Generator 🚧</div>
+      <div class="nav-link" onclick="window.location.href='grammar-both.html'">📝 Grammar Fixer 🚧</div>
+      <div class="nav-link" onclick="window.location.href='story-templates-both.html'">📄 Story Templates</div>
+      <div class="nav-link" onclick="window.location.href='formatting-tools-both.html'">📈 Graphing Plots 🚧</div>
+      <div class="nav-link" onclick="window.location.href='genre-tags-both.html'">🏷️ Genre & Tags</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Testing & Feedback</div>
+      <div class="nav-link" onclick="window.location.href='A-B-both.html'">🧪 A/B Testing 🚧</div>
+      <div class="nav-link" onclick="window.location.href='reader-heatmap-both.html'">🔥 Reader Heatmap 🚧</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Publishing</div>
+      <div class="nav-link" onclick="window.location.href='checklist-both.html'">✅ Checklist</div>
+      <div class="nav-link" onclick="window.location.href='cover-generator-both.html'">🖼️ Cover Generator 🚧</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Productivity</div>
+      <div class="nav-link" onclick="window.location.href='inkie-chat-both.html'">🤖 Inky Assistant 🚧</div>
+      <div class="nav-link" onclick="window.location.href='settings-author-both.html'">⚙️ Settings</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Reader</div>
+      <div class="nav-link" onclick="window.location.href='favorites-both.html'">📚 Favorites</div>
+      <div class="nav-link" onclick="window.location.href='comments-both.html'">💬 Comments</div>
+      <div class="nav-link" onclick="window.location.href='following-both.html'">👤 Following</div>
+      <div class="nav-link" onclick="window.location.href='explore-both.html'">
+        📰 Explore Stories
+      </div>
+      <div class="nav-link" onclick="window.location.href='settings-both.html'">⚙️ Reader Settings</div>
+    </div>
+  </div>
+  <!-- Main Content -->
+  <div class="main">
+    <div class="header">
+      <h1>All Templates</h1>
+      <p>Your complete toolkit for crafting brilliant narratives</p>
+    </div>
+    <div class="container">
+      <!-- Top Tabs -->
+      <div class="tabs" id="tabsContainer">
+        <button class="tab-link" id="myTemplatesTab">My Templates</button>
+        <button class="tab-link active" id="allTemplatesTab">All Templates</button>
+      </div>
+      <!-- Tab Content Area -->
+      <div id="tabContent">
+        <!-- For "All Templates" we'll show the grid -->
+        <div id="allTemplatesContent">
+          <div class="templates-grid" id="templatesGrid">
+            <!-- Template cards will be injected here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Pre-made Templates Data – full suite of templates
+    const preMadeTemplates = [
+      {
+        id: "bookMasterOutline",
+        title: "Book Master Outline Template",
+        type: "book-outline",
+        description: "A comprehensive outline for novels with bonus plot framework options.",
+        content: `Title:
+Genre:
+Subgenre:
+Series Name (if applicable):
+Book # in Series:
+Target Word Count:
+Premise (Elevator Pitch):
+Core Themes:
+POV(s):
+Tense:
+Tone & Style:
+Target Audience:
+
+Choose Your Plot Framework (Pick One):
+- Three-Act Structure
+- Save the Cat Beat Sheet
+- Hero’s Journey
+- Seven-Point Plot
+- Dan Harmon's Story Circle
+- Snowflake Method
+
+Bonus: ALWAYS include:
+- Opening Hook
+- Inciting Incident
+- Point of No Return
+- Midpoint Shift
+- Climactic Confrontation
+- Character’s Final Transformation
+- Denouement / Fallout`
+      },
+      {
+        id: "ultimateCharacterTemplate",
+        title: "Ultimate Character Template",
+        type: "character-template",
+        description: "A detailed template covering basic info, psych profile, and relational dynamics.",
+        content: `Basic Info:
+Name:
+Age:
+Pronouns / Gender Identity:
+Occupation:
+Appearance (Key Traits Only):
+Voice (Tone, Accent, Mannerisms):
+
+Psych Profile:
+MBTI / Enneagram:
+Primary Fear:
+Core Desire:
+Moral Code / Ethics:
+Darkest Secret:
+Greatest Strength:
+Greatest Flaw:
+Internal Conflict:
+External Conflict:
+Character Arc (How do they change?)
+
+Relational Map:
+Allies:
+Enemies:
+Mentor / Guide:
+Love Interest:
+Rivals:
+Dependents:
+Who do they hurt / who hurts them?
+
+Role in Story:
+Protagonist / Antagonist / Supporting?
+Symbolic Role (Hero, Shadow, Trickster, etc)?
+What Theme They Represent?
+Purpose in Plot?`
+      },
+      {
+        id: "magicTechSystemTemplate",
+        title: "Magic/Technology System Template",
+        type: "system-template",
+        description: "Outline for designing a magic or tech system with rules, limits, and cultural significance.",
+        content: `System Type: (Magic, Tech, Mutation, Superpower, etc)
+Source of Power:
+Who Can Use It:
+Rules / Logic:
+Costs / Limits:
+Cultural Significance:
+Items / Tools Required:
+Types / Classifications:
+Dangers / Corruption Possibility:
+Exceptions / Anomalies:`
+      },
+      {
+        id: "worldbuildingMasterTemplate",
+        title: "Worldbuilding Master Template",
+        type: "worldbuilding-template",
+        description: "A template for building a rich world with detailed setting, culture, and key locations.",
+        content: `General Setting:
+Time Period:
+Region / Planet:
+Climate / Geography:
+Technology Level:
+Economy:
+Laws / Government:
+Currency:
+Language(s):
+Religion / Myth:
+
+Culture:
+Traditions / Holidays:
+Art / Music / Food:
+Fashion:
+Social Hierarchy:
+Taboos:
+Historical Trauma or Wars:
+Superstitions:
+Key Places (Name + Description):
+
+Map It Out:
+(List regions, key cities, strongholds, secret places, sacred locations, etc.)`
+      },
+      {
+        id: "chapterPlanningTemplate",
+        title: "Chapter Planning Template (Expanded)",
+        type: "chapter-planning",
+        description: "An expanded template for detailed chapter planning.",
+        content: `Chapter #:
+Title (if applicable):
+POV Character:
+Word Count Target:
+Scene 1 Summary:
+- Goal:
+- Conflict:
+- Outcome:
+Scene 2 (if applicable):
+- Repeat structure as needed
+Cliffhanger / Hook:
+Foreshadowing Elements:
+Character Moments:
+Ties to Subplots:`
+      },
+      {
+        id: "scenePlanningTemplate",
+        title: "Scene Planning Template (Drill-down)",
+        type: "scene-planning",
+        description: "A drill-down template for planning individual scenes in detail.",
+        content: `Scene #:
+Chapter:
+Scene Purpose (Advancing plot, revealing character, worldbuilding, etc):
+Characters Involved:
+Tension Source:
+Start State → End State:
+Setting Description Highlights:
+Dialogue Focus (Subtext / Power Play):
+Sensory Layering:
+Scene Hook:`
+      },
+      {
+        id: "themeSymbolismMap",
+        title: "Theme & Symbolism Map",
+        type: "theme-symbolism",
+        description: "A grid template to map themes and symbolism across your narrative.",
+        content: `Theme:
+How It Appears:
+Characters Tied:
+Key Scenes:
+Additional Notes:`
+      },
+      {
+        id: "foreshadowingTracker",
+        title: "Foreshadowing Tracker",
+        type: "foreshadowing",
+        description: "A tracker for managing setup and payoff of foreshadowing elements.",
+        content: `Setup Scene:
+Payoff Scene:
+Detail Foreshadowed:
+Subtle or Obvious:
+Notes:`
+      },
+      {
+        id: "revisionChecklistTemplate",
+        title: "Revision Checklist Template",
+        type: "revision-checklist",
+        description: "A comprehensive checklist to ensure consistency and quality in your manuscript.",
+        content: `Global Checks:
+- Theme consistency
+- Complete character arcs
+- Effective tension curve
+- Filled worldbuilding gaps
+- Consistent timeline
+
+Chapter-Level:
+- Clear scene purpose
+- Tight, in-character dialogue
+- No POV slips
+- Effective sensory details
+- Every scene has conflict`
+      },
+      {
+        id: "shortStoryOutlineTemplate",
+        title: "Short Story Outline Template",
+        type: "short-story-outline",
+        description: "An outline template designed specifically for short stories.",
+        content: `Title:
+Genre:
+Theme:
+Character (Name, Goal, Flaw):
+Conflict:
+Inciting Incident:
+Climax / Turn:
+Resolution:
+Word Count Limit:
+Twist or Punch (if any):
+Mood / Style Notes:`
+      },
+      {
+        id: "shortStoryChecklist",
+        title: "Short Story Checklist",
+        type: "short-story-checklist",
+        description: "A checklist ensuring your short story is concise and impactful.",
+        content: `- Open with a hook in the first sentence/paragraph
+- Establish clear conflict by paragraph 3
+- Every word counts (no fluff)
+- One core emotion/theme runs throughout
+- Ending ties back to the beginning or subverts expectations
+- Language fits the tone (tight, poetic, brutal, etc.)`
+      },
+      {
+        id: "flashFictionSnapshotPlanner",
+        title: "Flash Fiction Snapshot Planner",
+        type: "flash-fiction",
+        description: "A planner for crafting flash fiction pieces under 1,000 words.",
+        content: `Prompt:
+Core Image or Moment:
+Character:
+Implied Backstory:
+Twist or Turn:
+Final Line Impact:`
+      },
+      {
+        id: "fantasyWorldBuilding",
+        title: "Fantasy World Building",
+        type: "worldbuilding",
+        description: "A template for creating detailed and immersive fantasy worlds.",
+        content: `World Overview:
+Geography & Climate:
+Cultures & Traditions:
+Mythology & Religion:
+Political Structure:
+Key Landmarks & Locations:
+Notes:`
+      },
+      {
+        id: "magicSystemBlueprint",
+        title: "Magic System Blueprint",
+        type: "magic-system",
+        description: "A blueprint to design your magic system, including rules, limitations, and lore.",
+        content: `System Name:
+Type of Magic:
+Rules and Limitations:
+Cost/Consequences:
+Cultural Impact:
+Key Figures or Artifacts:
+Notes:`
+      },
+      {
+        id: "kingdomFaction",
+        title: "Kingdom/Faction Template",
+        type: "faction",
+        description: "A template for designing kingdoms or factions within your narrative.",
+        content: `Name:
+Ruler/Leader:
+Political Structure:
+Key Characteristics:
+Conflicts/Alliances:
+Notable Figures:
+Notes:`
+      },
+      {
+        id: "prophecyTemplate",
+        title: "Prophecy Template",
+        type: "prophecy",
+        description: "A template to create impactful prophecies to drive your narrative.",
+        content: `Prophecy Text:
+Key Figures Involved:
+Fulfillment Conditions:
+Consequences:
+Historical Context:
+Notes:`
+      },
+      {
+        id: "fantasyHeroCharacter",
+        title: "Fantasy Hero Character Template",
+        type: "character",
+        description: "A template for designing a fantasy hero with depth and nuance.",
+        content: `Name:
+Background:
+Quest/Mission:
+Strengths & Flaws:
+Key Relationships:
+Character Arc:
+Notes:`
+      },
+      {
+        id: "fantasyCreatureBuilder",
+        title: "Fantasy Creature Builder",
+        type: "creature",
+        description: "A template for creating unique fantasy creatures with distinct traits.",
+        content: `Creature Name:
+Habitat:
+Abilities:
+Weaknesses:
+Role in Story:
+Notes:`
+      },
+      {
+        id: "fantasyPlotStructure",
+        title: "Fantasy Plot Structure",
+        type: "plot-structure",
+        description: "A template outlining a classic fantasy plot structure with key beats.",
+        content: `Act 1: Setup
+Act 2: Confrontation
+Act 3: Resolution
+Key Plot Points:
+Notes:`
+      },
+      {
+        id: "magicSchoolGuild",
+        title: "Magic School/Guild Template",
+        type: "institution",
+        description: "A template for designing a magic school or guild, including structure and hierarchy.",
+        content: `Institution Name:
+Founding History:
+Structure & Hierarchy:
+Notable Members:
+Key Conflicts:
+Notes:`
+      },
+      {
+        id: "magicDuelCombat",
+        title: "Magic Duel/Combat Template",
+        type: "combat",
+        description: "A template for planning magic duels or combat scenes with dynamic turns.",
+        content: `Duel Setup:
+Key Spells/Techniques:
+Turning Points:
+Outcome:
+Notes:`
+      },
+      {
+        id: "artifactRelicTemplate",
+        title: "Artifact/Relic Template",
+        type: "artifact",
+        description: "A template for creating significant artifacts or relics in your narrative.",
+        content: `Artifact Name:
+Origin:
+Powers:
+Limitations:
+Role in Story:
+Notes:`
+      },
+      {
+        id: "sideQuestGenerator",
+        title: "Side Quest Generator",
+        type: "side-quest",
+        description: "A generator template to brainstorm and structure side quests.",
+        content: `Quest Title:
+Objective:
+Key Characters:
+Rewards:
+Notes:`
+      },
+      {
+        id: "fantasyDialogueEnhancer",
+        title: "Fantasy Dialogue Flavor Enhancer",
+        type: "dialogue",
+        description: "A template to add authentic, flavorful dialogue to your fantasy narrative.",
+        content: `Tone & Style:
+Key Vocabulary:
+Cultural References:
+Signature Phrases:
+Notes:`
+      }
+    ];
+
+    // Render the grid of template cards
+    function renderTemplates() {
+      const grid = document.getElementById('templatesGrid');
+      grid.innerHTML = '';
+      preMadeTemplates.forEach(template => {
+        const card = document.createElement('div');
+        card.className = 'template-card';
+        card.innerHTML = `<h3>${template.title}</h3><p>${template.description}</p>`;
+        // On click, navigate to the individual template view page with the template id in the query string.
+        card.addEventListener('click', () => {
+          window.location.href = `template-view.html?template=${encodeURIComponent(template.id)}`;
+        });
+        grid.appendChild(card);
+      });
+    }
+    renderTemplates();
+
+    // Set up top tab behavior
+    document.getElementById('myTemplatesTab').addEventListener('click', () => {
+      window.location.href = 'story-templates.html';
+    });
+    document.getElementById('allTemplatesTab').addEventListener('click', () => {
+      // Ensure "All Templates" remains active and its content is visible.
+      document.querySelectorAll('.tab-link').forEach(tab => tab.classList.remove('active'));
+      document.getElementById('allTemplatesTab').classList.add('active');
+      document.getElementById('allTemplatesContent').style.display = 'block';
+    });
+  </script>
+</body>
+</html>
