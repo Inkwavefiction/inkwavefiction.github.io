@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>window.allowedRoles = ["reader","both"];</script>
+  <script src="role-guard.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Settings – Inkwave</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --white: #ffffff;
+      --sidebar-bg: #0d0d0d;
+      --sidebar-width: 280px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      color: white;
+      height: 100vh;
+      padding: 2rem 1.5rem;
+      position: fixed;
+      overflow-y: auto;
+    }
+
+    .sidebar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin-bottom: 2.5rem;
+      font-weight: 600;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.75rem 1rem;
+      color: #e0e0e0;
+      text-decoration: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      transition: background 0.2s ease;
+      margin-bottom: 0.6rem;
+    }
+
+    .nav-link:hover {
+      background-color: #1a1a1a;
+    }
+
+    .nav-link.active {
+      background-color: #2a2a2a;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .main {
+      margin-left: var(--sidebar-width);
+      padding: 3rem 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    .settings-container {
+      width: 100%;
+      max-width: 700px;
+      background: var(--white);
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .profile-section {
+      display: flex;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .profile-section img {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-right: 1rem;
+      border: 2px solid #ccc;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.4rem;
+      font-weight: 500;
+    }
+
+    input[type="text"], input[type="email"], input[type="file"] {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+
+    .save-btn, .delete-btn {
+      background-color: #789a91;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-right: 1rem;
+    }
+
+    .save-btn:hover {
+      background-color: #5f7f76;
+    }
+
+    .delete-btn {
+      background-color: #e74c3c;
+    }
+
+    .delete-btn:hover {
+      background-color: #c0392b;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    sessionStorage.setItem('userRole','reader');
+  </script>
+
+  <div class="sidebar">
+    <h2 onclick="showAuthor()">Inkwave</h2>
+    <div class="section">
+      <div class="section-title">Core</div>
+      <div id="nav-dashboard" class="nav-link active" onclick="showAuthor()">🏠 Dashboard</div>
+      <div class="nav-link" onclick="sessionStorage.setItem('userRole','author'); window.location.href='earnings-both.html'">
+        💰 Earnings 🚧
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Writing Tools</div>
+      <div class="nav-link" onclick="window.location.href='blurb-generator-both.html'">🧠 Blurb Generator 🚧</div>
+      <div class="nav-link" onclick="window.location.href='grammar-both.html'">📝 Grammar Fixer 🚧</div>
+      <div class="nav-link" onclick="window.location.href='story-templates-both.html'">📄 Story Templates</div>
+      <div class="nav-link" onclick="window.location.href='formatting-tools-both.html'">📈 Graphing Plots 🚧</div>
+      <div class="nav-link" onclick="window.location.href='genre-tags-both.html'">🏷️ Genre & Tags</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Testing & Feedback</div>
+      <div class="nav-link" onclick="window.location.href='A-B-both.html'">🧪 A/B Testing 🚧</div>
+      <div class="nav-link" onclick="window.location.href='reader-heatmap-both.html'">🔥 Reader Heatmap 🚧</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Publishing</div>
+      <div class="nav-link" onclick="window.location.href='checklist-both.html'">✅ Checklist</div>
+      <div class="nav-link" onclick="window.location.href='cover-generator-both.html'">🖼️ Cover Generator 🚧</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Productivity</div>
+      <div class="nav-link" onclick="window.location.href='inkie-chat-both.html'">🤖 Inky Assistant 🚧</div>
+      <div class="nav-link" onclick="window.location.href='settings-author-both.html'">⚙️ Settings</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Reader</div>
+      <div class="nav-link" onclick="window.location.href='favorites-both.html'">📚 Favorites</div>
+      <div class="nav-link" onclick="window.location.href='comments-both.html'">💬 Comments</div>
+      <div class="nav-link" onclick="window.location.href='following-both.html'">👤 Following</div>
+      <div class="nav-link" onclick="window.location.href='explore-both.html'">
+        📰 Explore Stories
+      </div>
+      <div class="nav-link" onclick="window.location.href='settings-both.html'">⚙️ Reader Settings</div>
+    </div>
+  </div>
+  
+  <div class="main">
+    <div class="settings-container">
+      <h1>⚙️ Account Settings</h1>
+
+      <div class="profile-section">
+        <img id="avatarPreview" src="https://placehold.co/80x80" alt="Avatar Preview">
+        <input type="file" id="avatarInput" accept="image/*">
+      </div>
+
+      <div class="form-group">
+        <label>Username</label>
+        <input type="text" id="usernameField">
+      </div>
+
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="emailField">
+      </div>
+
+      <div class="form-group">
+        <label>Date Joined</label>
+        <input type="text" id="dateJoinedField" disabled>
+      </div>
+
+      <button class="save-btn" onclick="saveChanges()">Save Changes</button>
+      <button class="delete-btn" onclick="deleteAccount()">Delete Account</button>
+    </div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0",
+      storageBucket: "inkwave-549c0.appspot.com",
+      messagingSenderId: "1084811926133",
+      appId: "1:1084811926133:web:auto-generated"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const storage = firebase.storage();
+
+    const emailField = document.getElementById("emailField");
+    const usernameField = document.getElementById("usernameField");
+    const dateJoinedField = document.getElementById("dateJoinedField");
+    const avatarPreview = document.getElementById("avatarPreview");
+    const avatarInput = document.getElementById("avatarInput");
+
+    let currentUser = null;
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        alert("Please log in.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      currentUser = user;
+      emailField.value = user.email;
+      dateJoinedField.value = new Date(user.metadata.creationTime).toLocaleDateString();
+      avatarPreview.src = user.photoURL || "https://placehold.co/80x80";
+
+      try {
+        const doc = await db.collection("users").doc(user.uid).get();
+        if (doc.exists) {
+          const data = doc.data();
+          usernameField.value = data.username || user.displayName || "";
+        } else {
+          usernameField.value = user.displayName || "";
+        }
+      } catch (err) {
+        console.warn("Could not load user profile:", err);
+      }
+    });
+
+    avatarInput.addEventListener("change", () => {
+      const file = avatarInput.files[0];
+      if (file) {
+        avatarPreview.src = URL.createObjectURL(file);
+      }
+    });
+
+    async function saveChanges() {
+      const username = usernameField.value.trim();
+      const newEmail = emailField.value.trim();
+      const file = avatarInput.files[0];
+
+      if (!username || !newEmail) {
+        alert("Username and email cannot be empty.");
+        return;
+      }
+
+      try {
+        const currentEmail = currentUser.email;
+
+        let photoURL = currentUser.photoURL;
+        if (file) {
+          const storageRef = storage.ref().child(`avatars/${currentUser.uid}`);
+          await storageRef.put(file);
+          photoURL = await storageRef.getDownloadURL();
+        }
+
+        await currentUser.updateProfile({ displayName: username, photoURL });
+
+        if (newEmail !== currentEmail) {
+          await currentUser.updateEmail(newEmail);
+        }
+
+        await db.collection("users").doc(currentUser.uid).set({
+          username,
+          photoURL,
+          email: newEmail,
+          dateJoined: currentUser.metadata.creationTime
+        }, { merge: true });
+
+        alert("Profile updated successfully!");
+      } catch (err) {
+        console.error(err);
+        if (err.code === "auth/requires-recent-login") {
+          alert("You need to log in again to change your email.");
+        } else {
+          alert("Update failed: " + err.message);
+        }
+      }
+    }
+
+    async function deleteAccount() {
+      if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
+
+      try {
+        await db.collection("users").doc(currentUser.uid).delete();
+        await currentUser.delete();
+        alert("Account deleted.");
+        window.location.href = "signup.html";
+      } catch (err) {
+        console.error(err);
+        alert("Could not delete account: " + err.message);
+      }
+    }
+  </script>
+</body>
+</html>
