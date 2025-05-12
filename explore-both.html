@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>window.allowedRoles = ["reader","both"];</script>
+  <script src="role-guard.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Explore Stories – Inkwave</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --accent: #4f8dc0;
+      --white: #ffffff;
+      --sidebar-bg: #0d0d0d;
+      --sidebar-width: 280px;
+      --finished-color: #1F77DE;
+      --in-progress-color: #64B676;
+      --short-color: #b6648d;
+      --book-color: #5a4e8f;
+      --genre-color: #FFA500;
+      --tag-bg: #e0e0e0;
+      --tag-text: #333333;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      width: var(--sidebar-width);
+      background: var(--sidebar-bg);
+      color: var(--white);
+      padding: 2rem 1.5rem;
+      height: 100vh;
+      position: fixed;
+      overflow-y: auto;
+    }
+
+    .sidebar h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin-bottom: 2.5rem;
+      font-weight: 600;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      color: #e0e0e0;
+      text-decoration: none;
+      font-size: 1rem;
+      padding: 0.75rem 1rem;
+      border-radius: 8px;
+      font-weight: 500;
+      margin-bottom: 0.6rem;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .nav-link:hover {
+      background-color: #1a1a1a;
+    }
+
+    .nav-link.active {
+      background-color: #2a2a2a;
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    .main {
+      margin-left: var(--sidebar-width);
+      padding: 2.5rem;
+      flex: 1;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.2rem;
+      font-weight: 600;
+      margin-bottom: 1.5rem;
+    }
+
+    .story-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+    }
+
+    .story-card {
+      background: var(--white);
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: transform 0.2s;
+      position: relative;
+      cursor: pointer;
+    }
+
+    .story-card:hover {
+      transform: scale(1.01);
+    }
+
+    .story-title {
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .story-info {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .badge {
+      padding: 0.3rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: var(--white);
+    }
+
+    .badge.finished { background-color: var(--finished-color); }
+    .badge.in-progress { background-color: var(--in-progress-color); }
+    .badge.short { background-color: var(--short-color); }
+    .badge.book { background-color: var(--book-color); }
+    .badge.genre { background-color: var(--genre-color); }
+
+    .tag {
+      background-color: var(--tag-bg);
+      color: var(--tag-text);
+      padding: 0.2rem 0.5rem;
+      border-radius: 10px;
+      font-size: 0.75rem;
+    }
+
+    .story-blurb {
+      font-size: 0.9rem;
+      color: var(--muted);
+    }
+
+    .search-bar {
+      margin-bottom: 1.5rem;
+      padding: 0.5rem;
+      width: 100%;
+      max-width: 400px;
+      font-size: 1rem;
+    }
+
+    .heart-icon {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 1.2rem;
+      color: #e25555;
+    }
+    /* Modal styles continued */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.8);
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 5% auto;
+      padding: 20px;
+      border-radius: 8px;
+      width: 40%;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .close-button {
+      color: #aaa;
+      position: absolute;
+      top: 10px;
+      right: 20px;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .modal-header h2 {
+      margin-bottom: 0.3rem;
+    }
+
+    .modal-header p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .section-list {
+      list-style-type: disc;
+      padding-left: 1.5rem;
+      margin-top: 0.5rem;
+      font-size: 1.05rem;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .section-list li {
+      margin-bottom: 0.4rem;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <!-- ensure index.html knows you’re a reader -->
+  <script>
+    sessionStorage.setItem('userRole','reader');
+  </script>
+
+   <div class="sidebar">
+    <h2 onclick="showAuthor()">Inkwave</h2>
+    <div class="section">
+      <div class="section-title">Core</div>
+      <div id="nav-dashboard" class="nav-link active" onclick="showAuthor()">🏠 Dashboard</div>
+      <div class="nav-link" onclick="sessionStorage.setItem('userRole','author'); window.location.href='earnings-both.html'">
+        💰 Earnings 🚧
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-title">Writing Tools</div>
+      <div class="nav-link" onclick="window.location.href='blurb-generator-both.html'">🧠 Blurb Generator 🚧</div>
+      <div class="nav-link" onclick="window.location.href='grammar-both.html'">📝 Grammar Fixer 🚧</div>
+      <div class="nav-link" onclick="window.location.href='story-templates-both.html'">📄 Story Templates</div>
+      <div class="nav-link" onclick="window.location.href='formatting-tools-both.html'">📈 Graphing Plots 🚧</div>
+      <div class="nav-link" onclick="window.location.href='genre-tags-both.html'">🏷️ Genre & Tags</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Testing & Feedback</div>
+      <div class="nav-link" onclick="window.location.href='A-B-both.html'">🧪 A/B Testing 🚧</div>
+      <div class="nav-link" onclick="window.location.href='reader-heatmap-both.html'">🔥 Reader Heatmap 🚧</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Publishing</div>
+      <div class="nav-link" onclick="window.location.href='checklist-both.html'">✅ Checklist</div>
+      <div class="nav-link" onclick="window.location.href='cover-generator-both.html'">🖼️ Cover Generator 🚧</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Productivity</div>
+      <div class="nav-link" onclick="window.location.href='inkie-chat-both.html'">🤖 Inky Assistant 🚧</div>
+      <div class="nav-link" onclick="window.location.href='settings-author-both.html'">⚙️ Settings</div>
+    </div>
+    <div class="section">
+      <div class="section-title">Reader</div>
+      <div class="nav-link" onclick="window.location.href='favorites-both.html'">📚 Favorites</div>
+      <div class="nav-link" onclick="window.location.href='comments-both.html'">💬 Comments</div>
+      <div class="nav-link" onclick="window.location.href='following-both.html'">👤 Following</div>
+      <div class="nav-link" onclick="window.location.href='explore-both.html'">
+        📰 Explore Stories
+      </div>
+      <div class="nav-link" onclick="window.location.href='settings-both.html'">⚙️ Reader Settings</div>
+    </div>
+  </div>
+  
+  <div class="main">
+    <h1>📖 Explore Stories</h1>
+    <input type="text" class="search-bar" placeholder="Search stories..." id="storySearch" />
+    <div id="storyGrid" class="story-grid"><p>Loading stories...</p></div>
+  </div>
+
+  <!-- Modal -->
+  <div id="storyModal" class="modal">
+    <div class="modal-content">
+      <span class="close-button">&times;</span>
+      <div class="modal-header">
+        <h2 id="modalTitle">Story Title</h2>
+        <p id="modalAuthor">by Author Name</p>
+      </div>
+      <p id="modalBlurb">Full blurb goes here...</p>
+      <div id="modalMeta">
+        <span id="modalGenre" class="badge genre"></span>
+        <div id="modalTags" style="margin: 0.5rem 0;"></div>
+      </div>
+      <h4 style="margin-top: 1.5rem;">Sections</h4>
+      <ul id="modalSections" class="section-list"></ul>
+      <div style="margin-top: 2rem; text-align: right;">
+        <button id="startReading">📖 Start Reading</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase + Script -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const modal = document.getElementById("storyModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalAuthor = document.getElementById("modalAuthor");
+    const modalBlurb = document.getElementById("modalBlurb");
+    const modalGenre = document.getElementById("modalGenre");
+    const modalTags = document.getElementById("modalTags");
+    const modalSections = document.getElementById("modalSections");
+    const startReading = document.getElementById("startReading");
+
+    document.querySelector(".close-button").onclick = () => modal.style.display = "none";
+    window.onclick = e => { if (e.target === modal) modal.style.display = "none"; };
+
+    function openModal(storyId) {
+      db.collectionGroup("stories").where("id", "==", storyId).limit(1).get().then(async snap => {
+        if (snap.empty) return alert("Story not found.");
+        const doc = snap.docs[0];
+        const data = doc.data();
+        const authorId = doc.ref.parent.parent.id;
+
+        modalTitle.textContent = data.title || "Untitled";
+        modalBlurb.textContent = data.blurb || "No description available.";
+        modalGenre.textContent = data.genre || "";
+        modalGenre.style.display = data.genre ? "inline-block" : "none";
+        modalTags.innerHTML = (data.tags || []).map(t => `<span class="tag">${t}</span>`).join(" ");
+
+        modalSections.innerHTML = "";
+        const sections = Object.keys(data.sections || {});
+        if (sections.length === 0) {
+          modalSections.innerHTML = "<li>No sections</li>";
+        } else {
+          sections.forEach(name => {
+            modalSections.innerHTML += `<li>${name}</li>`;
+          });
+        }
+
+        const authorSnap = await db.collection("authors").doc(authorId).get();
+        modalAuthor.textContent = authorSnap.exists
+          ? `by ${authorSnap.data().displayName || "Unknown Author"}`
+          : "by Unknown Author";
+
+        startReading.onclick = () => {
+          window.location.href = `story.html?storyId=${storyId}`;
+        };
+
+        modal.style.display = "block";
+      });
+    }
+
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        alert("Please log in first.");
+        window.location.href = "login.html";
+        return;
+      }
+
+      const uid = user.uid;
+      const favSnapshot = await db.collection("users").doc(uid).collection("favorites").get();
+      const favoriteIds = new Set();
+      favSnapshot.forEach(doc => favoriteIds.add(doc.data().id));
+      loadStories(favoriteIds);
+    });
+
+    async function loadStories(favoriteIds) {
+      const grid = document.getElementById("storyGrid");
+      const searchInput = document.getElementById("storySearch");
+      grid.innerHTML = "";
+
+      const snapshot = await db.collectionGroup("stories").where("status", "==", "published").get();
+
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "story-card";
+        div.onclick = () => openModal(data.id);
+
+        const heart = favoriteIds.has(data.id) ? `<div class="heart-icon">❤️</div>` : "";
+        const typeBadge = data.type === "book"
+          ? `<span class="badge book">📘 Full Book</span>`
+          : `<span class="badge short">📖 Short Story</span>`;
+        const statusBadge = data.finished
+          ? `<span class="badge finished">✅ Finished</span>`
+          : `<span class="badge in-progress">🕓 In Progress</span>`;
+        const genreBadge = data.genre
+          ? `<span class="badge genre">${data.genre}</span>` : "";
+        const tagHTML = (Array.isArray(data.tags) ? data.tags : [])
+          .map(tag => `<span class="tag">${tag}</span>`).join(" ");
+
+        div.innerHTML = `
+          ${heart}
+          <div class="story-title">${data.title || "Untitled"}</div>
+          <div class="story-info">${typeBadge} ${statusBadge} ${genreBadge} ${tagHTML}</div>
+          <div class="story-blurb">${data.blurb || "No description available."}</div>
+        `;
+
+        grid.appendChild(div);
+      });
+
+      searchInput.oninput = () => {
+        const query = searchInput.value.toLowerCase();
+        const cards = grid.querySelectorAll(".story-card");
+        cards.forEach(card => {
+          const title = card.querySelector(".story-title").innerText.toLowerCase();
+          const blurb = card.querySelector(".story-blurb").innerText.toLowerCase();
+          card.style.display = (title.includes(query) || blurb.includes(query)) ? "block" : "none";
+        });
+      };
+    }
+  </script>
+</body>
+</html>
