@@ -86,8 +86,7 @@
     import {
       getAuth,
       signInWithEmailAndPassword,
-      createUserWithEmailAndPassword,
-      fetchSignInMethodsForEmail
+      createUserWithEmailAndPassword
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import {
       getFirestore,
@@ -119,7 +118,6 @@
 
       if (roles.includes("reader") && roles.includes("author")) {
         sessionStorage.setItem("userRole", "both");
-        // <-- Redirect dual-role users here:
         return window.location.href = "/both-dashboard.html";
       }
       if (roles.includes("reader")) {
@@ -146,31 +144,12 @@
       const password = document.getElementById("password").value.trim();
       messageDiv.textContent = "";
 
+      // 1) Try to create a brand-new author account
       try {
-        // Check if account exists
-        const methods = await fetchSignInMethodsForEmail(auth, email);
-
-        if (methods.length) {
-          // Existing user → sign in & add “author”
-          const cred = await signInWithEmailAndPassword(auth, email, password);
-          const uid  = cred.user.uid;
-
-          await updateDoc(doc(db, "users", uid), {
-            roles: arrayUnion("author")
-          });
-          // Merge/overwrite pending status in authors collection
-          await setDoc(doc(db, "authors", uid), {
-            email,
-            status: "pending"
-          }, { merge: true });
-
-          return routeByRole(uid);
-        }
-
-        // New user → create author-only
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
         const uid      = userCred.user.uid;
 
+        // new user → set roles & author-app
         await setDoc(doc(db, "users", uid), {
           email,
           roles: ["author"],
@@ -184,7 +163,31 @@
         return routeByRole(uid);
 
       } catch (err) {
-        messageDiv.textContent = err.message;
+        // 2) If it’s “already-in-use”, we sign in and merge the role
+        if (err.code === "auth/email-already-in-use") {
+          try {
+            const cred = await signInWithEmailAndPassword(auth, email, password);
+            const uid  = cred.user.uid;
+
+            // merge “author” into existing user
+            await updateDoc(doc(db, "users", uid), {
+              roles: arrayUnion("author")
+            });
+            // merge/overwrite their author-app
+            await setDoc(doc(db, "authors", uid), {
+              email,
+              status: "pending"
+            }, { merge: true });
+
+            return routeByRole(uid);
+          } catch (signInErr) {
+            // wrong password or other sign-in error
+            messageDiv.textContent = signInErr.message;
+          }
+        } else {
+          // some other creation error (weak-pass, bad-email, etc)
+          messageDiv.textContent = err.message;
+        }
       }
     });
   </script>
