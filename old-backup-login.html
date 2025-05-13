@@ -67,7 +67,7 @@
   <h2>Become an Author</h2>
   <div class="description">
     When you sign up, you’ll create an author account and be redirected to check your application status.
-    If you’re already a reader, don’t worry — this is a separate process.
+    If you’re already a reader, this will simply add the author role to your existing account.
   </div>
   <form id="signup-form">
     <input type="email" id="email" placeholder="Email" required />
@@ -79,45 +79,99 @@
 
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-  import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-  import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    createUserWithEmailAndPassword,
+    fetchSignInMethodsForEmail
+  } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+  import {
+    getFirestore,
+    doc,
+    getDoc,
+    setDoc,
+    updateDoc,
+    arrayUnion,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
     authDomain: "inkwave-549c0.firebaseapp.com",
     projectId: "inkwave-549c0",
-    storageBucket: "inkwave-549c0.firebasestorage.app",
+    storageBucket: "inkwave-549c0.appspot.com",
     messagingSenderId: "1084811926133",
-    appId: "1:1084811926133:web:f1656fce68d5c4d697363c",
-    measurementId: "G-LKJX3HJ8JX"
+    appId: "1:1084811926133:web:f1656fce68d5c4d697363c"
   };
-
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  // ─── ROUTE BASED ON ROLES ─────────────────────────────────────────
+  async function routeByRole(uid) {
+    const snap = await getDoc(doc(db, "users", uid));
+    const roles = (snap.exists() && snap.data().roles) || [];
+    if (roles.includes("reader") && roles.includes("author")) {
+      sessionStorage.setItem("userRole", "both");
+      return window.location.href = "/dashboard.html";
+    }
+    if (roles.includes("reader")) {
+      sessionStorage.setItem("userRole", "reader");
+      return window.location.href = "/explore.html";
+    }
+    if (roles.includes("author")) {
+      sessionStorage.setItem("userRole", "author");
+      const seen = localStorage.getItem("seenWelcome");
+      return window.location.href = seen
+        ? "/author-dashboard.html"
+        : "/approved.html";
+    }
+    throw new Error("No role assigned");
+  }
+
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
 
-  signupForm.addEventListener("submit", async (e) => {
+  signupForm.addEventListener("submit", async e => {
     e.preventDefault();
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
+    const email    = document.getElementById("email").value.trim(),
+          password = document.getElementById("password").value.trim();
     messageDiv.textContent = "";
 
     try {
+      const methods = await fetchSignInMethodsForEmail(auth, email);
+      if (methods.length) {
+        // Existing user → login, merge in author role, merge application
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        const uid  = cred.user.uid;
+        await updateDoc(doc(db, "users", uid), {
+          roles: arrayUnion("author")
+        });
+        await setDoc(doc(db, "authors", uid), {
+          email,
+          status: "pending"
+        }, { merge: true });
+        return routeByRole(uid);
+      }
+
+      // Brand-new author
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
-      await setDoc(doc(db, "authors", userCred.user.uid), {
-        email: email,
+      const uid = userCred.user.uid;
+      await setDoc(doc(db, "users", uid), {
+        email,
+        roles: ["author"],
+        joinedAt: serverTimestamp()
+      });
+      await setDoc(doc(db, "authors", uid), {
+        email,
         status: "pending"
       });
-      alert("Your author account has been created successfully!");
-      window.location.href = "account-created.html";
-    } catch (error) {
-      messageDiv.textContent = error.message;
+      return routeByRole(uid);
+
+    } catch (err) {
+      messageDiv.textContent = err.message;
     }
   });
 </script>
-
 </body>
 </html>
