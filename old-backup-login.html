@@ -144,12 +144,12 @@
       const password = document.getElementById("password").value.trim();
       messageDiv.textContent = "";
 
-      // 1) Try to create a brand-new author account
+      // 1) Attempt to create a new author user
       try {
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
         const uid      = userCred.user.uid;
 
-        // new user → set roles & author-app
+        // New user → set roles & author-app
         await setDoc(doc(db, "users", uid), {
           email,
           roles: ["author"],
@@ -163,29 +163,28 @@
         return routeByRole(uid);
 
       } catch (err) {
-        // 2) If it’s “already-in-use”, we sign in and merge the role
+        // 2) If the email is in use, sign in and merge the author role
         if (err.code === "auth/email-already-in-use") {
           try {
             const cred = await signInWithEmailAndPassword(auth, email, password);
             const uid  = cred.user.uid;
 
-            // merge “author” into existing user
             await updateDoc(doc(db, "users", uid), {
               roles: arrayUnion("author")
             });
-            // merge/overwrite their author-app
             await setDoc(doc(db, "authors", uid), {
               email,
               status: "pending"
             }, { merge: true });
 
             return routeByRole(uid);
+
           } catch (signInErr) {
             // wrong password or other sign-in error
             messageDiv.textContent = signInErr.message;
           }
         } else {
-          // some other creation error (weak-pass, bad-email, etc)
+          // some other creation error
           messageDiv.textContent = err.message;
         }
       }
