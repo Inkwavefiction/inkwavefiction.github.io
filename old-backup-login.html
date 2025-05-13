@@ -24,11 +24,7 @@
       max-width: 400px;
       width: 100%;
     }
-    h2 {
-      font-family: 'Playfair Display', serif;
-      text-align: center;
-      margin-bottom: 1rem;
-    }
+    h2 { font-family: 'Playfair Display', serif; text-align: center; margin-bottom: 1rem; }
     .description {
       font-size: 0.95rem;
       text-align: center;
@@ -54,9 +50,7 @@
       font-size: 1rem;
       margin-top: 0.5rem;
     }
-    button:hover {
-      background-color: #5f7f76;
-    }
+    button:hover { background-color: #5f7f76; }
     .message {
       text-align: center;
       margin-top: 1rem;
@@ -116,7 +110,7 @@
       const snap  = await getDoc(doc(db, "users", uid));
       const roles = snap.exists() ? snap.data().roles || [] : [];
 
-      if (roles.includes("reader") && roles.includes("author")) {
+      if (roles.includes("both")) {
         sessionStorage.setItem("userRole", "both");
         return window.location.href = "/both-dashboard.html";
       }
@@ -140,16 +134,16 @@
 
     form.addEventListener("submit", async e => {
       e.preventDefault();
-      const email    = document.getElementById("email").value.trim();
+      const email    = document.getElementById("email").value.trim().toLowerCase();
       const password = document.getElementById("password").value.trim();
       messageDiv.textContent = "";
 
-      // 1) Attempt to create a new author user
+      // 1) Try to create a new author-only account
       try {
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
         const uid      = userCred.user.uid;
 
-        // New user → set roles & author-app
+        // New user → roles=["author"]
         await setDoc(doc(db, "users", uid), {
           email,
           roles: ["author"],
@@ -163,28 +157,38 @@
         return routeByRole(uid);
 
       } catch (err) {
-        // 2) If the email is in use, sign in and merge the author role
+        // 2) If it’s “already-in-use”, sign in & merge
         if (err.code === "auth/email-already-in-use") {
           try {
             const cred = await signInWithEmailAndPassword(auth, email, password);
             const uid  = cred.user.uid;
 
+            // 2a) Always add "author"
             await updateDoc(doc(db, "users", uid), {
               roles: arrayUnion("author")
             });
+            // 2b) Merge/overwrite pending status
             await setDoc(doc(db, "authors", uid), {
               email,
               status: "pending"
             }, { merge: true });
 
+            // 2c) Now re-fetch roles, and if both reader+author, add "both"
+            const snap = await getDoc(doc(db, "users", uid));
+            const roles = snap.data().roles || [];
+            if (roles.includes("reader") && roles.includes("author")) {
+              await updateDoc(doc(db, "users", uid), {
+                roles: arrayUnion("both")
+              });
+            }
+
             return routeByRole(uid);
 
           } catch (signInErr) {
-            // wrong password or other sign-in error
             messageDiv.textContent = signInErr.message;
           }
         } else {
-          // some other creation error
+          // any other signup error
           messageDiv.textContent = err.message;
         }
       }
