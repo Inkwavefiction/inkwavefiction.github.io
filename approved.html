@@ -1,22 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Author Approval – Inkwave</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
   <style>
-    body { font-family:'Poppins',sans-serif; background:#e4ede7; color:#333;
-           display:flex; justify-content:center; align-items:center; min-height:100vh; padding:2rem; }
-    .card { background:#fff; padding:2.5rem; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08);
-            max-width:600px; width:100%; text-align:center; }
-    h1 { font-family:'Playfair Display', serif; margin-bottom:1rem; }
-    p  { font-size:1.1rem; margin-bottom:2rem; }
-    .btn { padding:0.7rem 1.5rem; background:#789a91; color:#fff; border:none; border-radius:6px;
-           font-size:1rem; cursor:pointer; text-decoration:none; display:inline-block; }
-    .btn:hover { background:#5f7f76; }
-    .pending { color:#b16c00; }
-    .denied  { color:#a33c3c; }
-    .approved{ color:#1e7f4f; }
+    body { font-family: 'Poppins', sans-serif; background: #e4ede7; color: #333;
+           display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem; }
+    .card { background: white; padding: 2.5rem; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            max-width: 600px; width: 100%; text-align: center; }
+    h1 { font-family: 'Playfair Display', serif; margin-bottom: 1rem; }
+    p  { font-size: 1.1rem; margin-bottom: 2rem; }
+    .btn { padding: 0.7rem 1.5rem; background: #789a91; color: white; border: none; border-radius: 6px;
+           font-size: 1rem; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn:hover { background: #5f7f76; }
+    .pending { color: #b16c00; }
+    .denied  { color: #a33c3c; }
+    .approved{ color: #1e7f4f; }
   </style>
 </head>
 <body>
@@ -31,6 +31,7 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getFirestore, doc, getDoc }    from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -51,12 +52,14 @@
         return window.location.href = "/login.html";
       }
 
-      // 1) load merged roles from users/{uid}
+      // Load user record
       const uSnap = await getDoc(doc(db, "users", user.uid));
       if (!uSnap.exists()) {
         return window.location.href = "/login.html";
       }
       const uData = uSnap.data();
+
+      // Merge old `role` + new `roles[]`
       let roles = Array.isArray(uData.roles) ? [...uData.roles] : [];
       if (uData.role && !roles.includes(uData.role)) {
         roles.push(uData.role);
@@ -65,32 +68,28 @@
       const isReader = roles.includes("reader");
       const isAuthor = roles.includes("author");
 
-      // reader-only → explore
-      if (!isAuthor && isReader) {
-        return window.location.href = "/explore.html";
-      }
-      // reader+author → handle both flow
+      // 1) BOTH first
       if (isReader && isAuthor) {
-        // fetch approval status
+        // Check approval status
         const aSnap = await getDoc(doc(db, "authors", user.uid));
         const status = aSnap.exists() ? aSnap.data().status : null;
 
         if (status === "pending") {
           heading.textContent = "⏳ Application Pending";
           heading.classList.add("pending");
-          messageEl.textContent = "Your application for both roles is still pending.";
+          messageEl.textContent = "Your Reader+Author application is pending.";
           return;
         }
         if (status === "denied") {
           heading.textContent = "❌ Application Denied";
           heading.classList.add("denied");
-          messageEl.textContent = "Your application for both roles was denied.";
+          messageEl.textContent = "Your Reader+Author application was denied.";
           return;
         }
         if (status === "approved") {
           heading.textContent = "🎉 Approved as Reader & Author!";
           heading.classList.add("approved");
-          messageEl.textContent = "You can now access the combined dashboard.";
+          messageEl.textContent = "Go to your combined dashboard below.";
           dashboardBtn.style.display = "inline-block";
           dashboardBtn.href = "/both-dashboard.html";
           dashboardBtn.textContent = "➕ Go to Both Dashboard";
@@ -103,8 +102,8 @@
         return;
       }
 
-      // author-only → handle author flow
-      if (isAuthor && !isReader) {
+      // 2) AUTHOR-ONLY next
+      if (isAuthor) {
         const aSnap = await getDoc(doc(db, "authors", user.uid));
         if (!aSnap.exists()) {
           heading.textContent = "❌ No application found.";
@@ -113,10 +112,11 @@
           return;
         }
         const status = aSnap.data().status;
+
         if (status === "pending") {
           heading.textContent = "⏳ Application Pending";
           heading.classList.add("pending");
-          messageEl.textContent = "Your author application is still pending.";
+          messageEl.textContent = "Your author application is pending.";
           return;
         }
         if (status === "denied") {
@@ -128,15 +128,21 @@
         if (status === "approved") {
           heading.textContent = "🎉 Approved as Author!";
           heading.classList.add("approved");
-          messageEl.textContent = "You can now access the author dashboard.";
+          messageEl.textContent = "Go to your author dashboard below.";
           dashboardBtn.style.display = "inline-block";
           dashboardBtn.href = "/author-dashboard.html";
           dashboardBtn.textContent = "➕ Go to Author Dashboard";
           return;
         }
+        return;
       }
 
-      // if no conditions matched:
+      // 3) READER-ONLY last
+      if (isReader) {
+        return window.location.href = "/explore.html";
+      }
+
+      // 4) NO ROLE fallback
       throw new Error("No role assigned");
     });
   </script>
