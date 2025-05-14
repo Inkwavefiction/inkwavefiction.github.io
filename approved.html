@@ -5,7 +5,7 @@
   <script src="role-guard.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Welcome Author – Inkwave</title>
+  <title>Author Approval – Inkwave</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
   <style>
     body {
@@ -44,17 +44,76 @@
       font-size: 1rem;
       cursor: pointer;
       text-decoration: none;
+      display: inline-block;
     }
-    .btn:hover {
-      background-color: #5f7f76;
-    }
+    .btn:hover { background-color: #5f7f76; }
+    .pending { color: #b16c00; }
+    .denied  { color: #a33c3c; }
+    .approved{ color: #1e7f4f; }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>🎉 You’re officially approved!</h1>
-    <p>Welcome to Inkwave, Author. You now have full access to your dashboard and story tools.</p>
-    <a href="author-dashboard.html" class="btn">Go to Dashboard</a>
+    <h1 id="heading">Checking your application…</h1>
+    <p id="message"></p>
+    <a id="dashboard-btn" class="btn" style="display:none;" href="author-dashboard.html">
+      ➕ Go to Dashboard
+    </a>
   </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0",
+      storageBucket: "inkwave-549c0.appspot.com",
+      messagingSenderId: "1084811926133",
+      appId: "1:1084811926133:web:f1656fce68d5c4d697363c"
+    };
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    const heading      = document.getElementById("heading");
+    const messageEl    = document.getElementById("message");
+    const dashboardBtn = document.getElementById("dashboard-btn");
+
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        // not even logged in → back to login/signup
+        return window.location.href = "/login.html";
+      }
+      const snap = await getDoc(doc(db, "authors", user.uid));
+
+      if (!snap.exists()) {
+        heading.textContent = "❌ No application found.";
+        heading.classList.add("denied");
+        messageEl.textContent = "It looks like you never signed up to be an author.";
+        return;
+      }
+
+      const status = snap.data().status;
+      if (status === "pending") {
+        heading.textContent = "⏳ Application Pending";
+        heading.classList.add("pending");
+        messageEl.textContent = "Thanks for applying! We’ll let you know when you’re approved.";
+      }
+      else if (status === "approved") {
+        heading.textContent = "🎉 You’re Approved!";
+        heading.classList.add("approved");
+        messageEl.textContent = "Welcome to Inkwave, Author. Click below to access your dashboard.";
+        dashboardBtn.style.display = "inline-block";
+      }
+      else if (status === "denied") {
+        heading.textContent = "❌ Application Denied";
+        heading.classList.add("denied");
+        messageEl.textContent = "Sorry, your application wasn’t approved. Please reach out if you have questions.";
+      }
+    });
+  </script>
 </body>
 </html>
