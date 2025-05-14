@@ -108,25 +108,23 @@
     // ─── Shared routing helper ────────────────────────────────────────
     async function routeByRole(uid) {
       // 1) fetch user roles
-      const userSnap   = await getDoc(doc(db, "users", uid));
-      const roles      = userSnap.exists() ? userSnap.data().roles || [] : [];
+      const { exists: uEx, data: uData } = await getDoc(doc(db, "users", uid));
+      const roles = uEx ? uData().roles || [] : [];
 
-      // 2) fetch author-application status
-      const authorSnap = await getDoc(doc(db, "authors", uid));
-      const status     = authorSnap.exists() ? authorSnap.data().status : null;
+      // 2) fetch author status
+      const { exists: aEx, data: aData } = await getDoc(doc(db, "authors", uid));
+      const status = aEx ? aData().status : null;
 
       const isReader = roles.includes("reader");
       const isAuthor = roles.includes("author");
       const isBoth   = isReader && isAuthor;
 
-      // ─── Both (reader+author) ──────────────────────────────────────
+      // ─── Both ────────────────────────────────────────────────────────
       if (isBoth) {
         if (status === "approved") {
           sessionStorage.setItem("userRole", "both");
           return window.location.href = "/both-dashboard.html";
         }
-        // pending or denied → go through approval flow
-        sessionStorage.setItem("userRole", "author");
         return window.location.href = "/approved.html";
       }
 
@@ -139,8 +137,6 @@
             ? "/author-dashboard.html"
             : "/approved.html";
         }
-        // pending or denied → approval flow
-        sessionStorage.setItem("userRole", "author");
         return window.location.href = "/approved.html";
       }
 
@@ -154,52 +150,46 @@
     }
 
     // ─── Form handling ────────────────────────────────────────────────
-    const form       = document.getElementById("signup-form");
-    const messageDiv = document.getElementById("message");
-
-    form.addEventListener("submit", async e => {
+    document.getElementById("signup-form").addEventListener("submit", async e => {
       e.preventDefault();
       const email    = document.getElementById("email").value.trim().toLowerCase();
       const password = document.getElementById("password").value.trim();
-      messageDiv.textContent = "";
+      const msgDiv   = document.getElementById("message");
+      msgDiv.textContent = "";
 
       try {
-        // 1) Attempt new signup → author-only + pending
-        const userCred = await createUserWithEmailAndPassword(auth, email, password);
-        const uid      = userCred.user.uid;
-        await setDoc(doc(db, "users", uid), {
+        // 1) New signup → author-only + pending
+        const { user } = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, "users", user.uid), {
           email,
           roles: ["author"],
           joinedAt: serverTimestamp()
         });
-        await setDoc(doc(db, "authors", uid), {
+        await setDoc(doc(db, "authors", user.uid), {
           email,
           status: "pending"
         });
-        return routeByRole(uid);
+        return routeByRole(user.uid);
 
       } catch (err) {
         if (err.code === "auth/email-already-in-use") {
           try {
-            // 2) Existing user → sign in & add author role + pending
-            const cred = await signInWithEmailAndPassword(auth, email, password);
-            const uid  = cred.user.uid;
-
-            await updateDoc(doc(db, "users", uid), {
+            // 2) Existing user → sign in & add author + pending
+            const { user } = await signInWithEmailAndPassword(auth, email, password);
+            await updateDoc(doc(db, "users", user.uid), {
               roles: arrayUnion("author")
             });
-            await setDoc(doc(db, "authors", uid), {
+            await setDoc(doc(db, "authors", user.uid), {
               email,
               status: "pending"
             }, { merge: true });
-
-            return routeByRole(uid);
+            return routeByRole(user.uid);
 
           } catch (signInErr) {
-            messageDiv.textContent = signInErr.message;
+            msgDiv.textContent = signInErr.message;
           }
         } else {
-          messageDiv.textContent = err.message;
+          msgDiv.textContent = err.message;
         }
       }
     });
