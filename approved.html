@@ -3,96 +3,60 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Become an Author – Inkwave</title>
+  <title>Author Approval – Inkwave</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
   <style>
     body {
       font-family: 'Poppins', sans-serif;
-      background-color: #dce3e7;
+      background-color: #e4ede7;
       color: #333;
+      padding: 2rem;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      padding: 1rem;
+      min-height: 100vh;
     }
-    .signup-container {
+    .card {
       background: white;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      max-width: 400px;
+      padding: 2.5rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      max-width: 600px;
       width: 100%;
-    }
-    h2 { font-family: 'Playfair Display', serif; text-align: center; margin-bottom: 1rem; }
-    .description {
-      font-size: 0.95rem;
       text-align: center;
-      margin-bottom: 1.5rem;
-      color: #555;
     }
-    input {
-      width: 100%;
-      padding: 0.6rem;
-      margin: 0.5rem 0;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 1rem;
-    }
-    button {
-      width: 100%;
-      padding: 0.7rem;
+    h1 { font-family: 'Playfair Display', serif; margin-bottom: 1rem; }
+    p  { font-size: 1.1rem; margin-bottom: 2rem; }
+    .btn {
+      padding: 0.7rem 1.5rem;
       background-color: #789a91;
       color: white;
       border: none;
       border-radius: 6px;
-      cursor: pointer;
       font-size: 1rem;
-      margin-top: 0.5rem;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
     }
-    button:hover { background-color: #5f7f76; }
-    .message {
-      text-align: center;
-      margin-top: 1rem;
-      color: #a33c3c;
-      font-size: 0.95rem;
-    }
+    .btn:hover { background-color: #5f7f76; }
+    .pending { color: #b16c00; }
+    .denied  { color: #a33c3c; }
+    .approved{ color: #1e7f4f; }
   </style>
 </head>
 <body>
-
-  <div class="signup-container">
-    <h2>Become an Author</h2>
-    <div class="description">
-      If you’re already a reader, this will upgrade you to “both.”<br>
-      Otherwise it creates a new author-only account.
-    </div>
-    <form id="signup-form">
-      <input type="email" id="email" placeholder="Email" required />
-      <input type="password" id="password" placeholder="Password" required />
-      <button type="submit">Sign Up</button>
-    </form>
-    <div class="message" id="message"></div>
+  <div class="card">
+    <h1 id="heading">Checking your application…</h1>
+    <p id="message"></p>
+    <a id="dashboard-btn" class="btn" style="display:none;">➕ Go to Dashboard</a>
   </div>
 
   <script type="module">
     import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
-    import {
-      getAuth,
-      signInWithEmailAndPassword,
-      createUserWithEmailAndPassword
-    }                           from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      getDoc,
-      setDoc,
-      updateDoc,
-      arrayUnion,
-      serverTimestamp
-    }                           from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc }  from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // ─── Initialize Firebase ─────────────────────────────────────────
+    // ─── Firebase init ────────────────────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -105,90 +69,79 @@
     const auth = getAuth(app);
     const db   = getFirestore(app);
 
-    // ─── Shared routing helper ────────────────────────────────────────
-    async function routeByRole(uid) {
-      const snap  = await getDoc(doc(db, "users", uid));
-      const roles = snap.exists() ? snap.data().roles || [] : [];
+    const heading      = document.getElementById("heading");
+    const messageEl    = document.getElementById("message");
+    const dashboardBtn = document.getElementById("dashboard-btn");
 
-      // 1) if we already wrote a literal "both", go there
-      if (roles.includes("both")) {
-        sessionStorage.setItem("userRole", "both");
-        return window.location.href = "/both-dashboard.html";
+    onAuthStateChanged(auth, async user => {
+      if (!user) {
+        // Not logged in → go to login
+        return window.location.href = "/login.html";
       }
-      // 2) pure reader? explore
-      if (roles.includes("reader") && !roles.includes("author")) {
-        sessionStorage.setItem("userRole", "reader");
+
+      // 1) Load user roles (array + old singular)
+      const uSnap = await getDoc(doc(db, "users", user.uid));
+      if (!uSnap.exists()) {
+        // no user record → treat as reader-less
+        return window.location.href = "/login.html";
+      }
+      const uData = uSnap.data();
+      let roles = Array.isArray(uData.roles) ? [...uData.roles] : [];
+      if (uData.role && !roles.includes(uData.role)) roles.push(uData.role);
+
+      const isReader = roles.includes("reader");
+      const isAuthor = roles.includes("author");
+      const isBoth   = isReader && isAuthor;
+
+      // 2) Pure reader? kick to explore immediately
+      if (!isAuthor) {
         return window.location.href = "/explore.html";
       }
-      // 3) pure author? author-dashboard/approved
-      if (roles.includes("author") && !roles.includes("reader")) {
-        sessionStorage.setItem("userRole", "author");
-        const seen = localStorage.getItem("seenWelcome");
-        return window.location.href = seen
-          ? "/author-dashboard.html"
-          : "/approved.html";
+
+      // 3) Load author-application status
+      const aSnap  = await getDoc(doc(db, "authors", user.uid));
+      if (!aSnap.exists()) {
+        heading.textContent = "❌ No application found.";
+        heading.classList.add("denied");
+        messageEl.textContent = "It looks like you never signed up to be an author.";
+        return;
       }
-      // 4) reader+author combo but no "both" yet? set it & refresh
-      if (roles.includes("reader") && roles.includes("author")) {
-        // overwrite roles array to ["both"]
-        await setDoc(doc(db, "users", uid), {
-          roles: ["both"]
-        }, { merge: true });
-        // now go to both-dashboard
-        sessionStorage.setItem("userRole", "both");
-        return window.location.href = "/both-dashboard.html";
+      const status = aSnap.data().status;
+
+      // 4) Pending
+      if (status === "pending") {
+        heading.textContent = "⏳ Application Pending";
+        heading.classList.add("pending");
+        messageEl.textContent = "Thanks for applying! We’ll let you know when you’re approved.";
+        return;
       }
-      throw new Error("No role assigned");
-    }
 
-    // ─── Form handling ────────────────────────────────────────────────
-    document.getElementById("signup-form").addEventListener("submit", async e => {
-      e.preventDefault();
-      const msgDiv = document.getElementById("message");
-      msgDiv.textContent = "";
+      // 5) Denied
+      if (status === "denied") {
+        heading.textContent = "❌ Application Denied";
+        heading.classList.add("denied");
+        messageEl.textContent = "Sorry, your application wasn’t approved. Please reach out if you have questions.";
+        return;
+      }
 
-      const email    = document.getElementById("email").value.trim().toLowerCase();
-      const password = document.getElementById("password").value.trim();
+      // 6) Approved
+      if (status === "approved") {
+        heading.textContent = "🎉 You’re Approved!";
+        heading.classList.add("approved");
+        messageEl.textContent = "Welcome to Inkwave! Click below to access your dashboard.";
+        dashboardBtn.style.display = "inline-block";
 
-      try {
-        // 1) New signup -> author-only + pending
-        const userCred = await createUserWithEmailAndPassword(auth, email, password);
-        const uid      = userCred.user.uid;
-        await setDoc(doc(db, "users", uid), {
-          email,
-          roles: ["author"],
-          joinedAt: serverTimestamp()
-        });
-        await setDoc(doc(db, "authors", uid), {
-          email,
-          status: "pending"
-        });
-        return routeByRole(uid);
-
-      } catch (err) {
-        if (err.code === "auth/email-already-in-use") {
-          try {
-            // 2) Existing user -> sign in & add author + pending
-            const cred = await signInWithEmailAndPassword(auth, email, password);
-            const uid  = cred.user.uid;
-            await updateDoc(doc(db, "users", uid), {
-              roles: arrayUnion("author")
-            });
-            await setDoc(doc(db, "authors", uid), {
-              email,
-              status: "pending"
-            }, { merge: true });
-            return routeByRole(uid);
-
-          } catch (signInErr) {
-            msgDiv.textContent = signInErr.message;
-          }
+        // if both reader+author → both dashboard
+        if (isBoth) {
+          dashboardBtn.href = "/both-dashboard.html";
+          dashboardBtn.textContent = "➕ Go to Both Dashboard";
         } else {
-          msgDiv.textContent = err.message;
+          // author-only → author dashboard
+          dashboardBtn.href = "/author-dashboard.html";
+          dashboardBtn.textContent = "➕ Go to Author Dashboard";
         }
       }
     });
   </script>
-
 </body>
 </html>
