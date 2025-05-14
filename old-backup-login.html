@@ -110,14 +110,23 @@
       const snap  = await getDoc(doc(db, "users", uid));
       const roles = snap.exists() ? snap.data().roles || [] : [];
 
+      // NEW: check for reader+author first, treat as "both"
+      if (roles.includes("reader") && roles.includes("author")) {
+        sessionStorage.setItem("userRole", "both");
+        return window.location.href = "/both-dashboard.html";
+      }
+
+      // OPTIONAL: still handle a literal "both" if you wrote it
       if (roles.includes("both")) {
         sessionStorage.setItem("userRole", "both");
         return window.location.href = "/both-dashboard.html";
       }
+
       if (roles.includes("reader")) {
         sessionStorage.setItem("userRole", "reader");
         return window.location.href = "/explore.html";
       }
+
       if (roles.includes("author")) {
         sessionStorage.setItem("userRole", "author");
         const seen = localStorage.getItem("seenWelcome");
@@ -125,6 +134,7 @@
           ? "/author-dashboard.html"
           : "/approved.html";
       }
+
       throw new Error("No role assigned");
     }
 
@@ -138,12 +148,11 @@
       const password = document.getElementById("password").value.trim();
       messageDiv.textContent = "";
 
-      // 1) Try to create a new author-only account
       try {
+        // 1) New signup → author-only
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
         const uid      = userCred.user.uid;
 
-        // New user → roles=["author"]
         await setDoc(doc(db, "users", uid), {
           email,
           roles: ["author"],
@@ -153,33 +162,30 @@
           email,
           status: "pending"
         });
-
         return routeByRole(uid);
 
       } catch (err) {
-        // 2) If it’s “already-in-use”, sign in & merge
         if (err.code === "auth/email-already-in-use") {
           try {
+            // 2) Existing user → sign in & add author
             const cred = await signInWithEmailAndPassword(auth, email, password);
             const uid  = cred.user.uid;
 
-            // 2a) Always add "author"
             await updateDoc(doc(db, "users", uid), {
               roles: arrayUnion("author")
             });
-            // 2b) Merge/overwrite pending status
             await setDoc(doc(db, "authors", uid), {
               email,
               status: "pending"
             }, { merge: true });
 
-            // 2c) Now re-fetch roles, and if both reader+author, overwrite to just ["both"]
+            // 2c) (Optional) overwrite to just ["both"] in the DB if you want that stored
             const snap  = await getDoc(doc(db, "users", uid));
             const roles = snap.data().roles || [];
             if (roles.includes("reader") && roles.includes("author")) {
-              await updateDoc(doc(db, "users", uid), {
+              await setDoc(doc(db, "users", uid), {
                 roles: ["both"]
-              });
+              }, { merge: true });
             }
 
             return routeByRole(uid);
@@ -188,7 +194,6 @@
             messageDiv.textContent = signInErr.message;
           }
         } else {
-          // any other signup error
           messageDiv.textContent = err.message;
         }
       }
