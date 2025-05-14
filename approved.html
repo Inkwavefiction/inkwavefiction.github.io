@@ -74,34 +74,33 @@
 
     onAuthStateChanged(auth, async user => {
       if (!user) {
-        return window.location.href = "/login.html";
+        return window.location.href = "login.html";
       }
 
-      // load user doc
+      // fetch user document
       const uSnap = await getDoc(doc(db, "users", user.uid));
       if (!uSnap.exists()) {
-        return window.location.href = "/login.html";
+        return window.location.href = "login.html";
       }
       const uData = uSnap.data();
 
-      // build roles array from either roles[] or single role
+      // build roles[]
       const roles = Array.isArray(uData.roles) ? [...uData.roles] : [];
       if (uData.role && !roles.includes(uData.role)) {
         roles.push(uData.role);
       }
-
       const isReader = roles.includes("reader");
       const isAuthor = roles.includes("author");
 
-      // DEBUG: make sure Firestore is actually sending what you think
       console.log("ROLES:", roles, "isReader?", isReader, "isAuthor?", isAuthor);
 
-      // 1) Combined Reader & Author
+      // 1) both reader & author
       if (isReader && isAuthor) {
         const aSnap = await getDoc(doc(db, "authors", user.uid));
-        const status = aSnap.exists()
-          ? (aSnap.data().status || "").toLowerCase()
-          : null;
+        const rawStatus = aSnap.exists() ? aSnap.data().status : "";
+        console.log("🔥 Raw status:", JSON.stringify(rawStatus));
+        const status = rawStatus.trim().toLowerCase();
+        console.log("✅ Normalized status:", status);
 
         if (status === "pending") {
           heading.textContent = "⏳ Application Pending";
@@ -116,8 +115,13 @@
           return;
         }
         if (status === "approved") {
-          // auto-redirect for combined users
-          return window.location.href = "/both-dashboard.html";
+          heading.textContent = "🎉 Approved as Reader & Author!";
+          heading.classList.add("approved");
+          messageEl.textContent = "Redirecting you now…";
+          setTimeout(() => {
+            window.location.href = "both-dashboard.html";
+          }, 800);
+          return;
         }
 
         // fallback
@@ -127,21 +131,25 @@
         return;
       }
 
-      // 2) Reader-only
+      // 2) reader-only
       if (isReader) {
-        return window.location.href = "/explore.html";
+        return window.location.href = "explore.html";
       }
 
-      // 3) Author-only
+      // 3) author-only
       if (isAuthor) {
         const aSnap = await getDoc(doc(db, "authors", user.uid));
+        const rawStatus = aSnap.exists() ? aSnap.data().status : "";
+        console.log("🔥 Raw status (author-only):", JSON.stringify(rawStatus));
+        const status = rawStatus.trim().toLowerCase();
+        console.log("✅ Normalized status (author-only):", status);
+
         if (!aSnap.exists()) {
           heading.textContent = "❌ No application found.";
           heading.classList.add("denied");
           messageEl.textContent = "You never applied to be an author.";
           return;
         }
-        const status = (aSnap.data().status || "").toLowerCase();
         if (status === "pending") {
           heading.textContent = "⏳ Application Pending";
           heading.classList.add("pending");
@@ -155,7 +163,13 @@
           return;
         }
         if (status === "approved") {
-          return window.location.href = "/author-dashboard.html";
+          heading.textContent = "🎉 Approved as Author!";
+          heading.classList.add("approved");
+          messageEl.textContent = "Redirecting you now…";
+          setTimeout(() => {
+            window.location.href = "author-dashboard.html";
+          }, 800);
+          return;
         }
 
         // fallback
@@ -165,7 +179,7 @@
         return;
       }
 
-      // 4) No valid role
+      // 4) no valid role
       throw new Error("No role assigned");
     });
   </script>
