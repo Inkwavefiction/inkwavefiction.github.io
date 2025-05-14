@@ -64,8 +64,8 @@
   <div class="signup-container">
     <h2>Become an Author</h2>
     <div class="description">
-      If you’re already a reader, this will upgrade you to “both.”<br>
-      Otherwise it creates a new author-only account.
+      If you’re already a reader, this will add the author role to your account.<br>
+      Otherwise, it creates a new author-only account.
     </div>
     <form id="signup-form">
       <input type="email" id="email" placeholder="Email" required />
@@ -105,86 +105,102 @@
     const auth = getAuth(app);
     const db   = getFirestore(app);
 
-    // ─── Shared routing helper ────────────────────────────────────────
+    // ─── Debug-friendly routing helper ─────────────────────────────────
     async function routeByRole(uid) {
-      const snap  = await getDoc(doc(db, "users", uid));
-      const roles = snap.exists() ? snap.data().roles || [] : [];
+      // 1) Fetch the user record
+      const userSnap = await getDoc(doc(db, "users", uid));
+      if (!userSnap.exists()) throw new Error("User record missing");
+      const data = userSnap.data();
 
-      // 1) if we already wrote a literal "both", go there
-      if (roles.includes("both")) {
-        sessionStorage.setItem("userRole", "both");
+      // 2) Dump what Firestore returned
+      console.log("🔥 Fetched user data:", data);
+      console.log("   • data.role  =", data.role);
+      console.log("   • data.roles =", data.roles);
+
+      // 3) Merge old `role` into the `roles` array
+      let roles = Array.isArray(data.roles) ? [...data.roles] : [];
+      if (data.role && !roles.includes(data.role)) {
+        roles.push(data.role);
+      }
+      console.log("   • Merged roles:", roles);
+
+      // 4) Route based on merged roles
+      const isReader = roles.includes("reader");
+      const isAuthor = roles.includes("author");
+
+      // → Both
+      if (isReader && isAuthor) {
+        console.log("→ Both detected! Redirecting to both-dashboard.html");
         return window.location.href = "/both-dashboard.html";
       }
-      // 2) pure reader? explore
-      if (roles.includes("reader") && !roles.includes("author")) {
+      // → Author-only
+      if (isAuthor) {
+        console.log("→ Author-only; checking approval…");
+        const aSnap  = await getDoc(doc(db, "authors", uid));
+        const status = aSnap.exists() ? aSnap.data().status : null;
+        console.log("   • Author status =", status);
+        if (status === "approved") {
+          sessionStorage.setItem("userRole", "author");
+          const seen = localStorage.getItem("seenWelcome");
+          return window.location.href = seen
+            ? "/author-dashboard.html"
+            : "/approved.html";
+        }
+        return window.location.href = "/approved.html";
+      }
+      // → Reader-only
+      if (isReader) {
+        console.log("→ Reader-only; sending to explore.html");
         sessionStorage.setItem("userRole", "reader");
         return window.location.href = "/explore.html";
       }
-      // 3) pure author? author-dashboard/approved
-      if (roles.includes("author") && !roles.includes("reader")) {
-        sessionStorage.setItem("userRole", "author");
-        const seen = localStorage.getItem("seenWelcome");
-        return window.location.href = seen
-          ? "/author-dashboard.html"
-          : "/approved.html";
-      }
-      // 4) reader+author combo but no "both" yet? set it & refresh
-      if (roles.includes("reader") && roles.includes("author")) {
-        // overwrite roles array to ["both"]
-        await setDoc(doc(db, "users", uid), {
-          roles: ["both"]
-        }, { merge: true });
-        // now go to both-dashboard
-        sessionStorage.setItem("userRole", "both");
-        return window.location.href = "/both-dashboard.html";
-      }
+
       throw new Error("No role assigned");
     }
 
     // ─── Form handling ────────────────────────────────────────────────
-    document.getElementById("signup-form").addEventListener("submit", async e => {
+    const form = document.getElementById("signup-form");
+    const msg  = document.getElementById("message");
+
+    form.addEventListener("submit", async e => {
       e.preventDefault();
-      const msgDiv = document.getElementById("message");
-      msgDiv.textContent = "";
+      msg.textContent = "";
 
       const email    = document.getElementById("email").value.trim().toLowerCase();
       const password = document.getElementById("password").value.trim();
 
       try {
-        // 1) New signup -> author-only + pending
-        const userCred = await createUserWithEmailAndPassword(auth, email, password);
-        const uid      = userCred.user.uid;
-        await setDoc(doc(db, "users", uid), {
+        // New signup → author-only + pending
+        const { user } = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, "users", user.uid), {
           email,
           roles: ["author"],
           joinedAt: serverTimestamp()
         });
-        await setDoc(doc(db, "authors", uid), {
+        await setDoc(doc(db, "authors", user.uid), {
           email,
           status: "pending"
         });
-        return routeByRole(uid);
+        return routeByRole(user.uid);
 
       } catch (err) {
         if (err.code === "auth/email-already-in-use") {
+          // Existing user → sign in & add author + pending
           try {
-            // 2) Existing user -> sign in & add author + pending
-            const cred = await signInWithEmailAndPassword(auth, email, password);
-            const uid  = cred.user.uid;
-            await updateDoc(doc(db, "users", uid), {
+            const { user } = await signInWithEmailAndPassword(auth, email, password);
+            await updateDoc(doc(db, "users", user.uid), {
               roles: arrayUnion("author")
             });
-            await setDoc(doc(db, "authors", uid), {
+            await setDoc(doc(db, "authors", user.uid), {
               email,
               status: "pending"
             }, { merge: true });
-            return routeByRole(uid);
-
+            return routeByRole(user.uid);
           } catch (signInErr) {
-            msgDiv.textContent = signInErr.message;
+            msg.textContent = signInErr.message;
           }
         } else {
-          msgDiv.textContent = err.message;
+          msg.textContent = err.message;
         }
       }
     });
