@@ -107,32 +107,47 @@
 
     // ─── Shared routing helper ────────────────────────────────────────
     async function routeByRole(uid) {
-      const snap  = await getDoc(doc(db, "users", uid));
-      const roles = snap.exists() ? snap.data().roles || [] : [];
+      // 1) fetch user roles
+      const userSnap   = await getDoc(doc(db, "users", uid));
+      const roles      = userSnap.exists() ? userSnap.data().roles || [] : [];
 
-      // NEW: check for reader+author first, treat as "both"
-      if (roles.includes("reader") && roles.includes("author")) {
-        sessionStorage.setItem("userRole", "both");
-        return window.location.href = "/both-dashboard.html";
+      // 2) fetch author-application status
+      const authorSnap = await getDoc(doc(db, "authors", uid));
+      const status     = authorSnap.exists() ? authorSnap.data().status : null;
+
+      const isReader = roles.includes("reader");
+      const isAuthor = roles.includes("author");
+      const isBoth   = isReader && isAuthor;
+
+      // ─── Both (reader+author) ──────────────────────────────────────
+      if (isBoth) {
+        if (status === "approved") {
+          sessionStorage.setItem("userRole", "both");
+          return window.location.href = "/both-dashboard.html";
+        }
+        // pending or denied → go through approval flow
+        sessionStorage.setItem("userRole", "author");
+        return window.location.href = "/approved.html";
       }
 
-      // OPTIONAL: still handle a literal "both" if you wrote it
-      if (roles.includes("both")) {
-        sessionStorage.setItem("userRole", "both");
-        return window.location.href = "/both-dashboard.html";
+      // ─── Author-only ────────────────────────────────────────────────
+      if (isAuthor) {
+        if (status === "approved") {
+          sessionStorage.setItem("userRole", "author");
+          const seen = localStorage.getItem("seenWelcome");
+          return window.location.href = seen
+            ? "/author-dashboard.html"
+            : "/approved.html";
+        }
+        // pending or denied → approval flow
+        sessionStorage.setItem("userRole", "author");
+        return window.location.href = "/approved.html";
       }
 
-      if (roles.includes("reader")) {
+      // ─── Reader-only ────────────────────────────────────────────────
+      if (isReader) {
         sessionStorage.setItem("userRole", "reader");
         return window.location.href = "/explore.html";
-      }
-
-      if (roles.includes("author")) {
-        sessionStorage.setItem("userRole", "author");
-        const seen = localStorage.getItem("seenWelcome");
-        return window.location.href = seen
-          ? "/author-dashboard.html"
-          : "/approved.html";
       }
 
       throw new Error("No role assigned");
@@ -149,10 +164,9 @@
       messageDiv.textContent = "";
 
       try {
-        // 1) New signup → author-only
+        // 1) Attempt new signup → author-only + pending
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
         const uid      = userCred.user.uid;
-
         await setDoc(doc(db, "users", uid), {
           email,
           roles: ["author"],
@@ -167,7 +181,7 @@
       } catch (err) {
         if (err.code === "auth/email-already-in-use") {
           try {
-            // 2) Existing user → sign in & add author
+            // 2) Existing user → sign in & add author role + pending
             const cred = await signInWithEmailAndPassword(auth, email, password);
             const uid  = cred.user.uid;
 
@@ -178,15 +192,6 @@
               email,
               status: "pending"
             }, { merge: true });
-
-            // 2c) (Optional) overwrite to just ["both"] in the DB if you want that stored
-            const snap  = await getDoc(doc(db, "users", uid));
-            const roles = snap.data().roles || [];
-            if (roles.includes("reader") && roles.includes("author")) {
-              await setDoc(doc(db, "users", uid), {
-                roles: ["both"]
-              }, { merge: true });
-            }
 
             return routeByRole(uid);
 
