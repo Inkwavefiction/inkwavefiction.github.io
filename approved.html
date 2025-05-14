@@ -5,18 +5,18 @@
   <title>Author Approval – Inkwave</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Poppins', sans-serif; background: #e4ede7; color: #333;
-           display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem; }
-    .card { background: white; padding: 2.5rem; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            max-width: 600px; width: 100%; text-align: center; }
-    h1 { font-family: 'Playfair Display', serif; margin-bottom: 1rem; }
-    p  { font-size: 1.1rem; margin-bottom: 2rem; }
-    .btn { padding: 0.7rem 1.5rem; background: #789a91; color: white; border: none; border-radius: 6px;
-           font-size: 1rem; cursor: pointer; text-decoration: none; display: inline-block; }
-    .btn:hover { background: #5f7f76; }
-    .pending { color: #b16c00; }
-    .denied  { color: #a33c3c; }
-    .approved{ color: #1e7f4f; }
+    body { font-family:'Poppins',sans-serif; background:#e4ede7; color:#333;
+           display:flex; justify-content:center; align-items:center; min-height:100vh; padding:2rem; }
+    .card { background:#fff; padding:2.5rem; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,0.08);
+            max-width:600px; width:100%; text-align:center; }
+    h1 { font-family:'Playfair Display',serif; margin-bottom:1rem; }
+    p  { font-size:1.1rem; margin-bottom:2rem; }
+    .btn { padding:0.7rem 1.5rem; background:#789a91; color:#fff; border:none; border-radius:6px;
+           font-size:1rem; cursor:pointer; text-decoration:none; display:inline-block; }
+    .btn:hover { background:#5f7f76; }
+    .pending { color:#b16c00; }
+    .denied  { color:#a33c3c; }
+    .approved{ color:#1e7f4f; }
   </style>
 </head>
 <body>
@@ -31,7 +31,7 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getFirestore, doc, getDoc }    from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // Initialize Firebase
+    // initialize
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -49,60 +49,63 @@
 
     onAuthStateChanged(auth, async user => {
       if (!user) {
-        return window.location.href = "/login.html";
+        window.location.href = "/login.html";
+        return;
       }
 
-      // Load user record
+      // 1) load roles from users/{uid}
       const uSnap = await getDoc(doc(db, "users", user.uid));
       if (!uSnap.exists()) {
-        return window.location.href = "/login.html";
+        window.location.href = "/login.html";
+        return;
       }
       const uData = uSnap.data();
-
-      // Merge old `role` + new `roles[]`
       let roles = Array.isArray(uData.roles) ? [...uData.roles] : [];
       if (uData.role && !roles.includes(uData.role)) {
         roles.push(uData.role);
       }
-
       const isReader = roles.includes("reader");
       const isAuthor = roles.includes("author");
 
-      // 1) BOTH first
-      if (isReader && isAuthor) {
-        // Check approval status
-        const aSnap = await getDoc(doc(db, "authors", user.uid));
-        const status = aSnap.exists() ? aSnap.data().status : null;
-
-        if (status === "pending") {
-          heading.textContent = "⏳ Application Pending";
-          heading.classList.add("pending");
-          messageEl.textContent = "Your Reader+Author application is pending.";
-          return;
-        }
-        if (status === "denied") {
-          heading.textContent = "❌ Application Denied";
+      // 2) reader-first
+      if (isReader) {
+        // 2a) reader+author → both flow
+        if (isAuthor) {
+          const aSnap = await getDoc(doc(db, "authors", user.uid));
+          const status = aSnap.exists() ? aSnap.data().status : null;
+          if (status === "pending") {
+            heading.textContent = "⏳ Application Pending";
+            heading.classList.add("pending");
+            messageEl.textContent = "Your Reader+Author application is pending.";
+            return;
+          }
+          if (status === "denied") {
+            heading.textContent = "❌ Application Denied";
+            heading.classList.add("denied");
+            messageEl.textContent = "Your Reader+Author application was denied.";
+            return;
+          }
+          if (status === "approved") {
+            heading.textContent = "🎉 Approved as Reader & Author!";
+            heading.classList.add("approved");
+            messageEl.textContent = "Go to your combined dashboard below.";
+            dashboardBtn.style.display = "inline-block";
+            dashboardBtn.href = "/both-dashboard.html";
+            dashboardBtn.textContent = "➕ Go to Both Dashboard";
+            return;
+          }
+          // no status fallback
+          heading.textContent = "❌ Status Unknown";
           heading.classList.add("denied");
-          messageEl.textContent = "Your Reader+Author application was denied.";
+          messageEl.textContent = "Please contact support.";
           return;
         }
-        if (status === "approved") {
-          heading.textContent = "🎉 Approved as Reader & Author!";
-          heading.classList.add("approved");
-          messageEl.textContent = "Go to your combined dashboard below.";
-          dashboardBtn.style.display = "inline-block";
-          dashboardBtn.href = "/both-dashboard.html";
-          dashboardBtn.textContent = "➕ Go to Both Dashboard";
-          return;
-        }
-        // no status?
-        heading.textContent = "❌ Status Unknown";
-        heading.classList.add("denied");
-        messageEl.textContent = "Please contact support.";
+        // 2b) pure reader → explore
+        window.location.href = "/explore.html";
         return;
       }
 
-      // 2) AUTHOR-ONLY next
+      // 3) author-only flow
       if (isAuthor) {
         const aSnap = await getDoc(doc(db, "authors", user.uid));
         if (!aSnap.exists()) {
@@ -112,7 +115,6 @@
           return;
         }
         const status = aSnap.data().status;
-
         if (status === "pending") {
           heading.textContent = "⏳ Application Pending";
           heading.classList.add("pending");
@@ -134,15 +136,9 @@
           dashboardBtn.textContent = "➕ Go to Author Dashboard";
           return;
         }
-        return;
       }
 
-      // 3) READER-ONLY last
-      if (isReader) {
-        return window.location.href = "/explore.html";
-      }
-
-      // 4) NO ROLE fallback
+      // 4) no valid role
       throw new Error("No role assigned");
     });
   </script>
