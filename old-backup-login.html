@@ -118,9 +118,15 @@
         roles.push(data.role);
       }
 
-      // 3) fetch author application status
+      // 3) fetch author status
       const authorSnap = await getDoc(doc(db, "authors", uid));
       const status = authorSnap.exists() ? authorSnap.data().status : null;
+
+      // 4) Debug logging so you can see what it found
+      console.log("→ Firestore roles array:", data.roles);
+      console.log("→ Firestore singular role:", data.role);
+      console.log("→ Merged roles:", roles);
+      console.log("→ Author status:", status);
 
       const isReader = roles.includes("reader");
       const isAuthor = roles.includes("author");
@@ -130,9 +136,11 @@
       if (isBoth) {
         if (status === "approved") {
           sessionStorage.setItem("userRole", "both");
-          return window.location.href = "/both-dashboard.html";
+          window.location.href = "/both-dashboard.html";
+        } else {
+          window.location.href = "/approved.html";
         }
-        return window.location.href = "/approved.html";
+        return;
       }
 
       // ─── Author-only ────────────────────────────────────────────────
@@ -140,17 +148,20 @@
         if (status === "approved") {
           sessionStorage.setItem("userRole", "author");
           const seen = localStorage.getItem("seenWelcome");
-          return window.location.href = seen
+          window.location.href = seen
             ? "/author-dashboard.html"
             : "/approved.html";
+        } else {
+          window.location.href = "/approved.html";
         }
-        return window.location.href = "/approved.html";
+        return;
       }
 
       // ─── Reader-only ────────────────────────────────────────────────
       if (isReader) {
         sessionStorage.setItem("userRole", "reader");
-        return window.location.href = "/explore.html";
+        window.location.href = "/explore.html";
+        return;
       }
 
       throw new Error("No role assigned");
@@ -168,9 +179,9 @@
       const password = document.getElementById("password").value.trim();
 
       try {
-        // New signup → author-only + pending
+        // 1) New signup → author-only + pending
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
-        const uid = userCred.user.uid;
+        const uid      = userCred.user.uid;
         await setDoc(doc(db, "users", uid), {
           email,
           roles: ["author"],
@@ -185,7 +196,7 @@
       } catch (err) {
         if (err.code === "auth/email-already-in-use") {
           try {
-            // Existing user → sign in & add author + pending
+            // 2) Existing user → sign in & add author + pending
             const cred = await signInWithEmailAndPassword(auth, email, password);
             const uid  = cred.user.uid;
             await updateDoc(doc(db, "users", uid), {
