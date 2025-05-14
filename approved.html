@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>window.allowedRoles = ["author","both","reader"];</script>
-  <script src="role-guard.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Author Approval – Inkwave</title>
@@ -27,14 +25,8 @@
       width: 100%;
       text-align: center;
     }
-    h1 {
-      font-family: 'Playfair Display', serif;
-      margin-bottom: 1rem;
-    }
-    p {
-      font-size: 1.1rem;
-      margin-bottom: 2rem;
-    }
+    h1 { font-family: 'Playfair Display', serif; margin-bottom: 1rem; }
+    p  { font-size: 1.1rem; margin-bottom: 2rem; }
     .btn {
       padding: 0.7rem 1.5rem;
       background-color: #789a91;
@@ -56,16 +48,15 @@
   <div class="card">
     <h1 id="heading">Checking your application…</h1>
     <p id="message"></p>
-    <a id="dashboard-btn" class="btn" style="display:none;" href="author-dashboard.html">
-      ➕ Go to Dashboard
-    </a>
+    <a id="dashboard-btn" class="btn" style="display:none;">➕ Go to Dashboard</a>
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc }  from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+    // ─── Firebase init ────────────────────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -84,34 +75,71 @@
 
     onAuthStateChanged(auth, async user => {
       if (!user) {
-        // not even logged in → back to login/signup
+        // Not logged in → go to login
         return window.location.href = "/login.html";
       }
-      const snap = await getDoc(doc(db, "authors", user.uid));
 
-      if (!snap.exists()) {
+      // 1) Load user roles (array + old singular)
+      const uSnap = await getDoc(doc(db, "users", user.uid));
+      if (!uSnap.exists()) {
+        // no user record → treat as reader-less
+        return window.location.href = "/login.html";
+      }
+      const uData = uSnap.data();
+      let roles = Array.isArray(uData.roles) ? [...uData.roles] : [];
+      if (uData.role && !roles.includes(uData.role)) roles.push(uData.role);
+
+      const isReader = roles.includes("reader");
+      const isAuthor = roles.includes("author");
+      const isBoth   = isReader && isAuthor;
+
+      // 2) Pure reader? kick to explore immediately
+      if (!isAuthor) {
+        return window.location.href = "/explore.html";
+      }
+
+      // 3) Load author-application status
+      const aSnap  = await getDoc(doc(db, "authors", user.uid));
+      if (!aSnap.exists()) {
         heading.textContent = "❌ No application found.";
         heading.classList.add("denied");
         messageEl.textContent = "It looks like you never signed up to be an author.";
         return;
       }
+      const status = aSnap.data().status;
 
-      const status = snap.data().status;
+      // 4) Pending
       if (status === "pending") {
         heading.textContent = "⏳ Application Pending";
         heading.classList.add("pending");
         messageEl.textContent = "Thanks for applying! We’ll let you know when you’re approved.";
+        return;
       }
-      else if (status === "approved") {
-        heading.textContent = "🎉 You’re Approved!";
-        heading.classList.add("approved");
-        messageEl.textContent = "Welcome to Inkwave, Author. Click below to access your dashboard.";
-        dashboardBtn.style.display = "inline-block";
-      }
-      else if (status === "denied") {
+
+      // 5) Denied
+      if (status === "denied") {
         heading.textContent = "❌ Application Denied";
         heading.classList.add("denied");
         messageEl.textContent = "Sorry, your application wasn’t approved. Please reach out if you have questions.";
+        return;
+      }
+
+      // 6) Approved
+      if (status === "approved") {
+        heading.textContent = "🎉 You’re Approved!";
+        heading.classList.add("approved");
+        messageEl.textContent = "Welcome to Inkwave! Click below to access your dashboard.";
+        dashboardBtn.style.display = "inline-block";
+
+        // if both reader+author → both dashboard
+        if (isBoth) {
+          dashboardBtn.href = "/both-dashboard.html";
+          dashboardBtn.textContent = "➕ Go to Both Dashboard";
+        } else {
+          // author-only → author dashboard
+          dashboardBtn.href = "/author-dashboard.html";
+          dashboardBtn.textContent = "➕ Go to Author Dashboard";
+        }
       }
     });
   </script>
