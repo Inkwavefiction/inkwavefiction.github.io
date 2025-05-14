@@ -52,9 +52,9 @@
   </div>
 
   <script type="module">
-    import { initializeApp }             from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { initializeApp }               from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc }    from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc }   from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     // initialize Firebase
     const firebaseConfig = {
@@ -77,30 +77,26 @@
         return window.location.href = "login.html";
       }
 
-      // fetch user document
+      // 1) Fetch user roles
       const uSnap = await getDoc(doc(db, "users", user.uid));
       if (!uSnap.exists()) {
         return window.location.href = "login.html";
       }
       const uData = uSnap.data();
-
-      // build roles[]
       const roles = Array.isArray(uData.roles) ? [...uData.roles] : [];
-      if (uData.role && !roles.includes(uData.role)) {
-        roles.push(uData.role);
-      }
+      if (uData.role && !roles.includes(uData.role)) roles.push(uData.role);
+
       const isReader = roles.includes("reader");
       const isAuthor = roles.includes("author");
-
       console.log("ROLES:", roles, "isReader?", isReader, "isAuthor?", isAuthor);
 
-      // 1) both reader & author
+      // 2) Reader+Author combo
       if (isReader && isAuthor) {
         const aSnap = await getDoc(doc(db, "authors", user.uid));
         const rawStatus = aSnap.exists() ? aSnap.data().status : "";
-        console.log("🔥 Raw status:", JSON.stringify(rawStatus));
+        console.log("🔥 Raw combo status:", JSON.stringify(rawStatus));
         const status = rawStatus.trim().toLowerCase();
-        console.log("✅ Normalized status:", status);
+        console.log("✅ Normalized combo status:", status);
 
         if (status === "pending") {
           heading.textContent = "⏳ Application Pending";
@@ -117,10 +113,10 @@
         if (status === "approved") {
           heading.textContent = "🎉 Approved as Reader & Author!";
           heading.classList.add("approved");
-          messageEl.textContent = "Redirecting you now…";
-          setTimeout(() => {
-            window.location.href = "both-dashboard.html";
-          }, 800);
+          messageEl.textContent = "Go to your combined dashboard below.";
+          dashboardBtn.href = "both-dashboard.html";
+          dashboardBtn.textContent = "➕ Go to Both Dashboard";
+          dashboardBtn.style.display = "inline-block";
           return;
         }
 
@@ -131,18 +127,18 @@
         return;
       }
 
-      // 2) reader-only
+      // 3) Pure Reader
       if (isReader) {
         return window.location.href = "explore.html";
       }
 
-      // 3) author-only
+      // 4) Author-only
       if (isAuthor) {
         const aSnap = await getDoc(doc(db, "authors", user.uid));
         const rawStatus = aSnap.exists() ? aSnap.data().status : "";
-        console.log("🔥 Raw status (author-only):", JSON.stringify(rawStatus));
+        console.log("🔥 Raw author status:", JSON.stringify(rawStatus));
         const status = rawStatus.trim().toLowerCase();
-        console.log("✅ Normalized status (author-only):", status);
+        console.log("✅ Normalized author status:", status);
 
         if (!aSnap.exists()) {
           heading.textContent = "❌ No application found.";
@@ -165,10 +161,10 @@
         if (status === "approved") {
           heading.textContent = "🎉 Approved as Author!";
           heading.classList.add("approved");
-          messageEl.textContent = "Redirecting you now…";
-          setTimeout(() => {
-            window.location.href = "author-dashboard.html";
-          }, 800);
+          messageEl.textContent = "Go to your author dashboard below.";
+          dashboardBtn.href = "author-dashboard.html";
+          dashboardBtn.textContent = "➕ Go to Author Dashboard";
+          dashboardBtn.style.display = "inline-block";
           return;
         }
 
@@ -179,7 +175,7 @@
         return;
       }
 
-      // 4) no valid role
+      // 5) No valid role
       throw new Error("No role assigned");
     });
   </script>
