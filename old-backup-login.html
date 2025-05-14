@@ -76,12 +76,12 @@
   </div>
 
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import {
       getAuth,
       signInWithEmailAndPassword,
       createUserWithEmailAndPassword
-    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    }                           from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import {
       getFirestore,
       doc,
@@ -90,7 +90,7 @@
       updateDoc,
       arrayUnion,
       serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    }                           from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     // ─── Initialize Firebase ─────────────────────────────────────────
     const firebaseConfig = {
@@ -107,63 +107,46 @@
 
     // ─── Shared routing helper ────────────────────────────────────────
     async function routeByRole(uid) {
-      // 1) fetch user doc
+      // 1) fetch the user record
       const userSnap = await getDoc(doc(db, "users", uid));
-      if (!userSnap.exists()) throw new Error("User record missing");
+      if (!userSnap.exists()) throw new Error("User not found");
       const data = userSnap.data();
 
-      // 2) merge old `role` into `roles` array
+      // 2) merge old `role` into the `roles` array
       let roles = Array.isArray(data.roles) ? [...data.roles] : [];
       if (data.role && !roles.includes(data.role)) {
         roles.push(data.role);
       }
 
-      // 3) fetch author status
-      const authorSnap = await getDoc(doc(db, "authors", uid));
-      const status = authorSnap.exists() ? authorSnap.data().status : null;
-
-      // 4) Debug logging so you can see what it found
-      console.log("→ Firestore roles array:", data.roles);
-      console.log("→ Firestore singular role:", data.role);
-      console.log("→ Merged roles:", roles);
-      console.log("→ Author status:", status);
-
+      // 3) quick check for reader+author combo
       const isReader = roles.includes("reader");
       const isAuthor = roles.includes("author");
-      const isBoth   = isReader && isAuthor;
-
-      // ─── Both (reader+author) ──────────────────────────────────────
-      if (isBoth) {
-        if (status === "approved") {
-          sessionStorage.setItem("userRole", "both");
-          window.location.href = "/both-dashboard.html";
-        } else {
-          window.location.href = "/approved.html";
-        }
-        return;
+      if (isReader && isAuthor) {
+        // straight to both dashboard—no need for a stored "both" value
+        return window.location.href = "/both-dashboard.html";
       }
 
-      // ─── Author-only ────────────────────────────────────────────────
+      // 4) author-only → check approval status
       if (isAuthor) {
+        const authorSnap = await getDoc(doc(db, "authors", uid));
+        const status     = authorSnap.exists() ? authorSnap.data().status : null;
         if (status === "approved") {
           sessionStorage.setItem("userRole", "author");
           const seen = localStorage.getItem("seenWelcome");
-          window.location.href = seen
+          return window.location.href = seen
             ? "/author-dashboard.html"
             : "/approved.html";
-        } else {
-          window.location.href = "/approved.html";
         }
-        return;
+        return window.location.href = "/approved.html";
       }
 
-      // ─── Reader-only ────────────────────────────────────────────────
+      // 5) reader-only → explore
       if (isReader) {
         sessionStorage.setItem("userRole", "reader");
-        window.location.href = "/explore.html";
-        return;
+        return window.location.href = "/explore.html";
       }
 
+      // 6) no role? throw
       throw new Error("No role assigned");
     }
 
