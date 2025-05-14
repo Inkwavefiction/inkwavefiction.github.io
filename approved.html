@@ -48,7 +48,7 @@
   <div class="card">
     <h1 id="heading">Checking your application…</h1>
     <p id="message"></p>
-    <a id="dashboard-btn" class="btn" style="display:none;">➕ Go to Dashboard</a>
+    <a id="dashboard-btn" class="btn" style="display:none;"></a>
   </div>
 
   <script type="module">
@@ -56,7 +56,7 @@
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import { getFirestore, doc, getDoc }  from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // ─── Firebase init ────────────────────────────────────────────────
+    // ─── Initialize Firebase ─────────────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -75,40 +75,44 @@
 
     onAuthStateChanged(auth, async user => {
       if (!user) {
-        // Not logged in → go to login
         return window.location.href = "/login.html";
       }
 
-      // 1) Load user roles (array + old singular)
+      // 1) Load user doc and merge old `role` plus new `roles[]`
       const uSnap = await getDoc(doc(db, "users", user.uid));
       if (!uSnap.exists()) {
-        // no user record → treat as reader-less
         return window.location.href = "/login.html";
       }
       const uData = uSnap.data();
       let roles = Array.isArray(uData.roles) ? [...uData.roles] : [];
-      if (uData.role && !roles.includes(uData.role)) roles.push(uData.role);
+      if (uData.role && !roles.includes(uData.role)) {
+        roles.push(uData.role);
+      }
 
       const isReader = roles.includes("reader");
       const isAuthor = roles.includes("author");
-      const isBoth   = isReader && isAuthor;
 
-      // 2) Pure reader? kick to explore immediately
+      // 2) If reader+author → both dashboard immediately
+      if (isReader && isAuthor) {
+        return window.location.href = "/both-dashboard.html";
+      }
+
+      // 3) If not an author at all → reader explore
       if (!isAuthor) {
         return window.location.href = "/explore.html";
       }
 
-      // 3) Load author-application status
-      const aSnap  = await getDoc(doc(db, "authors", user.uid));
+      // 4) Now we know: author-only. Check application status.
+      const aSnap = await getDoc(doc(db, "authors", user.uid));
       if (!aSnap.exists()) {
         heading.textContent = "❌ No application found.";
         heading.classList.add("denied");
-        messageEl.textContent = "It looks like you never signed up to be an author.";
+        messageEl.textContent = "You never applied to be an author.";
         return;
       }
       const status = aSnap.data().status;
 
-      // 4) Pending
+      // 5) Pending
       if (status === "pending") {
         heading.textContent = "⏳ Application Pending";
         heading.classList.add("pending");
@@ -116,30 +120,22 @@
         return;
       }
 
-      // 5) Denied
+      // 6) Denied
       if (status === "denied") {
         heading.textContent = "❌ Application Denied";
         heading.classList.add("denied");
-        messageEl.textContent = "Sorry, your application wasn’t approved. Please reach out if you have questions.";
+        messageEl.textContent = "Sorry, your application wasn’t approved.";
         return;
       }
 
-      // 6) Approved
+      // 7) Approved & author-only → show author button
       if (status === "approved") {
         heading.textContent = "🎉 You’re Approved!";
         heading.classList.add("approved");
-        messageEl.textContent = "Welcome to Inkwave! Click below to access your dashboard.";
+        messageEl.textContent = "Welcome! Click below to access your dashboard.";
         dashboardBtn.style.display = "inline-block";
-
-        // if both reader+author → both dashboard
-        if (isBoth) {
-          dashboardBtn.href = "/both-dashboard.html";
-          dashboardBtn.textContent = "➕ Go to Both Dashboard";
-        } else {
-          // author-only → author dashboard
-          dashboardBtn.href = "/author-dashboard.html";
-          dashboardBtn.textContent = "➕ Go to Author Dashboard";
-        }
+        dashboardBtn.textContent = "➕ Go to Author Dashboard";
+        dashboardBtn.href = "/author-dashboard.html";
       }
     });
   </script>
