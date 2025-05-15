@@ -54,7 +54,7 @@
   <script type="module">
     import { initializeApp }               from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
-    import { getFirestore, doc, getDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+    import { getFirestore, doc, getDoc }   from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     // initialize Firebase
     const firebaseConfig = {
@@ -73,29 +73,39 @@
     const dashboardBtn = document.getElementById("dashboard-btn");
 
     onAuthStateChanged(auth, async user => {
-      if (!user) return window.location.href = "login.html";
+      if (!user) {
+        // not logged in
+        window.location.href = "login.html";
+        return;
+      }
 
       // fetch user roles
-      const uRef  = doc(db, "users", user.uid);
+      const uRef = doc(db, "users", user.uid);
       const uSnap = await getDoc(uRef);
-      if (!uSnap.exists()) return window.location.href = "login.html";
-
+      if (!uSnap.exists()) {
+        window.location.href = "login.html";
+        return;
+      }
       const uData = uSnap.data();
       const roles = Array.isArray(uData.roles) ? [...uData.roles] : [];
-      if (uData.role && !roles.includes(uData.role)) roles.push(uData.role);
+      if (uData.role && !roles.includes(uData.role)) {
+        roles.push(uData.role);
+      }
 
       const isAuthor = roles.includes("author");
       console.log("ROLES:", roles, "isAuthor?", isAuthor);
 
-      if (!isAuthor) return window.location.href = "login.html";
+      // only authors allowed
+      if (!isAuthor) {
+        window.location.href = "login.html";
+        return;
+      }
 
-      // check application status
-      const aRef  = doc(db, "authors", user.uid);
+      // check author application status
+      const aRef = doc(db, "authors", user.uid);
       const aSnap = await getDoc(aRef);
       const rawStatus = aSnap.exists() ? aSnap.data().status : "";
-      console.log("🔥 Raw author status:", JSON.stringify(rawStatus));
       const status = rawStatus.trim().toLowerCase();
-      console.log("✅ Normalized author status:", status);
 
       if (!aSnap.exists()) {
         heading.textContent = "❌ No application found.";
@@ -118,23 +128,10 @@
       if (status === "approved") {
         heading.textContent = "🎉 Approved as Author!";
         heading.classList.add("approved");
-        messageEl.textContent = "Click below to register yourself as an author and go to your combined dashboard.";
-        dashboardBtn.textContent = "➕ Go to Both Dashboard";
+        messageEl.textContent = "Go to your author dashboard below.";
+        dashboardBtn.href = "author-dashboard.html";
+        dashboardBtn.textContent = "➕ Go to Author Dashboard";
         dashboardBtn.style.display = "inline-block";
-
-        dashboardBtn.addEventListener("click", async e => {
-          e.preventDefault();
-          try {
-            await updateDoc(uRef, {
-              roles: arrayUnion("author")
-            });
-            console.log("User roles updated with 'author'");
-          } catch (err) {
-            console.error("Error adding author role:", err);
-          }
-          window.location.href = "both-dashboard.html";
-        });
-
         return;
       }
 
