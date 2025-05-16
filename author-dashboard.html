@@ -1,36 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- 1) Declare which roles are allowed on this page -->
+  <script>
+    window.allowedRoles = ["author", "both"];
+  </script>
+  <!-- 2) Immediately run the guard -->
+  <script src="role-guard.js"></script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Author Dashboard – Inkwave</title>
 
-  <!-- ROLE GUARD: hide everything until we verify your role -->
-  <script>
-    // Prevent flash of unauthorized content
-    document.documentElement.style.visibility = 'hidden';
-
-    // Define allowed roles for this page
-    const allowedRoles = ['author', 'both'];
-
-    // Retrieve the user’s role (set at login)
-    const userRole = sessionStorage.getItem('userRole');
-
-    // If no role → not logged in
-    if (!userRole) {
-      return window.location.replace('/login.html');
-    }
-
-    // If role isn’t allowed → unauthorized
-    if (!allowedRoles.includes(userRole)) {
-      return window.location.replace('/unauthorized.html');
-    }
-
-    // Passed: reveal the page
-    document.documentElement.style.visibility = '';
-  </script>
-
-  <!-- Load fonts & CSS only after guard has passed -->
+  <!-- 3) Styles & fonts load only after guard has run -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -140,6 +122,11 @@
   </style>
 </head>
 <body>
+  <!-- ensure the app knows you’re an author -->
+  <script>
+    sessionStorage.setItem('userRole','author');
+  </script>
+
   <div class="sidebar">
     <h2>Inkwave</h2>
     <div class="section">
@@ -224,7 +211,7 @@
 
   <script>
     const firebaseConfig = {
-      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      apiKey: "AIzaSyAJRW3QHNYAucAn0JEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
       projectId: "inkwave-549c0",
       storageBucket: "inkwave-549c0.appspot.com",
@@ -264,16 +251,13 @@
         alert("Please log in.");
         return;
       }
-
       db.collection("users").doc(user.uid).collection("stories").get().then(snapshot => {
         const table = document.getElementById("story-table");
         table.innerHTML = "";
-
         if (snapshot.empty) {
           table.innerHTML = '<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>';
           return;
         }
-
         let totalReads = 0, totalLikes = 0, totalEarnings = 0;
         snapshot.forEach(doc => {
           const s = doc.data();
@@ -282,11 +266,9 @@
           const likes   = s.likes    || 0;
           const revenue = s.revenue  || 0;
           const status  = s.status   || "draft";
-
           totalReads    += isNaN(reads)   ? 0 : reads;
           totalLikes    += isNaN(likes)   ? 0 : likes;
           totalEarnings += isNaN(revenue) ? 0 : revenue;
-
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td><a href="#" class="story-link" onclick="openStory('${doc.id}')">${title}</a></td>
@@ -302,7 +284,6 @@
             </td>`;
           table.appendChild(tr);
         });
-
         document.getElementById("total-reads").textContent    = totalReads;
         document.getElementById("total-likes").textContent    = totalLikes;
         document.getElementById("total-earnings").textContent = `$${totalEarnings.toFixed(2)}`;
