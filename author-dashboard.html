@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-
-  <!-- Force the role into sessionStorage *before* the guard runs -->
+  <!-- 1) Force the role into sessionStorage before any guard runs -->
   <script>
     sessionStorage.setItem('userRole','author');
     window.allowedRoles = ["author","both"];
+    // 2) Inline guard: if the role isn't allowed, kick to login
+    (function(){
+      const userRole = sessionStorage.getItem('userRole');
+      if (!window.allowedRoles.includes(userRole)) {
+        window.location.href = 'login.html';
+      }
+    })();
   </script>
-
-  <!-- Role-guard will now see “author” and allow it -->
+  <!-- 3) Your external guard, if you still need it -->
   <script src="role-guard.js"></script>
 
   <meta charset="UTF-8" />
@@ -25,193 +29,106 @@
       --white: #ffffff;
       --border: #e0e0e0;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Poppins', sans-serif;
       background-color: var(--bg);
       color: var(--text);
       display: flex;
     }
-
     .sidebar {
-      width: 300px;
-      background: #111;
-      color: #fff;
-      padding: 2rem 1.5rem;
-      height: 100vh;
-      position: fixed;
+      width: 300px; background: #111; color: #fff;
+      padding: 2rem 1.5rem; height: 100vh; position: fixed;
       overflow-y: auto;
     }
-
     .sidebar h2 {
       font-family: 'Playfair Display', serif;
-      font-size: 1.8rem;
-      margin-bottom: 2rem;
-      font-weight: 600;
+      font-size: 1.8rem; margin-bottom: 2rem; font-weight: 600;
     }
-
-    .sidebar .section {
-      margin-bottom: 2rem;
-    }
-
+    .sidebar .section { margin-bottom: 2rem; }
     .section-title {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #aaa;
-      margin-bottom: 0.6rem;
+      font-size: 0.8rem; text-transform: uppercase;
+      letter-spacing: 0.06em; color: #aaa; margin-bottom: 0.6rem;
       font-weight: 600;
     }
-
     .nav-link {
-      display: block;
-      margin: 0.5rem 0;
-      color: #e0e0e0;
-      text-decoration: none;
-      font-size: 1rem;
-      padding: 0.4rem 0.6rem;
-      border-radius: 4px;
-      font-weight: 500;
-      transition: background 0.2s;
+      display: block; margin: 0.5rem 0; color: #e0e0e0;
+      text-decoration: none; font-size: 1rem;
+      padding: 0.4rem 0.6rem; border-radius: 4px;
+      font-weight: 500; transition: background 0.2s;
     }
+    .nav-link:hover { background-color: #1e1e1e; }
 
-    .nav-link:hover {
-      background-color: #1e1e1e;
-    }
-
-    .main {
-      margin-left: 300px;
-      padding: 2.5rem;
-      flex: 1;
-    }
-
+    .main { margin-left: 300px; padding: 2.5rem; flex: 1; }
     .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 2rem;
     }
-
     h1 {
       font-family: 'Playfair Display', serif;
-      font-size: 2.4rem;
-      font-weight: 600;
-      margin-bottom: 0.3rem;
+      font-size: 2.4rem; font-weight: 600; margin-bottom: 0.3rem;
     }
-
     .btn {
-      background-color: var(--accent);
-      color: white;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      border-radius: 4px;
-      font-size: 1rem;
-      cursor: pointer;
+      background-color: var(--accent); color: white;
+      border: none; padding: 0.6rem 1.2rem;
+      border-radius: 4px; font-size: 1rem; cursor: pointer;
     }
+    .btn:hover { background-color: #5f7f76; }
 
-    .btn:hover {
-      background-color: #5f7f76;
-    }
-
-    .stats {
-      display: flex;
-      gap: 1.5rem;
-      margin-bottom: 2.5rem;
-    }
-
+    .stats { display: flex; gap: 1.5rem; margin-bottom: 2.5rem; }
     .stat-box {
-      flex: 1;
-      background: var(--white);
-      padding: 1.25rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+      flex: 1; background: var(--white);
+      padding: 1.25rem; border: 1px solid var(--border);
+      border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
-
     .stat-box h4 {
-      font-size: 1rem;
-      color: var(--accent);
-      margin-bottom: 0.25rem;
-      font-weight: 500;
+      font-size: 1rem; color: var(--accent);
+      margin-bottom: 0.25rem; font-weight: 500;
     }
-
-    .stat-box p {
-      font-size: 1.6rem;
-      font-weight: 600;
-    }
+    .stat-box p { font-size: 1.6rem; font-weight: 600; }
 
     table {
-      width: 100%;
-      background-color: var(--white);
-      border: 1px solid var(--border);
-      border-collapse: collapse;
-      border-radius: 6px;
-      overflow: hidden;
+      width: 100%; background-color: var(--white);
+      border: 1px solid var(--border); border-collapse: collapse;
+      border-radius: 6px; overflow: hidden;
     }
-
     th, td {
-      text-align: left;
-      padding: 0.85rem 1rem;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.95rem;
+      text-align: left; padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border); font-size: 0.95rem;
     }
-
     th {
-      background-color: #eef3f1;
-      color: #555;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
+      background-color: #eef3f1; color: #555;
+      text-transform: uppercase; letter-spacing: 0.03em;
       font-size: 0.8rem;
     }
-
-    tr:hover {
-      background-color: #f9f9f9;
-    }
+    tr:hover { background-color: #f9f9f9; }
 
     .story-link {
-      color: var(--accent);
-      text-decoration: none;
+      color: var(--accent); text-decoration: none;
       font-weight: 500;
     }
-
-    .story-link:hover {
-      text-decoration: underline;
-    }
+    .story-link:hover { text-decoration: underline; }
 
     .badge {
-      font-size: 0.75rem;
-      font-weight: 500;
-      padding: 0.3rem 0.6rem;
-      border-radius: 12px;
+      font-size: 0.75rem; font-weight: 500;
+      padding: 0.3rem 0.6rem; border-radius: 12px;
       display: inline-block;
     }
-
     .badge.published {
-      background-color: #d7f0e5;
-      color: #2b7a5e;
+      background-color: #d7f0e5; color: #2b7a5e;
     }
-
     .badge.draft {
-      background-color: #e8e8e8;
-      color: #555;
+      background-color: #e8e8e8; color: #555;
     }
 
     .no-stories {
-      text-align: center;
-      color: var(--muted);
-      padding: 2rem 0;
-      font-style: italic;
+      text-align: center; color: var(--muted);
+      padding: 2rem 0; font-style: italic;
     }
   </style>
 </head>
 <body>
-  <!-- Force index.html to load in author mode -->
+  <!-- (You can remove this extra force-script if you like—it’s redundant now) -->
   <script>
     sessionStorage.setItem('userRole','author');
   </script>
@@ -255,8 +172,7 @@
         <p style="color: var(--muted); margin-top: 0.3rem;">Welcome back, Author!</p>
       </div>
       <div style="display: flex; gap: 10px;">
-        <button class="btn"
-                onclick="sessionStorage.setItem('userRole','author'); window.location.href='index.html'">
+        <button class="btn" onclick="sessionStorage.setItem('userRole','author'); window.location.href='index.html'">
           🔙 Back to Inkwave Main
         </button>
         <button class="btn" onclick="createNewStory()">+ New Story</button>
@@ -308,7 +224,6 @@
       messagingSenderId: "1084811926133",
       appId: "1:1084811926133:web:auto-generated"
     };
-
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
@@ -326,9 +241,7 @@
     function deleteStory(storyId, iconElement) {
       const user = firebase.auth().currentUser;
       if (!user) return;
-
       if (!confirm("Delete this story?")) return;
-
       db.collection("users").doc(user.uid).collection("stories").doc(storyId).delete()
         .then(() => {
           iconElement.closest("tr").remove();
