@@ -1,4 +1,3 @@
-<!-- author-dashboard.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -6,17 +5,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Author Dashboard – Inkwave</title>
 
-  <!-- 1) Define the user’s role and allowed roles -->
+  <!-- ROLE GUARD: hide everything until we verify your role -->
   <script>
-    // (In a real app you'd set this once at login, not on every page-load)
-    sessionStorage.setItem('userRole','author');
-    window.allowedRoles = ['author','both'];
+    // Prevent flash of unauthorized content
+    document.documentElement.style.visibility = 'hidden';
+
+    // Define allowed roles for this page
+    const allowedRoles = ['author', 'both'];
+
+    // Retrieve the user’s role (set at login)
+    const userRole = sessionStorage.getItem('userRole');
+
+    // If no role → not logged in
+    if (!userRole) {
+      return window.location.replace('/login.html');
+    }
+
+    // If role isn’t allowed → unauthorized
+    if (!allowedRoles.includes(userRole)) {
+      return window.location.replace('/unauthorized.html');
+    }
+
+    // Passed: reveal the page
+    document.documentElement.style.visibility = '';
   </script>
 
-  <!-- 2) Fire the guard immediately -->
-  <script src="role-guard.js"></script>
-
-  <!-- 3) Styles & fonts load only after guard has run -->
+  <!-- Load fonts & CSS only after guard has passed -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -126,16 +140,11 @@
   </style>
 </head>
 <body>
-  <!-- (You can remove this extra force-script if you like—it’s redundant now) -->
-  <script>
-    sessionStorage.setItem('userRole','author');
-  </script>
-
   <div class="sidebar">
     <h2>Inkwave</h2>
     <div class="section">
       <div class="section-title">Core</div>
-      <a href="author-dashboard.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">🏠 Dashboard</a>
+      <a href="author-dashboard.html" class="nav-link">🏠 Dashboard</a>
       <a href="earnings.html" class="nav-link">💰 Earnings 🚧</a>
     </div>
     <div class="section">
@@ -170,7 +179,7 @@
         <p style="color: var(--muted); margin-top: 0.3rem;">Welcome back, Author!</p>
       </div>
       <div style="display: flex; gap: 10px;">
-        <button class="btn" onclick="sessionStorage.setItem('userRole','author'); window.location.href='index.html'">
+        <button class="btn" onclick="window.location.href='index.html'">
           🔙 Back to Inkwave Main
         </button>
         <button class="btn" onclick="createNewStory()">+ New Story</button>
@@ -256,9 +265,7 @@
         return;
       }
 
-      const storiesRef = db.collection("users").doc(user.uid).collection("stories");
-
-      storiesRef.get().then(snapshot => {
+      db.collection("users").doc(user.uid).collection("stories").get().then(snapshot => {
         const table = document.getElementById("story-table");
         table.innerHTML = "";
 
@@ -268,37 +275,36 @@
         }
 
         let totalReads = 0, totalLikes = 0, totalEarnings = 0;
-
         snapshot.forEach(doc => {
           const s = doc.data();
-          const title = s.title || "(Untitled)";
-          const reads = s.reads;
-          const likes = s.likes;
-          const revenue = s.revenue ?? 0;
-          const status = s.status || "draft";
+          const title   = s.title   || "(Untitled)";
+          const reads   = s.reads    || 0;
+          const likes   = s.likes    || 0;
+          const revenue = s.revenue  || 0;
+          const status  = s.status   || "draft";
 
-          if (!isNaN(reads)) totalReads += reads;
-          if (!isNaN(likes)) totalLikes += likes;
-          if (!isNaN(revenue)) totalEarnings += revenue;
+          totalReads    += isNaN(reads)   ? 0 : reads;
+          totalLikes    += isNaN(likes)   ? 0 : likes;
+          totalEarnings += isNaN(revenue) ? 0 : revenue;
 
           const tr = document.createElement("tr");
           tr.innerHTML = `
             <td><a href="#" class="story-link" onclick="openStory('${doc.id}')">${title}</a></td>
-            <td>${reads ?? ""}</td>
-            <td>${likes ?? ""}</td>
+            <td>${reads}</td>
+            <td>${likes}</td>
             <td>$${revenue.toFixed(2)}</td>
             <td>
-              <span class="badge ${status === 'published' ? 'published' : 'draft'}">
-                ${status.charAt(0).toUpperCase() + status.slice(1)}
+              <span class="badge ${status==='published'?'published':'draft'}">
+                ${status.charAt(0).toUpperCase()+status.slice(1)}
               </span>
-              <span style="margin-left: 10px; cursor: pointer; color: crimson;" onclick="deleteStory('${doc.id}', this)">🗑</span>
-            </td>
-          `;
+              <span style="margin-left:10px;cursor:pointer;color:crimson;"
+                    onclick="deleteStory('${doc.id}', this)">🗑</span>
+            </td>`;
           table.appendChild(tr);
         });
 
-        document.getElementById("total-reads").textContent = totalReads;
-        document.getElementById("total-likes").textContent = totalLikes;
+        document.getElementById("total-reads").textContent    = totalReads;
+        document.getElementById("total-likes").textContent    = totalLikes;
         document.getElementById("total-earnings").textContent = `$${totalEarnings.toFixed(2)}`;
       });
     });
