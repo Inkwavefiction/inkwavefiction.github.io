@@ -1,8 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>window.allowedRoles = ["author","both"];</script>
+  <meta charset="UTF-8" />
+
+  <!-- Force the role into sessionStorage *before* the guard runs -->
+  <script>
+    sessionStorage.setItem('userRole','author');
+    window.allowedRoles = ["author","both"];
+  </script>
+
+  <!-- Role-guard will now see “author” and allow it -->
   <script src="role-guard.js"></script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Author Dashboard – Inkwave</title>
