@@ -1,24 +1,22 @@
+<!-- author-dashboard.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- 1) Force the role into sessionStorage before any guard runs -->
-  <script>
-    sessionStorage.setItem('userRole','author');
-    window.allowedRoles = ["author","both"];
-    // 2) Inline guard: if the role isn't allowed, kick to login
-    (function(){
-      const userRole = sessionStorage.getItem('userRole');
-      if (!window.allowedRoles.includes(userRole)) {
-        window.location.href = 'login.html';
-      }
-    })();
-  </script>
-  <!-- 3) Your external guard, if you still need it -->
-  <script src="role-guard.js"></script>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Author Dashboard – Inkwave</title>
+
+  <!-- 1) Define the user’s role and allowed roles -->
+  <script>
+    // (In a real app you'd set this once at login, not on every page-load)
+    sessionStorage.setItem('userRole','author');
+    window.allowedRoles = ['author','both'];
+  </script>
+
+  <!-- 2) Fire the guard immediately -->
+  <script src="role-guard.js"></script>
+
+  <!-- 3) Styles & fonts load only after guard has run -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
