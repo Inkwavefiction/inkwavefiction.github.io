@@ -1,11 +1,9 @@
 // role-guard.js
 (function(){
-  const role = sessionStorage.getItem('userRole')
-             || localStorage.getItem('userRole')
-             || 'guest';
-
-  // must be set on each page before this script loads:
-  if (!window.allowedRoles || !window.allowedRoles.includes(role)) {
-    window.location.href = 'index.html';
+  const allowed = Array.isArray(window.allowedRoles) ? window.allowedRoles : [];
+  const userRole = sessionStorage.getItem('userRole');
+  if (!allowed.includes(userRole)) {
+    // replace() so Back-button won’t reveal protected view
+    window.location.replace('login.html');
   }
 })();
