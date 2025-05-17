@@ -94,7 +94,7 @@
 
     // ─── Initialize Firebase ─────────────────────────────────────────
     const firebaseConfig = {
-      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      apiKey: "AIzaSyAJRW3QHNYAucAn0JEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
       projectId: "inkwave-549c0",
       storageBucket: "inkwave-549c0.appspot.com",
@@ -105,56 +105,44 @@
     const auth = getAuth(app);
     const db   = getFirestore(app);
 
-    // ─── Debug-friendly routing helper ─────────────────────────────────
+    // ─── Helper: set sessionRole & redirect ───────────────────────────
     async function routeByRole(uid) {
-      // 1) Fetch the user record
       const userSnap = await getDoc(doc(db, "users", uid));
       if (!userSnap.exists()) throw new Error("User record missing");
       const data = userSnap.data();
-
-      // 2) Dump what Firestore returned
-      console.log("🔥 Fetched user data:", data);
-      console.log("   • data.role  =", data.role);
-      console.log("   • data.roles =", data.roles);
-
-      // 3) Merge old `role` into the `roles` array
-      let roles = Array.isArray(data.roles) ? [...data.roles] : [];
-      if (data.role && !roles.includes(data.role)) {
-        roles.push(data.role);
+      // collect both old single 'role' and array 'roles'
+      const rolesArr = Array.isArray(data.roles) ? [...data.roles] : [];
+      if (data.role && !rolesArr.includes(data.role)) {
+        rolesArr.push(data.role);
       }
-      console.log("   • Merged roles:", roles);
 
-      // 4) Route based on merged roles
-      const isReader = roles.includes("reader");
-      const isAuthor = roles.includes("author");
+      const isReader = rolesArr.includes("reader");
+      const isAuthor = rolesArr.includes("author");
 
-      // → Both
+      // decide which to store
       if (isReader && isAuthor) {
-        console.log("→ Both detected! Redirecting to both-dashboard.html");
+        sessionStorage.setItem("userRole","both");
+      } else if (isAuthor) {
+        sessionStorage.setItem("userRole","author");
+      } else if (isReader) {
+        sessionStorage.setItem("userRole","reader");
+      }
+
+      // now redirect
+      if (isReader && isAuthor) {
         return window.location.href = "/both-dashboard.html";
       }
-      // → Author-only
       if (isAuthor) {
-        console.log("→ Author-only; checking approval…");
         const aSnap  = await getDoc(doc(db, "authors", uid));
         const status = aSnap.exists() ? aSnap.data().status : null;
-        console.log("   • Author status =", status);
-        if (status === "approved") {
-          sessionStorage.setItem("userRole", "author");
-          const seen = localStorage.getItem("seenWelcome");
-          return window.location.href = seen
-            ? "/author-dashboard.html"
-            : "/approved.html";
-        }
-        return window.location.href = "/approved.html";
+        // if you’re already approved, go to dashboard, otherwise to pending page
+        return window.location.href = (status === "approved")
+          ? (localStorage.getItem("seenWelcome") ? "/author-dashboard.html" : "/approved.html")
+          : "/approved.html";
       }
-      // → Reader-only
       if (isReader) {
-        console.log("→ Reader-only; sending to explore.html");
-        sessionStorage.setItem("userRole", "reader");
         return window.location.href = "/explore.html";
       }
-
       throw new Error("No role assigned");
     }
 
@@ -170,7 +158,7 @@
       const password = document.getElementById("password").value.trim();
 
       try {
-        // New signup → author-only + pending
+        // ─ New signup: author-only + pending
         const { user } = await createUserWithEmailAndPassword(auth, email, password);
         await setDoc(doc(db, "users", user.uid), {
           email,
@@ -181,11 +169,12 @@
           email,
           status: "pending"
         });
+        // **sessionStorage now set inside routeByRole**
         return routeByRole(user.uid);
 
       } catch (err) {
         if (err.code === "auth/email-already-in-use") {
-          // Existing user → sign in & add author + pending
+          // ─ Existing user: sign in & add author + pending
           try {
             const { user } = await signInWithEmailAndPassword(auth, email, password);
             await updateDoc(doc(db, "users", user.uid), {
@@ -195,6 +184,7 @@
               email,
               status: "pending"
             }, { merge: true });
+            // **sessionStorage now set inside routeByRole**
             return routeByRole(user.uid);
           } catch (signInErr) {
             msg.textContent = signInErr.message;
