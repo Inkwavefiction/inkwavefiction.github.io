@@ -94,7 +94,7 @@
 
     // ─── Initialize Firebase ─────────────────────────────────────────
     const firebaseConfig = {
-      apiKey: "AIzaSyAJRW3QHNYAucAn0JEN-w7CJfOAa0NzIE",
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
       projectId: "inkwave-549c0",
       storageBucket: "inkwave-549c0.appspot.com",
@@ -110,37 +110,26 @@
       const userSnap = await getDoc(doc(db, "users", uid));
       if (!userSnap.exists()) throw new Error("User record missing");
       const data = userSnap.data();
-      // collect both old single 'role' and array 'roles'
       const rolesArr = Array.isArray(data.roles) ? [...data.roles] : [];
-      if (data.role && !rolesArr.includes(data.role)) {
-        rolesArr.push(data.role);
-      }
+      if (data.role && !rolesArr.includes(data.role)) rolesArr.push(data.role);
 
       const isReader = rolesArr.includes("reader");
       const isAuthor = rolesArr.includes("author");
 
-      // decide which to store
       if (isReader && isAuthor) {
         sessionStorage.setItem("userRole","both");
-      } else if (isAuthor) {
-        sessionStorage.setItem("userRole","author");
-      } else if (isReader) {
-        sessionStorage.setItem("userRole","reader");
-      }
-
-      // now redirect
-      if (isReader && isAuthor) {
         return window.location.href = "/both-dashboard.html";
       }
       if (isAuthor) {
+        sessionStorage.setItem("userRole","author");
         const aSnap  = await getDoc(doc(db, "authors", uid));
         const status = aSnap.exists() ? aSnap.data().status : null;
-        // if you’re already approved, go to dashboard, otherwise to pending page
         return window.location.href = (status === "approved")
           ? (localStorage.getItem("seenWelcome") ? "/author-dashboard.html" : "/approved.html")
           : "/approved.html";
       }
       if (isReader) {
+        sessionStorage.setItem("userRole","reader");
         return window.location.href = "/explore.html";
       }
       throw new Error("No role assigned");
@@ -158,7 +147,7 @@
       const password = document.getElementById("password").value.trim();
 
       try {
-        // ─ New signup: author-only + pending
+        // New signup → author-only + pending
         const { user } = await createUserWithEmailAndPassword(auth, email, password);
         await setDoc(doc(db, "users", user.uid), {
           email,
@@ -169,12 +158,11 @@
           email,
           status: "pending"
         });
-        // **sessionStorage now set inside routeByRole**
         return routeByRole(user.uid);
 
       } catch (err) {
         if (err.code === "auth/email-already-in-use") {
-          // ─ Existing user: sign in & add author + pending
+          // Existing user → sign in & add author + pending
           try {
             const { user } = await signInWithEmailAndPassword(auth, email, password);
             await updateDoc(doc(db, "users", user.uid), {
@@ -184,7 +172,6 @@
               email,
               status: "pending"
             }, { merge: true });
-            // **sessionStorage now set inside routeByRole**
             return routeByRole(user.uid);
           } catch (signInErr) {
             msg.textContent = signInErr.message;
