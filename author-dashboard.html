@@ -234,7 +234,10 @@
 
     function deleteStory(storyId, iconElement) {
       const user = firebase.auth().currentUser;
-      if (!user) return;
+      if (!user) {
+        // no alert—just send them to login
+        return window.location.href = "login.html";
+      }
       if (!confirm("Delete this story?")) return;
       db.collection("users").doc(user.uid).collection("stories").doc(storyId).delete()
         .then(() => {
@@ -248,9 +251,10 @@
 
     firebase.auth().onAuthStateChanged(user => {
       if (!user) {
-        alert("Please log in.");
-        return;
+        // silently redirect to login if not signed in
+        return window.location.href = "login.html";
       }
+
       db.collection("users").doc(user.uid).collection("stories").get().then(snapshot => {
         const table = document.getElementById("story-table");
         table.innerHTML = "";
@@ -289,6 +293,4 @@
         document.getElementById("total-earnings").textContent = `$${totalEarnings.toFixed(2)}`;
       });
     });
-  </script>
-</body>
-</html>
+  </script
