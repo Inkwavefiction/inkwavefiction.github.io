@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Become an Author – Inkwave</title>
+  <title>Become Both – Inkwave</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
   <style>
     body {
@@ -62,15 +62,15 @@
 <body>
 
   <div class="signup-container">
-    <h2>Become an Author</h2>
+    <h2>Become Both</h2>
     <div class="description">
-      If you’re already a reader, this will add the author role to your account.<br>
-      Otherwise, it creates a new author-only account.
+      If you’re already a reader, this will add the “both” role to your account.<br>
+      Otherwise, it creates a new “both” account with reader+author access.
     </div>
     <form id="signup-form">
       <input type="email" id="email" placeholder="Email" required />
       <input type="password" id="password" placeholder="Password" required />
-      <button type="submit">Sign Up</button>
+      <button type="submit">Sign Up for Both</button>
     </form>
     <div class="message" id="message"></div>
   </div>
@@ -111,27 +111,22 @@
       if (!userSnap.exists()) throw new Error("User record missing");
       const data = userSnap.data();
       const rolesArr = Array.isArray(data.roles) ? [...data.roles] : [];
-      if (data.role && !rolesArr.includes(data.role)) rolesArr.push(data.role);
+      if (data.role && !rolesArr.includes(data.role)) {
+        rolesArr.push(data.role);
+      }
 
       const isReader = rolesArr.includes("reader");
-      const isAuthor = rolesArr.includes("author");
+      const isBoth   = rolesArr.includes("both");
 
-      if (isReader && isAuthor) {
+      if (isBoth) {
         sessionStorage.setItem("userRole","both");
         return window.location.href = "/both-dashboard.html";
-      }
-      if (isAuthor) {
-        sessionStorage.setItem("userRole","author");
-        const aSnap  = await getDoc(doc(db, "authors", uid));
-        const status = aSnap.exists() ? aSnap.data().status : null;
-        return window.location.href = (status === "approved")
-          ? (localStorage.getItem("seenWelcome") ? "/author-dashboard.html" : "/approved.html")
-          : "/approved.html";
       }
       if (isReader) {
         sessionStorage.setItem("userRole","reader");
         return window.location.href = "/explore.html";
       }
+
       throw new Error("No role assigned");
     }
 
@@ -147,31 +142,23 @@
       const password = document.getElementById("password").value.trim();
 
       try {
-        // New signup → author-only + pending
+        // New signup → both role
         const { user } = await createUserWithEmailAndPassword(auth, email, password);
         await setDoc(doc(db, "users", user.uid), {
           email,
-          roles: ["author"],
+          roles: ["both"],
           joinedAt: serverTimestamp()
-        });
-        await setDoc(doc(db, "authors", user.uid), {
-          email,
-          status: "pending"
         });
         return routeByRole(user.uid);
 
       } catch (err) {
         if (err.code === "auth/email-already-in-use") {
-          // Existing user → sign in & add author + pending
+          // Existing user → sign in & add both
           try {
             const { user } = await signInWithEmailAndPassword(auth, email, password);
             await updateDoc(doc(db, "users", user.uid), {
-              roles: arrayUnion("author")
+              roles: arrayUnion("both")
             });
-            await setDoc(doc(db, "authors", user.uid), {
-              email,
-              status: "pending"
-            }, { merge: true });
             return routeByRole(user.uid);
           } catch (signInErr) {
             msg.textContent = signInErr.message;
