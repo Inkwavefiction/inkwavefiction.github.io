@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Become an Author – Inkwave</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #dce3e7;
+      color: #333;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      padding: 1rem;
+    }
+    .signup-container {
+      background: white;
+      padding: 2rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      max-width: 400px;
+      width: 100%;
+    }
+    h2 { font-family: 'Playfair Display', serif; text-align: center; margin-bottom: 1rem; }
+    .description {
+      font-size: 0.95rem;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      color: #555;
+    }
+    input {
+      width: 100%;
+      padding: 0.6rem;
+      margin: 0.5rem 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    button {
+      width: 100%;
+      padding: 0.7rem;
+      background-color: #789a91;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 0.5rem;
+    }
+    button:hover { background-color: #5f7f76; }
+    .message {
+      text-align: center;
+      margin-top: 1rem;
+      color: #a33c3c;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="signup-container">
+    <h2>Become an Author</h2>
+    <div class="description">
+      If you’re already a reader, this will add the author role to your account.<br>
+      Otherwise, it creates a new author-only account.
+    </div>
+    <form id="signup-form">
+      <input type="email" id="email" placeholder="Email" required />
+      <input type="password" id="password" placeholder="Password" required />
+      <button type="submit">Sign Up</button>
+    </form>
+    <div class="message" id="message"></div>
+  </div>
+
+  <script type="module">
+    import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import {
+      getAuth,
+      signInWithEmailAndPassword,
+      createUserWithEmailAndPassword
+    }                           from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      setDoc,
+      updateDoc,
+      arrayUnion,
+      serverTimestamp
+    }                           from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // ─── Initialize Firebase ─────────────────────────────────────────
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0",
+      storageBucket: "inkwave-549c0.appspot.com",
+      messagingSenderId: "1084811926133",
+      appId: "1:1084811926133:web:f1656fce68d5c4d697363c"
+    };
+    const app  = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db   = getFirestore(app);
+
+    // ─── Helper: set sessionRole & redirect ───────────────────────────
+    async function routeByRole(uid) {
+      const userSnap = await getDoc(doc(db, "users", uid));
+      if (!userSnap.exists()) throw new Error("User record missing");
+      const data = userSnap.data();
+      const rolesArr = Array.isArray(data.roles) ? [...data.roles] : [];
+      if (data.role && !rolesArr.includes(data.role)) rolesArr.push(data.role);
+
+      const isReader = rolesArr.includes("reader");
+      const isAuthor = rolesArr.includes("author");
+
+      if (isReader && isAuthor) {
+        sessionStorage.setItem("userRole","both");
+        return window.location.href = "/both-dashboard.html";
+      }
+      if (isAuthor) {
+        sessionStorage.setItem("userRole","author");
+        const aSnap  = await getDoc(doc(db, "authors", uid));
+        const status = aSnap.exists() ? aSnap.data().status : null;
+        return window.location.href = (status === "approved")
+          ? (localStorage.getItem("seenWelcome") ? "/author-dashboard.html" : "/approved.html")
+          : "/approved.html";
+      }
+      if (isReader) {
+        sessionStorage.setItem("userRole","reader");
+        return window.location.href = "/explore.html";
+      }
+      throw new Error("No role assigned");
+    }
+
+    // ─── Form handling ────────────────────────────────────────────────
+    const form = document.getElementById("signup-form");
+    const msg  = document.getElementById("message");
+
+    form.addEventListener("submit", async e => {
+      e.preventDefault();
+      msg.textContent = "";
+
+      const email    = document.getElementById("email").value.trim().toLowerCase();
+      const password = document.getElementById("password").value.trim();
+
+      try {
+        // New signup → author-only + pending
+        const { user } = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, "users", user.uid), {
+          email,
+          roles: ["author"],
+          joinedAt: serverTimestamp()
+        });
+        await setDoc(doc(db, "authors", user.uid), {
+          email,
+          status: "pending"
+        });
+        return routeByRole(user.uid);
+
+      } catch (err) {
+        if (err.code === "auth/email-already-in-use") {
+          // Existing user → sign in & add author + pending
+          try {
+            const { user } = await signInWithEmailAndPassword(auth, email, password);
+            await updateDoc(doc(db, "users", user.uid), {
+              roles: arrayUnion("author")
+            });
+            await setDoc(doc(db, "authors", user.uid), {
+              email,
+              status: "pending"
+            }, { merge: true });
+            return routeByRole(user.uid);
+          } catch (signInErr) {
+            msg.textContent = signInErr.message;
+          }
+        } else {
+          msg.textContent = err.message;
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
