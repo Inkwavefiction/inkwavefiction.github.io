@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>window.allowedRoles = ["author","reader","both"];</script>
+  <script>window.allowedRoles = ["author","reader"];</script>
   <script src="role-guard.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -123,16 +123,26 @@
     .modal-header p { color: var(--muted); font-size: 0.9rem; }
     .section-list { list-style-type: disc; padding-left: 1.5rem; margin-top: 0.5rem; font-size: 1.05rem; font-weight: 500; color: #333; }
     .section-list li { margin-bottom: 0.4rem; line-height: 1.6; }
+    .approval-banner {
+      background: #fff3cd;
+      color: #856404;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      font-weight: 500;
+    }
   </style>
 </head>
 <body>
   <div class="sidebar">
-    <h2 onclick="showAuthor()">Inkwave</h2>
+    <h2 onclick="goHome()">Inkwave</h2>
+
     <div class="author-section">
       <div class="section">
         <div class="section-title">Core</div>
         <div id="nav-dashboard" class="nav-link active" onclick="showAuthor()">🏠 Dashboard</div>
-        <div class="nav-link" onclick="sessionStorage.setItem('userRole','author'); window.location.href='earnings-both.html'">💰 Earnings 🚧</div>
+        <div class="nav-link" onclick="window.location.href='earnings-both.html'">💰 Earnings 🚧</div>
       </div>
       <div class="section">
         <div class="section-title">Writing Tools</div>
@@ -158,6 +168,7 @@
         <div class="nav-link" onclick="window.location.href='settings-author.html'">⚙️ Settings</div>
       </div>
     </div>
+
     <div class="section">
       <div class="section-title">Reader</div>
       <div id="nav-favorites" class="nav-link" onclick="showReader('favorites')">📚 Favorites</div>
@@ -193,6 +204,9 @@
 
   <!-- Reader Main -->
   <div id="readerMain" class="main" style="display:none;">
+    <div id="approvalBanner" class="approval-banner" style="display:none;">
+      Once you're approved as an author, you'll see all the author tools here.
+    </div>
     <h1 id="readerTitle">📖 Explore Stories</h1>
     <input type="text" class="search-bar" placeholder="Search stories..." id="storySearch" />
     <div id="storyGrid" class="story-grid"><p>Loading stories...</p></div>
@@ -233,12 +247,18 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    let isApproved = false;
 
     // Navigation helpers
     function clearActive() {
       document.querySelectorAll('.nav-link').forEach(n => n.classList.remove('active'));
     }
+    function goHome() {
+      if (isApproved) showAuthor();
+      else showReader('explore');
+    }
     function showAuthor() {
+      if (!isApproved) { showReader('explore'); return; }
       clearActive();
       document.getElementById('nav-dashboard').classList.add('active');
       document.getElementById('readerMain').style.display = 'none';
@@ -255,8 +275,11 @@
         settings: 'nav-reader-settings'
       };
       if (idMap[section]) document.getElementById(idMap[section]).classList.add('active');
+
       document.getElementById('authorMain').style.display = 'none';
       document.getElementById('readerMain').style.display = 'block';
+      document.getElementById('approvalBanner').style.display = isApproved ? 'none' : 'block';
+
       if (section === 'explore') {
         document.getElementById('readerTitle').textContent = '📖 Explore Stories';
         document.getElementById('storySearch').style.display = 'block';
@@ -266,35 +289,143 @@
       }
     }
 
-    // Author actions (unchanged)...
-    function createNewStory() { /* ... */ }
-    function openStory(id) { /* ... */ }
-    function deleteStory(id, el) { /* ... */ }
-    function loadAuthorStories() { /* ... */ }
+    // Author actions
+    function createNewStory() {
+      const newId = 'story-' + Date.now();
+      localStorage.setItem('currentStoryId', newId);
+      window.location.href = 'new-story.html';
+    }
+    function openStory(id) {
+      localStorage.setItem('currentStoryId', id);
+      window.location.href = 'new-story.html';
+    }
+    function deleteStory(id, el) {
+      if (!confirm('Delete this story?')) return;
+      const user = auth.currentUser;
+      db.collection('users').doc(user.uid)
+        .collection('stories').doc(id).delete()
+        .then(() => el.closest('tr').remove());
+    }
+    function loadAuthorStories() {
+      const user = auth.currentUser;
+      if (!user) return;
+      db.collection('users').doc(user.uid).collection('stories')
+        .get().then(snap => {
+          const table = document.getElementById('story-table');
+          table.innerHTML = '';
+          if (snap.empty) {
+            table.innerHTML = '<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>';
+            return;
+          }
+          let reads = 0, likes = 0, earnings = 0;
+          snap.forEach(doc => {
+            const s = doc.data();
+            reads += s.reads || 0;
+            likes += s.likes || 0;
+            earnings += s.revenue || 0;
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><a href="#" class="story-link" onclick="openStory('${doc.id}')">${s.title || '(Untitled)'}</a></td>
+              <td>${s.reads || ''}</td>
+              <td>${s.likes || ''}</td>
+              <td>$${(s.revenue || 0).toFixed(2)}</td>
+              <td>
+                <span class="badge ${s.status==='published'?'published':'draft'}">${(s.status||'draft').charAt(0).toUpperCase() + (s.status||'draft').slice(1)}</span>
+                <span style="margin-left:10px;cursor:pointer;color:crimson;" onclick="deleteStory('${doc.id}',this)">🗑</span>
+              </td>`;
+            table.appendChild(tr);
+          });
+          document.getElementById('total-reads').textContent = reads;
+          document.getElementById('total-likes').textContent = likes;
+          document.getElementById('total-earnings').textContent = '$' + earnings.toFixed(2);
+        });
+    }
 
-    // Reader actions (unchanged)...
-    function openModal(id) { /* ... */ }
-    function loadReader() { /* ... */ }
+    // Reader actions
+    const modal = document.getElementById('storyModal');
+    document.querySelector('.close-button').onclick = () => modal.style.display = 'none';
+    window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
 
-    // On load: check approval status
+    function openModal(id) {
+      db.collectionGroup('stories').where('id','==',id).limit(1).get().then(async snap => {
+        if (snap.empty) return alert('Story not found.');
+        const docSnap = snap.docs[0], d = docSnap.data();
+        document.getElementById('modalTitle').textContent = d.title || 'Untitled';
+        document.getElementById('modalBlurb').textContent = d.blurb || 'No description';
+        const genreEl = document.getElementById('modalGenre');
+        genreEl.textContent = d.genre || '';
+        genreEl.style.display = d.genre ? 'inline-block' : 'none';
+        document.getElementById('modalTags').innerHTML = (d.tags||[]).map(t => `<span class="tag">${t}</span>`).join('');
+        const secs = Object.keys(d.sections || {});
+        document.getElementById('modalSections').innerHTML = secs.length
+          ? secs.map(n => `<li>${n}</li>`).join('')
+          : '<li>No sections</li>';
+        const authorDoc = await db.collection('authors').doc(docSnap.ref.parent.parent.id).get();
+        document.getElementById('modalAuthor').textContent = authorDoc.exists
+          ? `by ${authorDoc.data().displayName}`
+          : 'by Unknown';
+        document.getElementById('startReading').onclick = () =>
+          window.location.href = `story.html?storyId=${id}`;
+        modal.style.display = 'block';
+      });
+    }
+
+    function loadReader() {
+      auth.onAuthStateChanged(async user => {
+        if (!user) return;
+        const favsSnap = await db.collection('users').doc(user.uid).collection('favorites').get();
+        const favSet = new Set(favsSnap.docs.map(d => d.data().id));
+        const snap = await db.collectionGroup('stories').where('status','==','published').get();
+        const grid = document.getElementById('storyGrid');
+        grid.innerHTML = '';
+        snap.forEach(docSnap => {
+          const d = docSnap.data();
+          const div = document.createElement('div');
+          div.className = 'story-card';
+          div.onclick = () => openModal(d.id);
+          const heart = favSet.has(d.id) ? '<div class="heart-icon">❤️</div>' : '';
+          const typeBadge = d.type==='book'
+            ? '<span class="badge book">📘 Full Book</span>'
+            : '<span class="badge short">📖 Short Story</span>';
+          const statBadge = d.finished
+            ? '<span class="badge finished">✅ Finished</span>'
+            : '<span class="badge in-progress">🕓 In Progress</span>';
+          const genreBadge = d.genre ? `<span class="badge genre">${d.genre}</span>` : '';
+          const tags = (d.tags||[]).map(t => `<span class="tag">${t}</span>`).join(' ');
+          div.innerHTML = `
+            ${heart}
+            <div class="story-title">${d.title || 'Untitled'}</div>
+            <div class="story-info">${typeBadge} ${statBadge} ${genreBadge} ${tags}</div>
+            <div class="story-blurb">${d.blurb || 'No description'}</div>`;
+          grid.appendChild(div);
+        });
+        document.getElementById('storySearch').oninput = () => {
+          const q = document.getElementById('storySearch').value.toLowerCase();
+          document.querySelectorAll('.story-card').forEach(c => {
+            const title = c.querySelector('.story-title').innerText.toLowerCase();
+            const blurb = c.querySelector('.story-blurb').innerText.toLowerCase();
+            c.style.display = (title.includes(q) || blurb.includes(q)) ? 'block' : 'none';
+          });
+        };
+      });
+    }
+
+    // On load / auth state
     auth.onAuthStateChanged(user => {
       if (!user) {
         alert('Please log in.');
         return;
       }
       db.collection('authors').doc(user.uid).get()
-        .then(docSnap => {
-          const approved = docSnap.exists && docSnap.data().status === 'approved';
-          // show or hide all author sections/nav
+        .then(snap => {
+          isApproved = snap.exists && snap.data().status === 'approved';
+          // toggle author nav
           document.querySelectorAll('.author-section').forEach(el => {
-            el.style.display = approved ? 'block' : 'none';
+            el.style.display = isApproved ? 'block' : 'none';
           });
           // initial view
-          if (approved) {
-            showAuthor();
-          } else {
-            showReader('explore');
-          }
+          if (isApproved) showAuthor();
+          else showReader('explore');
         })
         .catch(err => {
           console.error(err);
@@ -302,11 +433,6 @@
           showReader('explore');
         });
     });
-
-    // Modal close
-    const modal = document.getElementById('storyModal');
-    document.querySelector('.close-button').onclick = () => modal.style.display = 'none';
-    window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
   </script>
 </body>
 </html>
