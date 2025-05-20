@@ -146,6 +146,7 @@
   <div class="toggle-role">
     <button class="active" id="author-btn">Author</button>
     <button id="reader-btn">Reader</button>
+    <button id="both-btn">Both</button>
   </div>
 
   <!-- AUTHOR LOGIN -->
@@ -182,7 +183,6 @@
       <h3>🌱 Beta Reader</h3>
       <p><strong>$0/month</strong> – Full access during beta. No payment required.</p>
     </div>
-    <!-- Supporter card removed -->
     <div class="reader-signup-form" id="signup-form">
       <div class="form-group">
         <label for="signup-email">Email</label>
@@ -195,12 +195,27 @@
       <button class="login-btn" id="signup-btn">Create Account</button>
     </div>
     <div class="author-note">
-      Already an author? Please use the Author login tab or apply via the Author Dashboard</a>.
+      Already an author? Please use the Author login tab or apply via the Author Dashboard.
     </div>
+  </div>
+
+  <!-- BOTH LOGIN -->
+  <div id="both-login" style="display: none;">
+    <div class="form-group">
+      <label for="both-email">Email</label>
+      <input type="email" id="both-email" placeholder="you@example.com" />
+    </div>
+    <div class="form-group">
+      <label for="both-password">Password</label>
+      <input type="password" id="both-password" placeholder="Your password" />
+    </div>
+    <button class="login-btn" id="both-login-btn">Log In</button>
+    <div class="signup-link">You can create a both account from within your singular account.</div>
   </div>
 
   <div class="error" id="error-msg"></div>
 </div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
   import {
@@ -232,10 +247,12 @@
 
   const authorBtn = document.getElementById("author-btn");
   const readerBtn = document.getElementById("reader-btn");
+  const bothBtn = document.getElementById("both-btn");
   const authorForm = document.getElementById("author-form");
   const readerLogin = document.getElementById("reader-login");
   const readerSignup = document.getElementById("reader-signup");
   const signupForm = document.getElementById("signup-form");
+  const bothLogin = document.getElementById("both-login");
   const errorMsg = document.getElementById("error-msg");
 
   let selectedPlan = "beta";
@@ -243,8 +260,10 @@
   authorBtn.onclick = () => {
     authorBtn.classList.add("active");
     readerBtn.classList.remove("active");
+    bothBtn.classList.remove("active");
     authorForm.style.display = "block";
     readerLogin.style.display = "none";
+    bothLogin.style.display = "none";
     readerSignup.classList.remove("active");
     errorMsg.textContent = "";
   };
@@ -252,8 +271,21 @@
   readerBtn.onclick = () => {
     readerBtn.classList.add("active");
     authorBtn.classList.remove("active");
+    bothBtn.classList.remove("active");
     authorForm.style.display = "none";
     readerLogin.style.display = "block";
+    bothLogin.style.display = "none";
+    readerSignup.classList.remove("active");
+    errorMsg.textContent = "";
+  };
+
+  bothBtn.onclick = () => {
+    bothBtn.classList.add("active");
+    authorBtn.classList.remove("active");
+    readerBtn.classList.remove("active");
+    authorForm.style.display = "none";
+    readerLogin.style.display = "none";
+    bothLogin.style.display = "block";
     readerSignup.classList.remove("active");
     errorMsg.textContent = "";
   };
@@ -269,9 +301,6 @@
     signupForm.classList.add("active");
   };
 
-  // Removed plan-supporter event listener
-
-  // Reader Signup remains unchanged.
   document.getElementById("signup-btn").onclick = async () => {
     const email = document.getElementById("signup-email").value.trim();
     const password = document.getElementById("signup-password").value.trim();
@@ -301,7 +330,6 @@
     }
   };
 
-  // UPDATED: Reader Login with parent document creation/merge
   document.getElementById("reader-login-btn").onclick = async () => {
     const email = document.getElementById("reader-email").value.trim();
     const password = document.getElementById("reader-password").value.trim();
@@ -310,8 +338,6 @@
     try {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
-      
-      // Ensure the user's document exists by merging a joinedAt field.
       await setDoc(doc(db, "users", uid), {
         joinedAt: serverTimestamp()
       }, { merge: true });
@@ -335,7 +361,6 @@
     }
   };
 
-  // Author Login remains unchanged.
   document.getElementById("author-login-btn").onclick = async () => {
     const email = document.getElementById("author-email").value.trim();
     const password = document.getElementById("author-password").value.trim();
@@ -376,6 +401,26 @@
       } else {
         errorMsg.textContent = "Unknown status. Please contact support.";
       }
+    } catch (err) {
+      errorMsg.textContent = "Login failed. Please check your credentials.";
+    }
+  };
+
+  // BOTH LOGIN HANDLER
+  document.getElementById("both-login-btn").onclick = async () => {
+    const email = document.getElementById("both-email").value.trim();
+    const password = document.getElementById("both-password").value.trim();
+    errorMsg.textContent = "";
+
+    if (!email || !password) {
+      errorMsg.textContent = "Please enter both email and password.";
+      return;
+    }
+
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      sessionStorage.setItem("userRole", "both");
+      window.location.href = "dashboard-both.html";
     } catch (err) {
       errorMsg.textContent = "Login failed. Please check your credentials.";
     }
