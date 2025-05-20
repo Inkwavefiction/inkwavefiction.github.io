@@ -420,7 +420,7 @@
     try {
       await signInWithEmailAndPassword(auth, email, password);
       sessionStorage.setItem("userRole", "both");
-      window.location.href = "dashboard-both.html";
+      window.location.href = "both-dashboard.html";
     } catch (err) {
       errorMsg.textContent = "Login failed. Please check your credentials.";
     }
