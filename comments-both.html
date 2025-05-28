@@ -17,9 +17,7 @@
       --sidebar-bg: #0d0d0d;
       --sidebar-width: 280px;
     }
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
     body {
       font-family: 'Poppins', sans-serif;
       background-color: var(--bg);
@@ -27,7 +25,6 @@
       display: flex;
       min-height: 100vh;
     }
-
     .sidebar {
       width: var(--sidebar-width);
       background: var(--sidebar-bg);
@@ -37,51 +34,64 @@
       position: fixed;
       overflow-y: auto;
     }
-
     .sidebar h2 {
       font-family: 'Playfair Display', serif;
       font-size: 2rem;
       margin-bottom: 2.5rem;
       font-weight: 600;
+      color: #fff;
+      cursor: pointer;
     }
-
+    .author-section { display: none; }
+    .section { margin-bottom: 1.5rem; }
+    .section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #aaa;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+    }
     .nav-link {
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      padding: 0.75rem 1rem;
       color: #e0e0e0;
       text-decoration: none;
-      font-size: 1rem;
-      padding: 0.75rem 1rem;
       border-radius: 8px;
+      font-size: 1rem;
       font-weight: 500;
+      transition: background 0.2s ease;
       margin-bottom: 0.6rem;
-      transition: background 0.2s, color 0.2s;
+      cursor: pointer;
     }
-
-    .nav-link:hover {
-      background-color: #1a1a1a;
-    }
-
+    .nav-link:hover { background-color: #1a1a1a; }
     .nav-link.active {
       background-color: #2a2a2a;
       color: #ffffff;
       font-weight: 600;
     }
-
     .main {
       margin-left: var(--sidebar-width);
       padding: 2.5rem;
       flex: 1;
     }
-
+    .approval-banner {
+      background: #fff3cd;
+      color: #856404;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      font-weight: 500;
+    }
     h1 {
       font-family: 'Playfair Display', serif;
       font-size: 2.2rem;
       font-weight: 600;
       margin-bottom: 1.5rem;
     }
-
     .card {
       background: var(--white);
       padding: 1.5rem;
@@ -90,13 +100,11 @@
       margin-bottom: 1.5rem;
       position: relative;
     }
-
     .comment-meta {
       font-size: 0.85rem;
       color: var(--muted);
       margin-bottom: 0.5rem;
     }
-
     .delete-btn {
       position: absolute;
       top: 1rem;
@@ -110,62 +118,58 @@
       cursor: pointer;
       transition: background 0.2s ease;
     }
-
-    .delete-btn:hover {
-      background: #d93636;
-    }
+    .delete-btn:hover { background: #d93636; }
   </style>
 </head>
 <body>
-  <!-- ensure index.html knows you’re a reader -->
-  <script>
-    sessionStorage.setItem('userRole','reader');
-  </script>
-
   <div class="sidebar">
-    <h2 onclick="showAuthor()">Inkwave</h2>
-    <div class="section">
-      <div class="section-title">Core</div>
-      <div id="nav-dashboard" class="nav-link active" onclick="showAuthor()">🏠 Dashboard</div>
-      <div class="nav-link" onclick="sessionStorage.setItem('userRole','author'); window.location.href='earnings-both.html'">
-        💰 Earnings 🚧
+    <h2 onclick="goHome()">Inkwave</h2>
+
+    <div class="author-section">
+      <div class="section">
+        <div class="section-title">Core</div>
+        <div id="nav-dashboard" class="nav-link" onclick="goHome()">🏠 Dashboard</div>
+        <div class="nav-link" onclick="window.location.href='earnings-both.html'">💰 Earnings 🚧</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Writing Tools</div>
+        <div class="nav-link" onclick="window.location.href='blurb-generator-both.html'">🧠 Blurb Generator 🚧</div>
+        <div class="nav-link" onclick="window.location.href='grammar-both.html'">📝 Grammar Fixer 🚧</div>
+        <div class="nav-link" onclick="window.location.href='story-templates-both.html'">📄 Story Templates</div>
+        <div class="nav-link" onclick="window.location.href='formatting-tools-both.html'">📈 Graphing Plots 🚧</div>
+        <div class="nav-link" onclick="window.location.href='genre-tags-both.html'">🏷️ Genre & Tags</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Testing & Feedback</div>
+        <div class="nav-link" onclick="window.location.href='A-B-both.html'">🧪 A/B Testing 🚧</div>
+        <div class="nav-link" onclick="window.location.href='reader-heatmap-both.html'">🔥 Reader Heatmap 🚧</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Publishing</div>
+        <div class="nav-link" onclick="window.location.href='checklist-both.html'">✅ Checklist</div>
+        <div class="nav-link" onclick="window.location.href='cover-generator-both.html'">🖼️ Cover Generator 🚧</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Productivity</div>
+        <div class="nav-link" onclick="window.location.href='inkie-chat-both.html'">🤖 Inky Assistant 🚧</div>
+        <div class="nav-link" onclick="window.location.href='settings-author-both.html'">⚙️ Settings</div>
       </div>
     </div>
-    <div class="section">
-      <div class="section-title">Writing Tools</div>
-      <div class="nav-link" onclick="window.location.href='blurb-generator-both.html'">🧠 Blurb Generator 🚧</div>
-      <div class="nav-link" onclick="window.location.href='grammar-both.html'">📝 Grammar Fixer 🚧</div>
-      <div class="nav-link" onclick="window.location.href='story-templates-both.html'">📄 Story Templates</div>
-      <div class="nav-link" onclick="window.location.href='formatting-tools-both.html'">📈 Graphing Plots 🚧</div>
-      <div class="nav-link" onclick="window.location.href='genre-tags-both.html'">🏷️ Genre & Tags</div>
-    </div>
-    <div class="section">
-      <div class="section-title">Testing & Feedback</div>
-      <div class="nav-link" onclick="window.location.href='A-B-both.html'">🧪 A/B Testing 🚧</div>
-      <div class="nav-link" onclick="window.location.href='reader-heatmap-both.html'">🔥 Reader Heatmap 🚧</div>
-    </div>
-    <div class="section">
-      <div class="section-title">Publishing</div>
-      <div class="nav-link" onclick="window.location.href='checklist-both.html'">✅ Checklist</div>
-      <div class="nav-link" onclick="window.location.href='cover-generator-both.html'">🖼️ Cover Generator 🚧</div>
-    </div>
-    <div class="section">
-      <div class="section-title">Productivity</div>
-      <div class="nav-link" onclick="window.location.href='inkie-chat-both.html'">🤖 Inky Assistant 🚧</div>
-      <div class="nav-link" onclick="window.location.href='settings-author-both.html'">⚙️ Settings</div>
-    </div>
+
     <div class="section">
       <div class="section-title">Reader</div>
       <div class="nav-link" onclick="window.location.href='favorites-both.html'">📚 Favorites</div>
-      <div class="nav-link" onclick="window.location.href='comments-both.html'">💬 Comments</div>
+      <div class="nav-link active" onclick="window.location.href='comments-both.html'">💬 Comments</div>
       <div class="nav-link" onclick="window.location.href='following-both.html'">👤 Following</div>
-      <div class="nav-link" onclick="window.location.href='explore-both.html'">
-        📰 Explore Stories
-      </div>
+      <div class="nav-link" onclick="window.location.href='explore-both.html'">📰 Explore Stories</div>
       <div class="nav-link" onclick="window.location.href='settings-both.html'">⚙️ Reader Settings</div>
     </div>
   </div>
+
   <div class="main">
+    <div id="approvalBanner" class="approval-banner" style="display:none;">
+      Once you're approved as an author, you'll see all the author tools in the sidebar.
+    </div>
     <h1>💬 Your Comments</h1>
     <div id="comments-list">
       <div class="card">Loading comments...</div>
@@ -175,18 +179,27 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-
   <script>
+    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
       projectId: "inkwave-549c0"
     };
-
     firebase.initializeApp(firebaseConfig);
+
     const auth = firebase.auth();
     const db = firebase.firestore();
     let currentUID = null;
+    let isApproved = false;
+
+    function goHome() {
+      if (isApproved) {
+        window.location.href = 'dashboard.html';
+      } else {
+        window.location.href = 'explore-both.html';
+      }
+    }
 
     auth.onAuthStateChanged(async user => {
       if (!user) {
@@ -194,8 +207,23 @@
         window.location.href = "login.html";
         return;
       }
-
       currentUID = user.uid;
+
+      // check author approval
+      try {
+        const snap = await db.collection('authors').doc(currentUID).get();
+        isApproved = snap.exists && snap.data().status === 'approved';
+      } catch (e) {
+        console.error(e);
+      }
+
+      // toggle author tools and banner
+      document.querySelectorAll('.author-section').forEach(el => {
+        el.style.display = isApproved ? 'block' : 'none';
+      });
+      document.getElementById('approvalBanner').style.display = isApproved ? 'none' : 'block';
+
+      // load comments
       loadComments();
     });
 
@@ -203,9 +231,13 @@
       const commentList = document.getElementById("comments-list");
       commentList.innerHTML = "<div class='card'>Loading comments...</div>";
 
-      const commentsRef = await db.collection("comments").where("userId", "==", currentUID).get();
-      commentList.innerHTML = "";
+      const commentsRef = await db
+        .collection("comments")
+        .where("userId", "==", currentUID)
+        .orderBy("timestamp", "desc")
+        .get();
 
+      commentList.innerHTML = "";
       if (commentsRef.empty) {
         commentList.innerHTML = `<div class="card">You haven’t commented on any stories yet.</div>`;
       } else {
@@ -224,12 +256,11 @@
       }
     }
 
-    // 🔥 Delete comment function
     async function deleteComment(commentId) {
       if (confirm("Are you sure you want to delete this comment?")) {
         try {
           await db.collection("comments").doc(commentId).delete();
-          loadComments(); // Refresh the list
+          loadComments();
         } catch (err) {
           alert("Failed to delete comment.");
           console.error(err);
