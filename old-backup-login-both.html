@@ -92,7 +92,6 @@
       serverTimestamp
     }                           from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // ─── Initialize Firebase ─────────────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -105,32 +104,45 @@
     const auth = getAuth(app);
     const db   = getFirestore(app);
 
-    // ─── Helper: set sessionRole & redirect ───────────────────────────
+    // ─── Redirect based on roles & approval ──────────────────────
     async function routeByRole(uid) {
       const userSnap = await getDoc(doc(db, "users", uid));
       if (!userSnap.exists()) throw new Error("User record missing");
       const data = userSnap.data();
       const rolesArr = Array.isArray(data.roles) ? [...data.roles] : [];
-      if (data.role && !rolesArr.includes(data.role)) {
-        rolesArr.push(data.role);
-      }
 
-      const isReader = rolesArr.includes("reader");
+      // treat "both" as reader + author for approval logic
+      const isReader = rolesArr.includes("reader") || rolesArr.includes("both");
+      const isAuthor = rolesArr.includes("author") || rolesArr.includes("both");
       const isBoth   = rolesArr.includes("both");
 
       if (isBoth) {
         sessionStorage.setItem("userRole","both");
-        return window.location.href = "/both-dashboard.html";
+        // check if author side is approved
+        const aSnap  = await getDoc(doc(db, "authors", uid));
+        const status = aSnap.exists() ? aSnap.data().status : null;
+        if (status === "approved") {
+          return window.location.href = "/both-dashboard.html";
+        } else {
+          return window.location.href = "/approved.html";
+        }
+      }
+      if (isAuthor) {
+        sessionStorage.setItem("userRole","author");
+        const aSnap  = await getDoc(doc(db, "authors", uid));
+        const status = aSnap.exists() ? aSnap.data().status : null;
+        return window.location.href = (status === "approved")
+          ? "/author-dashboard.html"
+          : "/approved.html";
       }
       if (isReader) {
         sessionStorage.setItem("userRole","reader");
         return window.location.href = "/explore.html";
       }
-
       throw new Error("No role assigned");
     }
 
-    // ─── Form handling ────────────────────────────────────────────────
+    // ─── Form logic ───────────────────────────────────────────────
     const form = document.getElementById("signup-form");
     const msg  = document.getElementById("message");
 
@@ -142,23 +154,32 @@
       const password = document.getElementById("password").value.trim();
 
       try {
-        // New signup → both role
+        // New user → give them both + pending author record
         const { user } = await createUserWithEmailAndPassword(auth, email, password);
         await setDoc(doc(db, "users", user.uid), {
           email,
           roles: ["both"],
           joinedAt: serverTimestamp()
         });
+        // create or merge author profile as pending
+        await setDoc(doc(db, "authors", user.uid), {
+          email,
+          status: "pending"
+        });
         return routeByRole(user.uid);
 
       } catch (err) {
         if (err.code === "auth/email-already-in-use") {
-          // Existing user → sign in & add both
+          // Existing user → sign in & add "both" + pending author
           try {
             const { user } = await signInWithEmailAndPassword(auth, email, password);
             await updateDoc(doc(db, "users", user.uid), {
               roles: arrayUnion("both")
             });
+            await setDoc(doc(db, "authors", user.uid), {
+              email,
+              status: "pending"
+            }, { merge: true });
             return routeByRole(user.uid);
           } catch (signInErr) {
             msg.textContent = signInErr.message;
@@ -169,6 +190,5 @@
       }
     });
   </script>
-
 </body>
 </html>
