@@ -19,11 +19,7 @@
       --sidebar-width: 280px;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
 
     body {
       font-family: 'Poppins', sans-serif;
@@ -49,6 +45,19 @@
       margin-bottom: 2.5rem;
       font-weight: 600;
       color: #fff;
+      cursor: pointer;
+    }
+
+    .author-section { display: none; }
+
+    .section { margin-bottom: 1.5rem; }
+    .section-title {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: #aaa;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
     }
 
     .nav-link {
@@ -63,22 +72,25 @@
       font-weight: 500;
       transition: background 0.2s ease;
       margin-bottom: 0.6rem;
+      cursor: pointer;
     }
-
-    .nav-link:hover {
-      background-color: #1a1a1a;
-    }
-
-    .nav-link.active {
-      background-color: #2a2a2a;
-      color: #ffffff;
-      font-weight: 600;
-    }
+    .nav-link:hover { background-color: #1a1a1a; }
+    .nav-link.active { background-color: #2a2a2a; color: #fff; font-weight: 600; }
 
     .main {
       margin-left: var(--sidebar-width);
       padding: 2.5rem;
       flex: 1;
+    }
+
+    .approval-banner {
+      background: #fff3cd;
+      color: #856404;
+      padding: 1rem;
+      border-radius: 6px;
+      margin-bottom: 1.5rem;
+      text-align: center;
+      font-weight: 500;
     }
 
     h1 {
@@ -87,7 +99,6 @@
       font-weight: 600;
       margin-bottom: 1.5rem;
     }
-
     .card {
       background: var(--white);
       padding: 1.5rem;
@@ -95,13 +106,11 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.05);
       margin-bottom: 1.5rem;
     }
-
     .story-title {
       font-weight: 600;
       font-size: 1.1rem;
       margin-bottom: 0.4rem;
     }
-
     .comment-meta {
       font-size: 0.85rem;
       color: var(--muted);
@@ -109,68 +118,67 @@
   </style>
 </head>
 <body>
-  <!-- ensure index.html knows you’re a reader -->
-  <script>
-    sessionStorage.setItem('userRole','reader');
-  </script>
-
   <div class="sidebar">
-    <h2 onclick="showAuthor()">Inkwave</h2>
-    <div class="section">
-      <div class="section-title">Core</div>
-      <div id="nav-dashboard" class="nav-link active" onclick="showAuthor()">🏠 Dashboard</div>
-      <div class="nav-link" onclick="sessionStorage.setItem('userRole','author'); window.location.href='earnings-both.html'">
-        💰 Earnings 🚧
+    <h2 onclick="goHome()">Inkwave</h2>
+
+    <div class="author-section">
+      <div class="section">
+        <div class="section-title">Core</div>
+        <div id="nav-dashboard" class="nav-link" onclick="goHome()">🏠 Dashboard</div>
+        <div class="nav-link" onclick="window.location.href='earnings-both.html'">
+          💰 Earnings 🚧
+        </div>
+      </div>
+      <div class="section">
+        <div class="section-title">Writing Tools</div>
+        <div class="nav-link" onclick="window.location.href='blurb-generator-both.html'">🧠 Blurb Generator 🚧</div>
+        <div class="nav-link" onclick="window.location.href='grammar-both.html'">📝 Grammar Fixer 🚧</div>
+        <div class="nav-link" onclick="window.location.href='story-templates-both.html'">📄 Story Templates</div>
+        <div class="nav-link" onclick="window.location.href='formatting-tools-both.html'">📈 Graphing Plots 🚧</div>
+        <div class="nav-link" onclick="window.location.href='genre-tags-both.html'">🏷️ Genre & Tags</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Testing & Feedback</div>
+        <div class="nav-link" onclick="window.location.href='A-B-both.html'">🧪 A/B Testing 🚧</div>
+        <div class="nav-link" onclick="window.location.href='reader-heatmap-both.html'">🔥 Reader Heatmap 🚧</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Publishing</div>
+        <div class="nav-link" onclick="window.location.href='checklist-both.html'">✅ Checklist</div>
+        <div class="nav-link" onclick="window.location.href='cover-generator-both.html'">🖼️ Cover Generator 🚧</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Productivity</div>
+        <div class="nav-link" onclick="window.location.href='inkie-chat-both.html'">🤖 Inky Assistant 🚧</div>
+        <div class="nav-link" onclick="window.location.href='settings-author-both.html'">⚙️ Settings</div>
       </div>
     </div>
-    <div class="section">
-      <div class="section-title">Writing Tools</div>
-      <div class="nav-link" onclick="window.location.href='blurb-generator-both.html'">🧠 Blurb Generator 🚧</div>
-      <div class="nav-link" onclick="window.location.href='grammar-both.html'">📝 Grammar Fixer 🚧</div>
-      <div class="nav-link" onclick="window.location.href='story-templates-both.html'">📄 Story Templates</div>
-      <div class="nav-link" onclick="window.location.href='formatting-tools-both.html'">📈 Graphing Plots 🚧</div>
-      <div class="nav-link" onclick="window.location.href='genre-tags-both.html'">🏷️ Genre & Tags</div>
-    </div>
-    <div class="section">
-      <div class="section-title">Testing & Feedback</div>
-      <div class="nav-link" onclick="window.location.href='A-B-both.html'">🧪 A/B Testing 🚧</div>
-      <div class="nav-link" onclick="window.location.href='reader-heatmap-both.html'">🔥 Reader Heatmap 🚧</div>
-    </div>
-    <div class="section">
-      <div class="section-title">Publishing</div>
-      <div class="nav-link" onclick="window.location.href='checklist-both.html'">✅ Checklist</div>
-      <div class="nav-link" onclick="window.location.href='cover-generator-both.html'">🖼️ Cover Generator 🚧</div>
-    </div>
-    <div class="section">
-      <div class="section-title">Productivity</div>
-      <div class="nav-link" onclick="window.location.href='inkie-chat-both.html'">🤖 Inky Assistant 🚧</div>
-      <div class="nav-link" onclick="window.location.href='settings-author-both.html'">⚙️ Settings</div>
-    </div>
+
     <div class="section">
       <div class="section-title">Reader</div>
       <div class="nav-link" onclick="window.location.href='favorites-both.html'">📚 Favorites</div>
       <div class="nav-link" onclick="window.location.href='comments-both.html'">💬 Comments</div>
-      <div class="nav-link" onclick="window.location.href='following-both.html'">👤 Following</div>
-      <div class="nav-link" onclick="window.location.href='explore-both.html'">
-        📰 Explore Stories
-      </div>
+      <div class="nav-link active" onclick="window.location.href='following-both.html'">👤 Following</div>
+      <div class="nav-link" onclick="window.location.href='explore-both.html'">📰 Explore Stories</div>
       <div class="nav-link" onclick="window.location.href='settings-both.html'">⚙️ Reader Settings</div>
     </div>
   </div>
 
   <div class="main">
+    <div id="approvalBanner" class="approval-banner" style="display:none;">
+      Once you're approved as an author, you'll see all the author tools in the sidebar.
+    </div>
     <h1>👤 Authors You Follow</h1>
     <div id="following-list">
       <div class="card">Loading followed authors...</div>
     </div>
   </div>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
-
   <script>
+    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -179,11 +187,21 @@
       messagingSenderId: "1084811926133",
       appId: "1:1084811926133:web:f1656fce68d5c4d697363c"
     };
-
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+    let isApproved = false;
 
+    // Sidebar navigation helpers
+    function goHome() {
+      if (isApproved) {
+        window.location.href = 'dashboard.html';
+      } else {
+        window.location.href = 'explore-both.html';
+      }
+    }
+
+    // On auth state change, determine approval
     auth.onAuthStateChanged(async user => {
       if (!user) {
         alert("Please log in to view this page.");
@@ -191,6 +209,23 @@
         return;
       }
 
+      // check author approval
+      try {
+        const snap = await db.collection('authors').doc(user.uid).get();
+        isApproved = snap.exists && snap.data().status === 'approved';
+      } catch (e) {
+        console.error(e);
+        isApproved = false;
+      }
+
+      // toggle author-only sidebar
+      document.querySelectorAll('.author-section').forEach(el => {
+        el.style.display = isApproved ? 'block' : 'none';
+      });
+      // show/hide banner
+      document.getElementById('approvalBanner').style.display = isApproved ? 'none' : 'block';
+
+      // load following-list
       const followList = document.getElementById("following-list");
       const ref = db
         .collection("users")
