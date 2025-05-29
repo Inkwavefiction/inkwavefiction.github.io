@@ -149,8 +149,8 @@
         <input type="text" id="dateJoinedField" disabled>
       </div>
 
-      <button class="save-btn" onclick="saveChanges()">Save Changes</button>
-      <button class="delete-btn" onclick="deleteAccount()">Delete Account</button>
+      <button class="save-btn" id="saveBtn">Save Changes</button>
+      <button class="delete-btn" id="deleteBtn">Delete Account</button>
     </div>
   </div>
 
@@ -158,47 +158,48 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
 
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
-      projectId: "inkwave-549c0",
-      storageBucket: "inkwave-549c0.appspot.com",
-      messagingSenderId: "1084811926133",
-      appId: "1:1084811926133:web:auto-generated"
+      projectId: "inkwave-549c0"
     };
     firebase.initializeApp(firebaseConfig);
 
-    const auth    = firebase.auth();
-    const db      = firebase.firestore();
-    const storage = firebase.storage();
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
 
     const emailField      = document.getElementById("emailField");
     const usernameField   = document.getElementById("usernameField");
     const dateJoinedField = document.getElementById("dateJoinedField");
     const avatarPreview   = document.getElementById("avatarPreview");
     const avatarInput     = document.getElementById("avatarInput");
+    const saveBtn         = document.getElementById("saveBtn");
+    const deleteBtn       = document.getElementById("deleteBtn");
 
     let currentUser = null;
+    let avatarFile  = null;
     let isApproved  = false;
 
     // Preview selected file
     avatarInput.addEventListener("change", () => {
       const file = avatarInput.files[0];
       if (!file) return;
+      avatarFile = file;
       avatarPreview.src = URL.createObjectURL(file);
     });
 
-    // Upload helper
-    async function uploadImage(file, path) {
-      console.log("Uploading image to", path);
-      const ref = storage.ref().child(path);
-      await ref.put(file);
-      const url = await ref.getDownloadURL();
-      console.log("Uploaded image URL:", url);
-      return url;
+    // Cloudinary upload helper
+    async function uploadToCloudinary(file) {
+      const url = "https://api.cloudinary.com/v1_1/<YOUR_CLOUD_NAME>/upload";
+      const form = new FormData();
+      form.append("file", file);
+      form.append("upload_preset", "<YOUR_UNSIGNED_PRESET>");
+      const res = await fetch(url, { method: "POST", body: form });
+      if (!res.ok) throw new Error("Upload failed: " + res.statusText);
+      const data = await res.json();
+      return data.secure_url;
     }
 
     auth.onAuthStateChanged(async user => {
@@ -209,13 +210,13 @@
       }
       currentUser = user;
 
-      // check author approval (toggle author tools if any)
+      // check author approval (toggle author-section if needed)
       try {
-        const authorSnap = await db.collection('authors').doc(user.uid).get();
-        isApproved = authorSnap.exists && authorSnap.data().status === 'approved';
-        // if you have an author-section, toggle it here...
+        const authorSnap = await db.collection("authors").doc(user.uid).get();
+        isApproved = authorSnap.exists && authorSnap.data().status === "approved";
+        // toggle any author-only UI here
       } catch (e) {
-        console.error("Error checking approval:", e);
+        console.error("Approval check error:", e);
       }
 
       // Populate fields
@@ -229,16 +230,14 @@
           ? (doc.data().username || user.displayName || "")
           : (user.displayName || "");
       } catch (err) {
-        console.warn("Could not load user profile:", err);
+        console.warn("Profile load error:", err);
       }
     });
 
-    async function saveChanges() {
-      console.log("saveChanges called");
+    saveBtn.addEventListener("click", async e => {
+      e.preventDefault();
       const username = usernameField.value.trim();
       const newEmail = emailField.value.trim();
-      const file     = avatarInput.files[0];
-      console.log({ username, newEmail, file });
 
       if (!username || !newEmail) {
         alert("Username and email cannot be empty.");
@@ -246,21 +245,21 @@
       }
 
       try {
+        // 1) upload avatar if selected
         let photoURL = currentUser.photoURL;
-        if (file) {
-          const path = `avatars/${currentUser.uid}/${file.name}`;
-          photoURL = await uploadImage(file, path);
+        if (avatarFile) {
+          photoURL = await uploadToCloudinary(avatarFile);
         }
 
-        console.log("Updating auth profile");
+        // 2) update Auth profile
         await currentUser.updateProfile({ displayName: username, photoURL });
 
+        // 3) update email if changed
         if (newEmail !== currentUser.email) {
-          console.log("Updating email to", newEmail);
           await currentUser.updateEmail(newEmail);
         }
 
-        console.log("Writing to Firestore");
+        // 4) write to Firestore
         await db.collection("users").doc(currentUser.uid).set({
           username,
           photoURL,
@@ -268,19 +267,19 @@
           dateJoined: currentUser.metadata.creationTime
         }, { merge: true });
 
-        console.log("Profile update complete");
         alert("Profile updated successfully!");
       } catch (err) {
         console.error("saveChanges error:", err);
         if (err.code === "auth/requires-recent-login") {
-          alert("You need to log in again to change your email.");
+          alert("Please re-authenticate to update your email.");
         } else {
           alert("Update failed: " + err.message);
         }
       }
-    }
+    });
 
-    async function deleteAccount() {
+    deleteBtn.addEventListener("click", async e => {
+      e.preventDefault();
       if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
       try {
         await db.collection("users").doc(currentUser.uid).delete();
@@ -291,7 +290,7 @@
         console.error("deleteAccount error:", err);
         alert("Could not delete account: " + err.message);
       }
-    }
+    });
   </script>
 </body>
 </html>
