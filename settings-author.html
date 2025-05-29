@@ -17,13 +17,7 @@
       --sidebar-bg: #111;
       --container-bg: #ffffff;
     }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: 'Poppins', sans-serif;
       background-color: var(--bg);
@@ -31,7 +25,6 @@
       display: flex;
       min-height: 100vh;
     }
-
     .sidebar {
       width: 300px;
       background: var(--sidebar-bg);
@@ -41,14 +34,13 @@
       position: fixed;
       overflow-y: auto;
     }
-
     .sidebar h2 {
       font-family: 'Playfair Display', serif;
       font-size: 1.8rem;
       font-weight: 600;
       margin-bottom: 2rem;
+      cursor: pointer;
     }
-
     .section-title {
       font-size: 0.8rem;
       text-transform: uppercase;
@@ -57,11 +49,7 @@
       margin-bottom: 0.6rem;
       font-weight: 600;
     }
-
-    .section {
-      margin-bottom: 2rem;
-    }
-
+    .section { margin-bottom: 2rem; }
     .nav-link {
       display: block;
       margin: 0.5rem 0;
@@ -71,23 +59,15 @@
       padding: 0.4rem 0.6rem;
       border-radius: 4px;
       transition: background 0.2s;
+      cursor: pointer;
     }
-
-    .nav-link:hover {
-      background-color: #1e1e1e;
-    }
-
-    .nav-link.active {
-      background-color: #2a2a2a;
-      font-weight: 600;
-    }
-
+    .nav-link:hover { background-color: #1e1e1e; }
+    .nav-link.active { background-color: #2a2a2a; font-weight: 600; }
     .main {
       margin-left: 300px;
       padding: 2.5rem;
       flex: 1;
     }
-
     .header {
       text-align: center;
       padding: 20px 0;
@@ -96,30 +76,19 @@
       border-radius: 6px;
       margin-bottom: 30px;
     }
-
     .header h1 {
       font-family: 'Playfair Display', serif;
       font-size: 2.5rem;
       margin: 0;
     }
-
     .container {
       background: var(--container-bg);
       padding: 30px;
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-
-    .form-group {
-      margin-bottom: 1.25rem;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 0.4rem;
-      font-weight: 500;
-    }
-
+    .form-group { margin-bottom: 1.25rem; }
+    label { display: block; margin-bottom: 0.4rem; font-weight: 500; }
     input[type="text"],
     input[type="email"],
     textarea {
@@ -129,18 +98,12 @@
       border: 1px solid var(--border);
       border-radius: 6px;
     }
-
-    textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
-
+    textarea { resize: vertical; min-height: 100px; }
     .profile-section {
       display: flex;
       align-items: center;
       margin-bottom: 1.5rem;
     }
-
     .profile-section img {
       width: 80px;
       height: 80px;
@@ -149,7 +112,6 @@
       margin-right: 1rem;
       border: 2px solid #ccc;
     }
-
     .btn {
       background-color: var(--accent);
       color: #000;
@@ -160,21 +122,17 @@
       cursor: pointer;
       margin-right: 1rem;
     }
-
     .btn.delete {
       background-color: #e74c3c;
       color: #fff;
     }
-
-    .btn:hover {
-      opacity: 0.9;
-    }
+    .btn:hover { opacity: 0.9; }
   </style>
 </head>
 <body>
   <!-- Sidebar -->
   <div class="sidebar">
-    <h2>Inkwave</h2>
+    <h2 onclick="location.href='author-dashboard.html'">Inkwave</h2>
     <div class="section">
       <div class="section-title">Core</div>
       <a href="author-dashboard.html" class="nav-link">🏠 Dashboard</a>
@@ -236,81 +194,102 @@
         <textarea id="bioField" placeholder="Tell readers a bit about yourself..."></textarea>
       </div>
 
-      <button class="btn" onclick="saveAuthorProfile()">Save Changes</button>
-      <button class="btn delete" onclick="deleteAccount()">Delete Account</button>
+      <button class="btn" id="saveBtn">Save Changes</button>
+      <button class="btn delete" id="deleteBtn">Delete Account</button>
     </div>
   </div>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase & Dependencies -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
   <script>
+    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
-      projectId: "inkwave-549c0",
-      storageBucket: "inkwave-549c0.appspot.com"
+      projectId: "inkwave-549c0"
     };
-
     firebase.initializeApp(firebaseConfig);
+
     const auth = firebase.auth();
-    const db = firebase.firestore();
-    const storage = firebase.storage();
+    const db   = firebase.firestore();
 
-    const usernameField = document.getElementById("usernameField");
-    const emailField = document.getElementById("emailField");
-    const bioField = document.getElementById("bioField");
+    // DOM refs
+    const usernameField   = document.getElementById("usernameField");
+    const emailField      = document.getElementById("emailField");
+    const bioField        = document.getElementById("bioField");
     const dateJoinedField = document.getElementById("dateJoinedField");
-    const avatarPreview = document.getElementById("avatarPreview");
-    const avatarInput = document.getElementById("avatarInput");
+    const avatarPreview   = document.getElementById("avatarPreview");
+    const avatarInput     = document.getElementById("avatarInput");
+    const saveBtn         = document.getElementById("saveBtn");
+    const deleteBtn       = document.getElementById("deleteBtn");
 
-    let currentUser;
+    let currentUser = null;
+    let avatarFile  = null;
 
-    auth.onAuthStateChanged(async (user) => {
-      if (!user) return window.location.href = "login.html";
-      currentUser = user;
-
-      emailField.value = user.email;
-      dateJoinedField.value = new Date(user.metadata.creationTime).toLocaleDateString();
-      avatarPreview.src = user.photoURL || "https://placehold.co/80x80";
-
-      const authorRef = db.collection("authors").doc(user.uid);
-      const authorDoc = await authorRef.get();
-      if (authorDoc.exists) {
-        const data = authorDoc.data();
-        usernameField.value = data.displayName || "";
-        bioField.value = data.bio || "";
-      }
-    });
-
+    // Preview selected avatar
     avatarInput.addEventListener("change", () => {
       const file = avatarInput.files[0];
-      if (file) {
-        avatarPreview.src = URL.createObjectURL(file);
+      if (!file) return;
+      avatarFile = file;
+      avatarPreview.src = URL.createObjectURL(file);
+    });
+
+    // Cloudinary upload helper
+    async function uploadToCloudinary(file) {
+      const url  = "https://api.cloudinary.com/v1_1/dop6uyjwg/upload";
+      const form = new FormData();
+      form.append("file", file);
+      form.append("upload_preset", "unsigned_preset");
+      const res = await fetch(url, { method: "POST", body: form });
+      if (!res.ok) throw new Error("Upload failed: " + res.statusText);
+      const data = await res.json();
+      return data.secure_url;
+    }
+
+    // Auth state listener
+    auth.onAuthStateChanged(async user => {
+      if (!user) return location.href = "login.html";
+      currentUser = user;
+
+      // Populate fields
+      emailField.value      = user.email;
+      dateJoinedField.value = new Date(user.metadata.creationTime).toLocaleDateString();
+      avatarPreview.src     = user.photoURL || "https://placehold.co/80x80";
+
+      // Load author profile
+      const doc = await db.collection("authors").doc(user.uid).get().catch(()=>null);
+      if (doc && doc.exists) {
+        const data = doc.data();
+        usernameField.value = data.displayName || "";
+        bioField.value      = data.bio || "";
       }
     });
 
-    async function saveAuthorProfile() {
+    // Save changes handler
+    saveBtn.addEventListener("click", async e => {
+      e.preventDefault();
       const username = usernameField.value.trim();
-      const bio = bioField.value.trim();
-      const email = emailField.value.trim();
-      const file = avatarInput.files[0];
-      let photoURL = currentUser.photoURL;
-
+      const email    = emailField.value.trim();
+      const bio      = bioField.value.trim();
+      if (!username || !email) {
+        alert("Username and email cannot be empty.");
+        return;
+      }
       try {
-        if (file) {
-          const ref = storage.ref(`avatars/${currentUser.uid}`);
-          await ref.put(file);
-          photoURL = await ref.getDownloadURL();
+        // 1) upload avatar if changed
+        let photoURL = currentUser.photoURL;
+        if (avatarFile) {
+          photoURL = await uploadToCloudinary(avatarFile);
         }
-
+        // 2) update Firebase Auth profile
         await currentUser.updateProfile({ displayName: username, photoURL });
+        // 3) update email if changed
         if (email !== currentUser.email) {
           await currentUser.updateEmail(email);
         }
-
+        // 4) write to Firestore
         await db.collection("authors").doc(currentUser.uid).set({
           displayName: username,
           bio,
@@ -324,21 +303,22 @@
         console.error(err);
         alert("Error: " + err.message);
       }
-    }
+    });
 
-    async function deleteAccount() {
+    // Delete account handler
+    deleteBtn.addEventListener("click", async e => {
+      e.preventDefault();
       if (!confirm("Are you sure you want to delete your account?")) return;
-
       try {
         await db.collection("authors").doc(currentUser.uid).delete();
         await currentUser.delete();
         alert("Account deleted.");
-        window.location.href = "signup.html";
+        location.href = "signup.html";
       } catch (err) {
         console.error(err);
         alert("Delete failed: " + err.message);
       }
-    }
+    });
   </script>
 </body>
 </html>
