@@ -16,13 +16,11 @@
       --sidebar-bg: #0d0d0d;
       --sidebar-width: 280px;
     }
-
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
     }
-
     body {
       font-family: 'Poppins', sans-serif;
       background: var(--bg);
@@ -30,7 +28,6 @@
       display: flex;
       min-height: 100vh;
     }
-
     .sidebar {
       width: var(--sidebar-width);
       background: var(--sidebar-bg);
@@ -40,14 +37,13 @@
       position: fixed;
       overflow-y: auto;
     }
-
     .sidebar h2 {
       font-family: 'Playfair Display', serif;
       font-size: 2rem;
       margin-bottom: 2.5rem;
       font-weight: 600;
+      cursor: pointer;
     }
-
     .nav-link {
       display: flex;
       align-items: center;
@@ -61,17 +57,14 @@
       transition: background 0.2s ease;
       margin-bottom: 0.6rem;
     }
-
     .nav-link:hover {
       background-color: #1a1a1a;
     }
-
     .nav-link.active {
       background-color: #2a2a2a;
       color: #ffffff;
       font-weight: 600;
     }
-
     .main {
       margin-left: var(--sidebar-width);
       padding: 3rem 2rem;
@@ -80,7 +73,6 @@
       align-items: flex-start;
       width: 100%;
     }
-
     .settings-container {
       width: 100%;
       max-width: 700px;
@@ -89,19 +81,16 @@
       border-radius: 10px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
     }
-
     h1 {
       font-family: 'Playfair Display', serif;
       font-size: 2rem;
       margin-bottom: 1.5rem;
     }
-
     .profile-section {
       display: flex;
       align-items: center;
       margin-bottom: 1.5rem;
     }
-
     .profile-section img {
       width: 80px;
       height: 80px;
@@ -110,26 +99,25 @@
       margin-right: 1rem;
       border: 2px solid #ccc;
     }
-
     .form-group {
       margin-bottom: 1rem;
     }
-
     label {
       display: block;
       margin-bottom: 0.4rem;
       font-weight: 500;
     }
-
-    input[type="text"], input[type="email"], input[type="file"] {
+    input[type="text"],
+    input[type="email"],
+    input[type="file"] {
       width: 100%;
       padding: 0.6rem;
       border: 1px solid #ccc;
       border-radius: 6px;
       font-size: 1rem;
     }
-
-    .save-btn, .delete-btn {
+    .save-btn,
+    .delete-btn {
       background-color: #789a91;
       color: white;
       padding: 0.6rem 1.2rem;
@@ -139,15 +127,12 @@
       cursor: pointer;
       margin-right: 1rem;
     }
-
     .save-btn:hover {
       background-color: #5f7f76;
     }
-
     .delete-btn {
       background-color: #e74c3c;
     }
-
     .delete-btn:hover {
       background-color: #c0392b;
     }
@@ -221,31 +206,58 @@
     const db = firebase.firestore();
     const storage = firebase.storage();
 
-    const emailField = document.getElementById("emailField");
-    const usernameField = document.getElementById("usernameField");
-    const dateJoinedField = document.getElementById("dateJoinedField");
-    const avatarPreview = document.getElementById("avatarPreview");
-    const avatarInput = document.getElementById("avatarInput");
+    const emailField     = document.getElementById("emailField");
+    const usernameField  = document.getElementById("usernameField");
+    const dateJoinedField= document.getElementById("dateJoinedField");
+    const avatarPreview  = document.getElementById("avatarPreview");
+    const avatarInput    = document.getElementById("avatarInput");
 
     let currentUser = null;
+    let avatarFile   = null;
+    let isApproved   = false;
 
-    auth.onAuthStateChanged(async (user) => {
+    // select & preview file
+    avatarInput.addEventListener("change", () => {
+      const file = avatarInput.files[0];
+      if (!file) return;
+      avatarFile = file;
+      avatarPreview.src = URL.createObjectURL(file);
+    });
+
+    // helper to upload and return URL
+    async function uploadImage(file, path) {
+      const ref = storage.ref().child(path);
+      await ref.put(file);
+      return await ref.getDownloadURL();
+    }
+
+    auth.onAuthStateChanged(async user => {
       if (!user) {
         alert("Please log in.");
         window.location.href = "login.html";
         return;
       }
-
       currentUser = user;
-      emailField.value = user.email;
-      dateJoinedField.value = new Date(user.metadata.creationTime).toLocaleDateString();
-      avatarPreview.src = user.photoURL || "https://placehold.co/80x80";
+
+      // check author approval (to show author-section if needed)
+      try {
+        const snap = await db.collection('authors').doc(user.uid).get();
+        isApproved = snap.exists && snap.data().status === 'approved';
+        // (if you had an author-section, you'd toggle it here)
+      } catch (e) {
+        console.error(e);
+      }
+
+      // populate fields
+      emailField.value      = user.email;
+      dateJoinedField.value = new Date(user.metadata.creationTime)
+                                 .toLocaleDateString();
+      avatarPreview.src     = user.photoURL || "https://placehold.co/80x80";
 
       try {
         const doc = await db.collection("users").doc(user.uid).get();
         if (doc.exists) {
-          const data = doc.data();
-          usernameField.value = data.username || user.displayName || "";
+          usernameField.value = doc.data().username || user.displayName || "";
         } else {
           usernameField.value = user.displayName || "";
         }
@@ -254,17 +266,9 @@
       }
     });
 
-    avatarInput.addEventListener("change", () => {
-      const file = avatarInput.files[0];
-      if (file) {
-        avatarPreview.src = URL.createObjectURL(file);
-      }
-    });
-
     async function saveChanges() {
       const username = usernameField.value.trim();
       const newEmail = emailField.value.trim();
-      const file = avatarInput.files[0];
 
       if (!username || !newEmail) {
         alert("Username and email cannot be empty.");
@@ -272,21 +276,24 @@
       }
 
       try {
-        const currentEmail = currentUser.email;
-
+        // upload avatar if changed
         let photoURL = currentUser.photoURL;
-        if (file) {
-          const storageRef = storage.ref().child(`avatars/${currentUser.uid}`);
-          await storageRef.put(file);
-          photoURL = await storageRef.getDownloadURL();
+        if (avatarFile) {
+          photoURL = await uploadImage(
+            avatarFile,
+            `avatars/${currentUser.uid}/${avatarFile.name}`
+          );
         }
 
+        // update auth profile
         await currentUser.updateProfile({ displayName: username, photoURL });
 
-        if (newEmail !== currentEmail) {
+        // update email if needed
+        if (newEmail !== currentUser.email) {
           await currentUser.updateEmail(newEmail);
         }
 
+        // write to Firestore
         await db.collection("users").doc(currentUser.uid).set({
           username,
           photoURL,
@@ -307,7 +314,6 @@
 
     async function deleteAccount() {
       if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
-
       try {
         await db.collection("users").doc(currentUser.uid).delete();
         await currentUser.delete();
