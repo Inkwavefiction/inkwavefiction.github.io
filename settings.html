@@ -118,7 +118,7 @@
     <a href="index.html" onclick="sessionStorage.setItem('userRole','reader')" style="text-decoration:none;color:inherit;">
       <h2>Inkwave</h2>
     </a>
-    <a href="favorites.html" class="nav-link">📚 Favrites</a>
+    <a href="favorites.html" class="nav-link">📚 Favorites</a>
     <a href="comments.html" class="nav-link">💬 Comments</a>
     <a href="following.html" class="nav-link">👤 Following</a>
     <a href="explore.html" class="nav-link">📰 Explore Stories</a>
@@ -160,6 +160,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
+    // initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -170,6 +171,7 @@
     const auth = firebase.auth();
     const db   = firebase.firestore();
 
+    // element refs
     const emailField      = document.getElementById("emailField");
     const usernameField   = document.getElementById("usernameField");
     const dateJoinedField = document.getElementById("dateJoinedField");
@@ -180,9 +182,8 @@
 
     let currentUser = null;
     let avatarFile  = null;
-    let isApproved  = false;
 
-    // Preview selected file
+    // preview selected avatar
     avatarInput.addEventListener("change", () => {
       const file = avatarInput.files[0];
       if (!file) return;
@@ -190,18 +191,19 @@
       avatarPreview.src = URL.createObjectURL(file);
     });
 
-    // Cloudinary upload helper
+    // upload helper → Cloudinary
     async function uploadToCloudinary(file) {
-      const url = "https://api.cloudinary.com/v1_1/<YOUR_CLOUD_NAME>/upload";
+      const url  = "https://api.cloudinary.com/v1_1/dop6uyjwg/upload";
       const form = new FormData();
       form.append("file", file);
-      form.append("upload_preset", "<YOUR_UNSIGNED_PRESET>");
+      form.append("upload_preset", "unsigned_preset");
       const res = await fetch(url, { method: "POST", body: form });
       if (!res.ok) throw new Error("Upload failed: " + res.statusText);
       const data = await res.json();
       return data.secure_url;
     }
 
+    // on auth state change
     auth.onAuthStateChanged(async user => {
       if (!user) {
         alert("Please log in.");
@@ -210,16 +212,7 @@
       }
       currentUser = user;
 
-      // check author approval (toggle author-section if needed)
-      try {
-        const authorSnap = await db.collection("authors").doc(user.uid).get();
-        isApproved = authorSnap.exists && authorSnap.data().status === "approved";
-        // toggle any author-only UI here
-      } catch (e) {
-        console.error("Approval check error:", e);
-      }
-
-      // Populate fields
+      // populate fields
       emailField.value      = user.email;
       dateJoinedField.value = new Date(user.metadata.creationTime).toLocaleDateString();
       avatarPreview.src     = user.photoURL || "https://placehold.co/80x80";
@@ -234,32 +227,28 @@
       }
     });
 
+    // save changes
     saveBtn.addEventListener("click", async e => {
       e.preventDefault();
       const username = usernameField.value.trim();
       const newEmail = emailField.value.trim();
-
       if (!username || !newEmail) {
         alert("Username and email cannot be empty.");
         return;
       }
-
       try {
-        // 1) upload avatar if selected
+        // upload avatar if selected
         let photoURL = currentUser.photoURL;
         if (avatarFile) {
           photoURL = await uploadToCloudinary(avatarFile);
         }
-
-        // 2) update Auth profile
+        // update Firebase Auth profile
         await currentUser.updateProfile({ displayName: username, photoURL });
-
-        // 3) update email if changed
+        // update email if changed
         if (newEmail !== currentUser.email) {
           await currentUser.updateEmail(newEmail);
         }
-
-        // 4) write to Firestore
+        // write to Firestore
         await db.collection("users").doc(currentUser.uid).set({
           username,
           photoURL,
@@ -278,6 +267,7 @@
       }
     });
 
+    // delete account
     deleteBtn.addEventListener("click", async e => {
       e.preventDefault();
       if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
