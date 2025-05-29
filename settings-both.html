@@ -211,26 +211,45 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
+
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
-      projectId: "inkwave-549c0",
-      storageBucket: "inkwave-549c0.appspot.com",
-      messagingSenderId: "1084811926133",
-      appId: "1:1084811926133:web:auto-generated"
+      projectId: "inkwave-549c0"
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-    const storage = firebase.storage();
+
     let currentUser = null;
     let isApproved = false;
 
     function goHome() {
       if (isApproved) window.location.href = 'dashboard.html';
       else window.location.href = 'explore-both.html';
+    }
+
+    const emailField      = document.getElementById("emailField");
+    const usernameField   = document.getElementById("usernameField");
+    const dateJoinedField = document.getElementById("dateJoinedField");
+    const avatarPreview   = document.getElementById("avatarPreview");
+    const avatarInput     = document.getElementById("avatarInput");
+
+    avatarInput.addEventListener("change", () => {
+      const file = avatarInput.files[0];
+      if (file) avatarPreview.src = URL.createObjectURL(file);
+    });
+
+    async function uploadToCloudinary(file) {
+      const url  = "https://api.cloudinary.com/v1_1/dop6uyjwg/upload";
+      const form = new FormData();
+      form.append("file", file);
+      form.append("upload_preset", "unsigned_preset");
+      const res = await fetch(url, { method: "POST", body: form });
+      if (!res.ok) throw new Error("Upload failed: " + res.statusText);
+      const data = await res.json();
+      return data.secure_url;
     }
 
     auth.onAuthStateChanged(async user => {
@@ -241,10 +260,9 @@
       }
       currentUser = user;
 
-      // check author approval
       try {
-        const snap = await db.collection('authors').doc(user.uid).get();
-        isApproved = snap.exists && snap.data().status === 'approved';
+        const authorSnap = await db.collection('authors').doc(user.uid).get();
+        isApproved = authorSnap.exists && authorSnap.data().status === 'approved';
       } catch (e) {
         console.error(e);
       }
@@ -253,26 +271,24 @@
       });
       document.getElementById('approvalBanner').style.display = isApproved ? 'none' : 'block';
 
-      // populate fields
-      emailField.value = user.email;
+      emailField.value      = user.email;
       dateJoinedField.value = new Date(user.metadata.creationTime).toLocaleDateString();
-      avatarPreview.src = user.photoURL || "https://placehold.co/80x80";
+      avatarPreview.src     = user.photoURL || "https://placehold.co/80x80";
 
-      const doc = await db.collection("users").doc(user.uid).get().catch(()=>null);
-      usernameField.value = doc && doc.exists
-        ? doc.data().username || user.displayName || ""
-        : user.displayName || "";
-    });
-
-    avatarInput.addEventListener("change", () => {
-      const file = avatarInput.files[0];
-      if (file) avatarPreview.src = URL.createObjectURL(file);
+      try {
+        const doc = await db.collection("users").doc(user.uid).get();
+        usernameField.value = doc.exists
+          ? (doc.data().username || user.displayName || "")
+          : (user.displayName || "");
+      } catch (err) {
+        console.warn("Profile load error:", err);
+      }
     });
 
     async function saveChanges() {
       const username = usernameField.value.trim();
       const newEmail = emailField.value.trim();
-      const file = avatarInput.files[0];
+      const file     = avatarInput.files[0];
       if (!username || !newEmail) {
         alert("Username and email cannot be empty.");
         return;
@@ -280,16 +296,16 @@
       try {
         let photoURL = currentUser.photoURL;
         if (file) {
-          const ref = storage.ref().child(`avatars/${currentUser.uid}`);
-          await ref.put(file);
-          photoURL = await ref.getDownloadURL();
+          photoURL = await uploadToCloudinary(file);
         }
         await currentUser.updateProfile({ displayName: username, photoURL });
         if (newEmail !== currentUser.email) {
           await currentUser.updateEmail(newEmail);
         }
         await db.collection("users").doc(currentUser.uid).set({
-          username, photoURL, email: newEmail,
+          username,
+          photoURL,
+          email: newEmail,
           dateJoined: currentUser.metadata.creationTime
         }, { merge: true });
         alert("Profile updated successfully!");
@@ -304,7 +320,7 @@
     }
 
     async function deleteAccount() {
-      if (!confirm("Delete account? This cannot be undone.")) return;
+      if (!confirm("Are you sure you want to delete your account? This cannot be undone.")) return;
       try {
         await db.collection("users").doc(currentUser.uid).delete();
         await currentUser.delete();
