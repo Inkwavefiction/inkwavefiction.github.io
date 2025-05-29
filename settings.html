@@ -16,11 +16,7 @@
       --sidebar-bg: #0d0d0d;
       --sidebar-width: 280px;
     }
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
       font-family: 'Poppins', sans-serif;
       background: var(--bg);
@@ -56,10 +52,9 @@
       font-weight: 500;
       transition: background 0.2s ease;
       margin-bottom: 0.6rem;
+      cursor: pointer;
     }
-    .nav-link:hover {
-      background-color: #1a1a1a;
-    }
+    .nav-link:hover { background-color: #1a1a1a; }
     .nav-link.active {
       background-color: #2a2a2a;
       color: #ffffff;
@@ -99,57 +94,31 @@
       margin-right: 1rem;
       border: 2px solid #ccc;
     }
-    .form-group {
-      margin-bottom: 1rem;
+    .form-group { margin-bottom: 1rem; }
+    label { display: block; margin-bottom: 0.4rem; font-weight: 500; }
+    input[type="text"], input[type="email"], input[type="file"] {
+      width: 100%; padding: 0.6rem;
+      border: 1px solid #ccc; border-radius: 6px; font-size: 1rem;
     }
-    label {
-      display: block;
-      margin-bottom: 0.4rem;
-      font-weight: 500;
-    }
-    input[type="text"],
-    input[type="email"],
-    input[type="file"] {
-      width: 100%;
-      padding: 0.6rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      font-size: 1rem;
-    }
-    .save-btn,
-    .delete-btn {
-      background-color: #789a91;
-      color: white;
-      padding: 0.6rem 1.2rem;
-      font-size: 1rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
+    .save-btn, .delete-btn {
+      background-color: #789a91; color: white;
+      padding: 0.6rem 1.2rem; font-size: 1rem;
+      border: none; border-radius: 6px; cursor: pointer;
       margin-right: 1rem;
     }
-    .save-btn:hover {
-      background-color: #5f7f76;
-    }
-    .delete-btn {
-      background-color: #e74c3c;
-    }
-    .delete-btn:hover {
-      background-color: #c0392b;
-    }
+    .save-btn:hover { background-color: #5f7f76; }
+    .delete-btn { background-color: #e74c3c; }
+    .delete-btn:hover { background-color: #c0392b; }
   </style>
 </head>
 <body>
-  <script>
-    sessionStorage.setItem('userRole','reader');
-  </script>
+  <script>sessionStorage.setItem('userRole','reader');</script>
 
   <div class="sidebar">
-    <a href="index.html"
-       onclick="sessionStorage.setItem('userRole','reader')"
-       style="text-decoration: none; color: inherit;">
+    <a href="index.html" onclick="sessionStorage.setItem('userRole','reader')" style="text-decoration:none;color:inherit;">
       <h2>Inkwave</h2>
     </a>
-    <a href="favorites.html" class="nav-link">📚 Favrites</a>
+    <a href="favorites.html" class="nav-link">📚 Favorites</a>
     <a href="comments.html" class="nav-link">💬 Comments</a>
     <a href="following.html" class="nav-link">👤 Following</a>
     <a href="explore.html" class="nav-link">📰 Explore Stories</a>
@@ -200,35 +169,36 @@
       messagingSenderId: "1084811926133",
       appId: "1:1084811926133:web:auto-generated"
     };
-
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+
+    const auth    = firebase.auth();
+    const db      = firebase.firestore();
     const storage = firebase.storage();
 
-    const emailField     = document.getElementById("emailField");
-    const usernameField  = document.getElementById("usernameField");
-    const dateJoinedField= document.getElementById("dateJoinedField");
-    const avatarPreview  = document.getElementById("avatarPreview");
-    const avatarInput    = document.getElementById("avatarInput");
+    const emailField      = document.getElementById("emailField");
+    const usernameField   = document.getElementById("usernameField");
+    const dateJoinedField = document.getElementById("dateJoinedField");
+    const avatarPreview   = document.getElementById("avatarPreview");
+    const avatarInput     = document.getElementById("avatarInput");
 
     let currentUser = null;
-    let avatarFile   = null;
-    let isApproved   = false;
+    let isApproved  = false;
 
-    // select & preview file
+    // Preview selected file
     avatarInput.addEventListener("change", () => {
       const file = avatarInput.files[0];
       if (!file) return;
-      avatarFile = file;
       avatarPreview.src = URL.createObjectURL(file);
     });
 
-    // helper to upload and return URL
+    // Upload helper
     async function uploadImage(file, path) {
+      console.log("Uploading image to", path);
       const ref = storage.ref().child(path);
       await ref.put(file);
-      return await ref.getDownloadURL();
+      const url = await ref.getDownloadURL();
+      console.log("Uploaded image URL:", url);
+      return url;
     }
 
     auth.onAuthStateChanged(async user => {
@@ -239,36 +209,36 @@
       }
       currentUser = user;
 
-      // check author approval (to show author-section if needed)
+      // check author approval (toggle author tools if any)
       try {
-        const snap = await db.collection('authors').doc(user.uid).get();
-        isApproved = snap.exists && snap.data().status === 'approved';
-        // (if you had an author-section, you'd toggle it here)
+        const authorSnap = await db.collection('authors').doc(user.uid).get();
+        isApproved = authorSnap.exists && authorSnap.data().status === 'approved';
+        // if you have an author-section, toggle it here...
       } catch (e) {
-        console.error(e);
+        console.error("Error checking approval:", e);
       }
 
-      // populate fields
+      // Populate fields
       emailField.value      = user.email;
-      dateJoinedField.value = new Date(user.metadata.creationTime)
-                                 .toLocaleDateString();
+      dateJoinedField.value = new Date(user.metadata.creationTime).toLocaleDateString();
       avatarPreview.src     = user.photoURL || "https://placehold.co/80x80";
 
       try {
         const doc = await db.collection("users").doc(user.uid).get();
-        if (doc.exists) {
-          usernameField.value = doc.data().username || user.displayName || "";
-        } else {
-          usernameField.value = user.displayName || "";
-        }
+        usernameField.value = doc.exists
+          ? (doc.data().username || user.displayName || "")
+          : (user.displayName || "");
       } catch (err) {
         console.warn("Could not load user profile:", err);
       }
     });
 
     async function saveChanges() {
+      console.log("saveChanges called");
       const username = usernameField.value.trim();
       const newEmail = emailField.value.trim();
+      const file     = avatarInput.files[0];
+      console.log({ username, newEmail, file });
 
       if (!username || !newEmail) {
         alert("Username and email cannot be empty.");
@@ -276,24 +246,21 @@
       }
 
       try {
-        // upload avatar if changed
         let photoURL = currentUser.photoURL;
-        if (avatarFile) {
-          photoURL = await uploadImage(
-            avatarFile,
-            `avatars/${currentUser.uid}/${avatarFile.name}`
-          );
+        if (file) {
+          const path = `avatars/${currentUser.uid}/${file.name}`;
+          photoURL = await uploadImage(file, path);
         }
 
-        // update auth profile
+        console.log("Updating auth profile");
         await currentUser.updateProfile({ displayName: username, photoURL });
 
-        // update email if needed
         if (newEmail !== currentUser.email) {
+          console.log("Updating email to", newEmail);
           await currentUser.updateEmail(newEmail);
         }
 
-        // write to Firestore
+        console.log("Writing to Firestore");
         await db.collection("users").doc(currentUser.uid).set({
           username,
           photoURL,
@@ -301,9 +268,10 @@
           dateJoined: currentUser.metadata.creationTime
         }, { merge: true });
 
+        console.log("Profile update complete");
         alert("Profile updated successfully!");
       } catch (err) {
-        console.error(err);
+        console.error("saveChanges error:", err);
         if (err.code === "auth/requires-recent-login") {
           alert("You need to log in again to change your email.");
         } else {
@@ -320,7 +288,7 @@
         alert("Account deleted.");
         window.location.href = "signup.html";
       } catch (err) {
-        console.error(err);
+        console.error("deleteAccount error:", err);
         alert("Could not delete account: " + err.message);
       }
     }
