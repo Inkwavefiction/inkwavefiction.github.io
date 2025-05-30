@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>window.allowedRoles = ["author","both"];</script>
+  <script src="role-guard.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Publish Story – Inkwave</title>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --accent: #789a91;
+      --white: #ffffff;
+      --border: #ddd;
+    }
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+    }
+    .container {
+      display: flex;
+      flex: 1;
+      padding: 2rem;
+      gap: 2rem;
+      overflow: hidden;
+    }
+    .form-area, .preview-area {
+      background: var(--white);
+      padding: 2rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow-y: auto;
+    }
+    .form-area {
+      flex: 1;
+    }
+    .preview-area {
+      flex: 2;
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .form-group { margin-bottom: 1.25rem; }
+    label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    input[type="text"], textarea, select {
+      width: 100%;
+      padding: 0.6rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      font-size: 1rem;
+    }
+    textarea { resize: vertical; height: 120px; }
+    .tag-input {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.5rem;
+    }
+    .tag {
+      background: #d7f0e5;
+      padding: 0.3rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      color: #2b7a5e;
+    }
+    .tag-input input {
+      border: none;
+      outline: none;
+      flex: 1;
+      font-size: 1rem;
+    }
+    .cover-preview, .story-card img {
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+    }
+    .cover-preview { margin-top: 0.5rem; display: none; }
+
+    .toggle { display: flex; gap: 1rem; margin-top: 0.5rem; }
+    .publish-btn, .preview-button {
+      background-color: var(--accent);
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      font-size: 1rem;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 1.5rem;
+    }
+    .preview-note {
+      font-size: 0.95rem;
+      color: var(--muted);
+      margin-bottom: 1rem;
+    }
+    .story-card {
+      max-width: 500px;
+      margin: auto;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.05);
+      border: 1px solid #eaeaea;
+    }
+    .story-card-content {
+      padding: 1.25rem;
+    }
+    .story-card-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem;
+      margin-bottom: 0.3rem;
+    }
+    .story-card-tag {
+      display: inline-block;
+      background: #eef3f1;
+      color: #333;
+      padding: 0.3rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      margin-bottom: 1rem;
+      margin-right: 6px;
+    }
+    .story-card-blurb {
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="form-area">
+      <h1>Publish Your Story</h1>
+      <!-- Title is read-only -->
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" id="story-title" readonly />
+      </div>
+      <!-- Blurb -->
+      <div class="form-group">
+        <label>Blurb</label>
+        <textarea id="story-blurb"></textarea>
+      </div>
+      <!-- Genre -->
+      <div class="form-group">
+        <label>Genre</label>
+        <select id="story-genre">
+          <option value="">Select a genre</option>
+          <option>Fantasy</option>
+          <option>Romance</option>
+          <option>Thriller</option>
+          <option>Science Fiction</option>
+          <option>Drama</option>
+        </select>
+      </div>
+      <!-- Tags -->
+      <div class="form-group">
+        <label>Tags</label>
+        <div class="tag-input" id="tag-input-container">
+          <input type="text" id="tag-input" placeholder="Type a tag and press Enter" />
+        </div>
+      </div>
+      <!-- Cover upload -->
+      <div class="form-group">
+        <label>Cover</label>
+        <input type="file" id="cover-upload" accept="image/*" />
+        <img id="cover-preview" class="cover-preview" />
+      </div>
+      <!-- Type toggle -->
+      <div class="form-group">
+        <label>Story Type</label>
+        <div class="toggle">
+          <label><input type="radio" name="type" value="short" checked /> Short Story</label>
+          <label><input type="radio" name="type" value="book" /> Full Book</label>
+        </div>
+      </div>
+      <!-- Finished toggle -->
+      <div class="form-group">
+        <label>Story Progress</label>
+        <div class="toggle">
+          <label><input type="radio" name="finished" value="false" checked /> In Progress</label>
+          <label><input type="radio" name="finished" value="true" /> Finished</label>
+        </div>
+      </div>
+      <!-- Publish -->
+      <button class="publish-btn" onclick="publishStory()">Publish Story</button>
+    </div>
+
+    <div class="preview-area">
+      <div class="preview-note">
+        This is your story card — what readers will see before they click on your story.
+      </div>
+      <div class="story-card">
+        <img id="preview-cover" style="display:none;" alt="Cover" />
+        <div class="story-card-content">
+          <h2 id="preview-title" class="story-card-title">Title Preview</h2>
+          <div id="preview-tags"></div>
+          <p id="preview-blurb" class="story-card-blurb">
+            Blurb preview will appear here...
+          </p>
+        </div>
+      </div>
+      <button class="preview-button" id="saveAndPreview">
+        💾 Save & Preview
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Firebase initialization
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0",
+      storageBucket: "inkwave-549c0.appspot.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db   = firebase.firestore();
+
+    // Cloudinary upload helper
+    async function uploadToCloudinary(file) {
+      const url  = "https://api.cloudinary.com/v1_1/dop6uyjwg/upload";
+      const form = new FormData();
+      form.append("file", file);
+      form.append("upload_preset", "unsigned_preset");
+      const res = await fetch(url, { method: "POST", body: form });
+      if (!res.ok) throw new Error("Upload failed: " + res.statusText);
+      const data = await res.json();
+      return data.secure_url;
+    }
+
+    // State
+    let currentUser, storyId;
+    let currentTags = [], coverImageFile = null;
+
+    // DOM refs
+    const titleEl      = document.getElementById("story-title");
+    const blurbEl      = document.getElementById("story-blurb");
+    const genreEl      = document.getElementById("story-genre");
+    const tagInput     = document.getElementById("tag-input");
+    const tagContainer = document.getElementById("tag-input-container");
+    const coverUpload  = document.getElementById("cover-upload");
+    const coverPreview = document.getElementById("cover-preview");
+    const previewCover = document.getElementById("preview-cover");
+    const previewTitle = document.getElementById("preview-title");
+    const previewBlurb = document.getElementById("preview-blurb");
+    const previewTags  = document.getElementById("preview-tags");
+
+    // Helpers
+    function renderTags() {
+      // clear existing
+      tagContainer.querySelectorAll(".tag").forEach(el => el.remove());
+      previewTags.innerHTML = "";
+
+      // genre tag
+      if (genreEl.value) {
+        const g = document.createElement("span");
+        g.className = "story-card-tag";
+        g.textContent = genreEl.value;
+        previewTags.appendChild(g);
+      }
+      // custom tags
+      currentTags.forEach(t => {
+        const span = document.createElement("span");
+        span.className = "tag";
+        span.textContent = t;
+        tagContainer.insertBefore(span, tagInput);
+
+        const cardTag = document.createElement("span");
+        cardTag.className = "story-card-tag";
+        cardTag.textContent = t;
+        previewTags.appendChild(cardTag);
+      });
+      updatePreview();
+    }
+
+    function updatePreview() {
+      previewTitle.textContent = titleEl.value || "Untitled";
+      previewBlurb.textContent = blurbEl.value || "No blurb yet.";
+    }
+
+    // Event listeners
+    tagInput.addEventListener("keydown", e => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const val = tagInput.value.trim();
+        if (val && !currentTags.includes(val)) {
+          currentTags.push(val);
+          renderTags();
+        }
+        tagInput.value = "";
+      }
+    });
+
+    blurbEl.addEventListener("input", updatePreview);
+    genreEl.addEventListener("change", renderTags);
+
+    coverUpload.addEventListener("change", () => {
+      const file = coverUpload.files[0];
+      if (!file) return;
+      coverImageFile = file;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        coverPreview.src    = ev.target.result;
+        previewCover.src    = ev.target.result;
+        coverPreview.style.display = "block";
+        previewCover.style.display = "block";
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // Load story data
+    auth.onAuthStateChanged(async user => {
+      if (!user) return alert("Login required.");
+      currentUser = user;
+      storyId = new URLSearchParams(location.search).get("storyId");
+
+      const docRef = db.collection("users")
+                       .doc(user.uid)
+                       .collection("stories")
+                       .doc(storyId);
+      const snap = await docRef.get();
+      if (!snap.exists) return alert("Story not found.");
+
+      const data = snap.data();
+      titleEl.value  = data.title || "";
+      blurbEl.value  = data.blurb || "";
+      genreEl.value  = data.genre || "";
+
+      if (Array.isArray(data.tags)) {
+        currentTags = data.tags;
+      }
+      renderTags();
+
+      const url = data.coverUrl || data.cover;
+      if (url) {
+        coverPreview.src = url;
+        previewCover.src = url;
+        coverPreview.style.display = "block";
+        previewCover.style.display = "block";
+      }
+      updatePreview();
+    });
+
+    // Publish story
+    async function publishStory() {
+      const docRef = db.collection("users")
+                       .doc(currentUser.uid)
+                       .collection("stories")
+                       .doc(storyId);
+
+      let coverUrl = previewCover.src;
+      if (coverImageFile) {
+        coverUrl = await uploadToCloudinary(coverImageFile);
+      }
+
+      const updates = {
+        blurb: blurbEl.value,
+        genre: genreEl.value,
+        tags:  currentTags,
+        coverUrl,
+        finished: document.querySelector('input[name="finished"]:checked').value === "true",
+        type:     document.querySelector('input[name="type"]:checked').value,
+        status:   "published"
+      };
+
+      try {
+        await docRef.update(updates);
+        alert("Story published!");
+        location.href = "both-dashboard.html";
+      } catch (err) {
+        console.error(err);
+        alert("Failed to publish your story.");
+      }
+    }
+
+    // Save & preview
+    document.getElementById("saveAndPreview").addEventListener("click", async () => {
+      const docRef = db.collection("users")
+                       .doc(currentUser.uid)
+                       .collection("stories")
+                       .doc(storyId);
+
+      let coverUrl = previewCover.src;
+      if (coverImageFile) {
+        coverUrl = await uploadToCloudinary(coverImageFile);
+      }
+
+      const updates = {
+        blurb:   blurbEl.value,
+        genre:   genreEl.value,
+        tags:    currentTags,
+        coverUrl,
+        finished: document.querySelector('input[name="finished"]:checked').value === "true",
+        type:     document.querySelector('input[name="type"]:checked').value,
+        status:  "draft"
+      };
+
+      try {
+        await docRef.update(updates);
+        location.href = `preview-story-both.html?storyId=${storyId}`;
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong saving your story.");
+      }
+    });
+  </script>
+</body>
+</html>
