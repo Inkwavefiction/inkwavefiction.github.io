@@ -330,7 +330,7 @@
           modalAuthor.textContent = authorSnap.exists
             ? `by ${authorSnap.data().displayName||"Unknown Author"}`
             : "by Unknown Author";
-          startReading.onclick = ()=> window.location.href=`story.html?storyId=${storyId}`;
+          startReading.onclick = ()=> window.location.href=`story-both.html?storyId=${storyId}`;
           modal.style.display = "block";
         });
     }
