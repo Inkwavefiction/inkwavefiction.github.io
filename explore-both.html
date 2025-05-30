@@ -119,8 +119,17 @@
       transition: transform 0.2s;
       position: relative;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
     }
     .story-card:hover { transform: scale(1.01); }
+    .story-image {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 6px 6px 0 0;
+      margin-bottom: 0.75rem;
+    }
     .story-title {
       font-weight: 600;
       font-size: 1.1rem;
@@ -154,6 +163,7 @@
     .story-blurb {
       font-size: 0.9rem;
       color: var(--muted);
+      margin-top: auto;
     }
     .heart-icon {
       position: absolute;
@@ -200,17 +210,14 @@
       font-weight: 500;
       color: #333;
     }
-    .section-list li {
-      margin-bottom: 0.4rem;
-      line-height: 1.6;
-    }
+    .section-list li { margin-bottom: 0.4rem; line-height: 1.6; }
   </style>
 </head>
 <body>
   <script>sessionStorage.setItem('userRole','reader');</script>
 
   <div class="sidebar">
-    <h2 onclick="goHome()">Inkwave</h2>
+    <h2 onclick="window.location.href='explore.html'">Inkwave</h2>
 
     <div class="author-section">
       <div class="section">
@@ -248,7 +255,7 @@
       <div class="nav-link" onclick="window.location.href='favorites-both.html'">📚 Favorites</div>
       <div class="nav-link" onclick="window.location.href='comments-both.html'">💬 Comments</div>
       <div class="nav-link" onclick="window.location.href='following-both.html'">👤 Following</div>
-      <div class="nav-link active" onclick="goHome()">📰 Explore Stories</div>
+      <div class="nav-link active" onclick="window.location.href='explore-both.html'">📰 Explore Stories</div>
       <div class="nav-link" onclick="window.location.href='settings-both.html'">⚙️ Reader Settings</div>
     </div>
   </div>
@@ -258,9 +265,9 @@
       Once you're approved as an author, you'll see all the author tools in the sidebar.
     </div>
     <h1>📖 Explore Stories</h1>
-    <input type="text" id="storySearch" class="search-bar" placeholder="Search stories..." />
+    <input type="text" id="storySearch" class="search-bar" placeholder="Search stories…" />
     <div id="storyGrid" class="story-grid">
-      <p>Loading stories...</p>
+      <p>Loading stories…</p>
     </div>
   </div>
 
@@ -271,7 +278,7 @@
         <h2 id="modalTitle">Story Title</h2>
         <p id="modalAuthor">by Author Name</p>
       </div>
-      <p id="modalBlurb">Full blurb goes here...</p>
+      <p id="modalBlurb">Full blurb goes here…</p>
       <div id="modalMeta">
         <span id="modalGenre" class="badge genre"></span>
         <div id="modalTags" style="margin:0.5rem 0;"></div>
@@ -288,7 +295,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
   <script>
-    // initialize
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -296,16 +302,16 @@
     };
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
-    const db = firebase.firestore();
+    const db   = firebase.firestore();
 
-    // modal elements
-    const modal = document.getElementById("storyModal");
-    const modalTitle = document.getElementById("modalTitle");
-    const modalAuthor = document.getElementById("modalAuthor");
-    const modalBlurb = document.getElementById("modalBlurb");
-    const modalGenre = document.getElementById("modalGenre");
-    const modalTags = document.getElementById("modalTags");
-    const modalSections = document.getElementById("modalSections");
+    // modal setup
+    const modal        = document.getElementById("storyModal");
+    const modalTitle   = document.getElementById("modalTitle");
+    const modalAuthor  = document.getElementById("modalAuthor");
+    const modalBlurb   = document.getElementById("modalBlurb");
+    const modalGenre   = document.getElementById("modalGenre");
+    const modalTags    = document.getElementById("modalTags");
+    const modalSections= document.getElementById("modalSections");
     const startReading = document.getElementById("startReading");
 
     document.querySelector(".close-button").onclick = () => modal.style.display = "none";
@@ -317,11 +323,11 @@
         .then(async snap => {
           if (snap.empty) return alert("Story not found.");
           const doc = snap.docs[0], data = doc.data();
-          modalTitle.textContent = data.title || "Untitled";
-          modalBlurb.textContent = data.blurb || "No description available.";
-          modalGenre.textContent = data.genre || "";
-          modalGenre.style.display = data.genre ? "inline-block" : "none";
-          modalTags.innerHTML = (data.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("");
+          modalTitle.textContent  = data.title  || "Untitled";
+          modalBlurb.textContent  = data.blurb  || "No description available.";
+          modalGenre.textContent  = data.genre  || "";
+          modalGenre.style.display= data.genre ? "inline-block" : "none";
+          modalTags.innerHTML     = (data.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("");
           modalSections.innerHTML = "";
           const secs = Object.keys(data.sections||{});
           if (!secs.length) modalSections.innerHTML = "<li>No sections</li>";
@@ -335,40 +341,48 @@
         });
     }
 
-    let isApproved = false;
     auth.onAuthStateChanged(async user => {
       if (!user) {
         alert("Please log in first.");
         window.location.href = "login.html";
         return;
       }
-      // approval check
+
+      // show/hide author tools
+      let isApproved = false;
       try {
         const snap = await db.collection('authors').doc(user.uid).get();
         isApproved = snap.exists && snap.data().status === 'approved';
       } catch(e){ console.error(e); }
-      document.querySelectorAll('.author-section').forEach(el=>{
-        el.style.display = isApproved ? 'block' : 'none';
-      });
-      document.getElementById('approvalBanner').style.display = isApproved ? 'none' : 'block';
+      document.querySelectorAll('.author-section')
+        .forEach(el => el.style.display = isApproved ? 'block' : 'none');
+      document.getElementById('approvalBanner')
+        .style.display = isApproved ? 'none' : 'block';
 
       // load favorites
       const favsSnap = await db.collection("users").doc(user.uid)
         .collection("favorites").get();
       const favSet = new Set(favsSnap.docs.map(d=>d.data().id));
-      
-      // load stories
+
+      // load and render stories
       const grid = document.getElementById("storyGrid");
       grid.innerHTML = "";
       const snap = await db.collectionGroup("stories")
         .where("status","==","published").get();
-      snap.forEach(doc=> {
+      snap.forEach(doc => {
         const d = doc.data();
         const card = document.createElement("div");
         card.className = "story-card";
-        card.onclick = ()=> openModal(d.id);
-        const heart = favSet.has(d.id) ? '<div class="heart-icon">❤️</div>' : '';
-        const typeB = d.type==='book'
+        card.onclick = () => openModal(d.id);
+
+        const heart = favSet.has(d.id)
+          ? '<div class="heart-icon">❤️</div>' : '';
+
+        const imgHTML = d.coverUrl
+          ? `<img src="${d.coverUrl}" alt="${d.title||'Story cover'}" class="story-image">`
+          : '';
+
+        const typeB = d.type === 'book'
           ? '<span class="badge book">📘 Full Book</span>'
           : '<span class="badge short">📖 Short Story</span>';
         const statB = d.finished
@@ -377,8 +391,10 @@
         const genreB = d.genre
           ? `<span class="badge genre">${d.genre}</span>` : '';
         const tagsHTML = (d.tags||[]).map(t=>`<span class="tag">${t}</span>`).join("");
+
         card.innerHTML = `
           ${heart}
+          ${imgHTML}
           <div class="story-title">${d.title||"Untitled"}</div>
           <div class="story-info">${typeB} ${statB} ${genreB} ${tagsHTML}</div>
           <div class="story-blurb">${d.blurb||"No description available."}</div>
@@ -389,10 +405,10 @@
       // search filter
       document.getElementById("storySearch").oninput = () => {
         const q = document.getElementById("storySearch").value.toLowerCase();
-        grid.querySelectorAll(".story-card").forEach(c=>{
+        grid.querySelectorAll(".story-card").forEach(c => {
           const title = c.querySelector(".story-title").innerText.toLowerCase();
           const blurb = c.querySelector(".story-blurb").innerText.toLowerCase();
-          c.style.display = (title.includes(q)||blurb.includes(q)) ? "block" : "none";
+          c.style.display = (title.includes(q) || blurb.includes(q)) ? "block" : "none";
         });
       };
     });
