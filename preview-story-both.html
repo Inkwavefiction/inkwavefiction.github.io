@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script>window.allowedRoles = ["author","both"];</script>
+  <script src="role-guard.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Story Preview – Inkwave</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #fafafa;
+      color: #222;
+    }
+
+    main {
+      max-width: 700px;
+      margin: 4rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .cover {
+      width: 100%;
+      max-height: 400px;
+      object-fit: cover;
+      border-radius: 6px;
+      margin-bottom: 2rem;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .blurb {
+      font-size: 1.1rem;
+      color: #555;
+      margin-bottom: 2rem;
+    }
+
+    .section-title {
+      font-size: 1.6rem;
+      color: #789a91;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    .section-content {
+      font-size: 1.1rem;
+      line-height: 1.8;
+    }
+
+    .nav-buttons {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2.5rem;
+    }
+
+    .nav-buttons button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      background-color: #789a91;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .nav-buttons button:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 2rem;
+      color: #555;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    #publishBtn {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background-color: #789a91;
+      color: white;
+      border: none;
+      padding: 0.8rem 1.6rem;
+      border-radius: 50px;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <img id="cover" class="cover" style="display:none" />
+    <h1 id="title">Loading...</h1>
+    <div class="blurb" id="blurb"></div>
+
+    <div class="section-title" id="section-name"></div>
+    <div class="section-content" id="section-content"></div>
+
+    <div class="nav-buttons">
+      <button id="prevBtn">← Previous</button>
+      <button id="nextBtn">Next →</button>
+    </div>
+
+    <a href="publish-story-both.html" class="back-link">← Back to edit</a>
+  </main>
+
+  <button id="publishBtn">Publish</button>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const storyId = new URLSearchParams(window.location.search).get("storyId");
+
+    const titleEl = document.getElementById("title");
+    const blurbEl = document.getElementById("blurb");
+    const coverEl = document.getElementById("cover");
+    const sectionTitleEl = document.getElementById("section-name");
+    const sectionContentEl = document.getElementById("section-content");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const publishBtn = document.getElementById("publishBtn");
+
+    let sectionKeys = [];
+    let currentIndex = 0;
+    let sections = {};
+
+    function renderSection(index) {
+      const key = sectionKeys[index];
+      sectionTitleEl.textContent = key;
+      sectionContentEl.innerHTML = sections[key].content || "";
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === sectionKeys.length - 1;
+    }
+
+    prevBtn.onclick = () => {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderSection(currentIndex);
+      }
+    };
+
+    nextBtn.onclick = () => {
+      if (currentIndex < sectionKeys.length - 1) {
+        currentIndex++;
+        renderSection(currentIndex);
+      }
+    };
+
+    publishBtn.onclick = async () => {
+      if (!auth.currentUser) {
+        alert("You must be logged in.");
+        return;
+      }
+
+      try {
+        const userId = auth.currentUser.uid;
+        const storyRef = db.collection("users").doc(userId).collection("stories").doc(storyId);
+
+        await storyRef.set({
+          id: storyId,
+          status: "published"
+        }, { merge: true });
+
+        alert("Story published!");
+        window.location.href = "dashboard-both.html";
+      } catch (err) {
+        console.error("Publish error:", err);
+        alert("Something went wrong.");
+      }
+    };
+
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        titleEl.textContent = "You must be logged in.";
+        return;
+      }
+
+      const docRef = db.collection("users").doc(user.uid).collection("stories").doc(storyId);
+      const docSnap = await docRef.get();
+
+      if (!docSnap.exists) {
+        titleEl.textContent = "Story not found.";
+        return;
+      }
+
+      const data = docSnap.data();
+      titleEl.textContent = data.title || "Untitled";
+      blurbEl.textContent = data.blurb || "";
+
+      if (data.coverUrl) {
+        coverEl.src = data.coverUrl;
+        coverEl.style.display = "block";
+      }
+
+      sections = data.sections || {};
+      sectionKeys = data.sectionOrder || Object.keys(sections);
+      currentIndex = 0;
+
+      if (sectionKeys.length > 0) {
+        renderSection(currentIndex);
+      } else {
+        sectionTitleEl.textContent = "No sections found.";
+        sectionContentEl.textContent = "";
+      }
+    });
+  </script>
+</body>
+</html>
