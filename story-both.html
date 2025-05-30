@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Story – Inkwave</title>
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
+  <style>
+    /* Global Styles */
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #fafafa;
+      color: #333;
+    }
+    main {
+      max-width: 700px;
+      margin: 2rem auto;
+      padding: 0;
+    }
+    /* Header Styles */
+    .header {
+      text-align: center;
+      padding: 0 1rem;
+    }
+    .cover {
+      width: 100%;
+      max-height: 500px;
+      object-fit: cover;
+      margin-bottom: 1rem;
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem;
+      margin: 1rem 0 0.5rem;
+      color: #222;
+    }
+    .blurb {
+      font-size: 1.2rem;
+      color: #555;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+    .author-box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 1rem;
+    }
+    .author-box img {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .author-box .name {
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: #444;
+    }
+    .stats {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin: 1rem 0;
+      font-size: 1rem;
+      color: #777;
+    }
+    /* Story Section Styles */
+    .section-title {
+      font-size: 2rem;
+      color: #333;
+      margin-bottom: 0.5rem;
+      border-bottom: 1px solid #ddd;
+      padding-bottom: 0.25rem;
+      text-align: left;
+    }
+    .section-content {
+      font-size: 1.2rem;
+      line-height: 1.75;
+      margin-bottom: 2rem;
+      color: #444;
+      text-align: left;
+    }
+    /* Navigation Buttons */
+    .nav-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+    .nav-buttons button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      background-color: #789a91;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .nav-buttons button:hover {
+      background-color: #647a81;
+    }
+    .nav-buttons button:disabled {
+      background-color: #ccc;
+      color: #666;
+      cursor: not-allowed;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 1rem;
+      color: #789a91;
+      text-decoration: none;
+      font-size: 1rem;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    /* Comments & Replies Styling */
+    .comments-section {
+      margin-top: 2rem;
+      padding-top: 1rem;
+      border-top: 1px solid #ddd;
+      text-align: left;
+    }
+    .comments-section h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+    .comment {
+      margin-bottom: 1.5rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid #eee;
+    }
+    .comment-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 0.5rem;
+    }
+    .comment-header img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+    .comment-author {
+      font-weight: 600;
+      color: #789a91;
+    }
+    .comment-content {
+      font-size: 1rem;
+      line-height: 1.6;
+      color: #444;
+    }
+    .reply-btn {
+      background: none;
+      border: none;
+      color: #789a91;
+      cursor: pointer;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+    .reply-btn:hover {
+      text-decoration: underline;
+    }
+    .replies {
+      margin-left: 30px;
+      margin-top: 1rem;
+    }
+    textarea {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      resize: vertical;
+      margin-top: 0.5rem;
+    }
+    .post-comment-btn, .post-reply-btn {
+      margin-top: 0.5rem;
+      background-color: #789a91;
+      color: white;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    .post-comment-btn:hover, .post-reply-btn:hover {
+      background-color: #647a81;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <!-- Header Section -->
+    <div class="header">
+      <!-- Full-width cover image -->
+      <img id="cover" class="cover" style="display:none" alt="Cover Image">
+      <!-- Story Title -->
+      <h1 id="title">Loading...</h1>
+      <!-- Story Blurb -->
+      <div class="blurb" id="blurb"></div>
+      <!-- Author info -->
+      <div id="authorInfo" class="author-box" style="display: none;">
+        <a id="authorProfileLink" href="#" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: inherit;">
+          <img id="authorPhoto" src="" alt="Author Photo">
+          <div class="name" id="authorName"></div>
+        </a>
+      </div>
+      <!-- Stats -->
+      <div class="stats">
+        <div>Views: <span id="viewCount">0</span></div>
+        <div>Likes: <span id="likeCount">0</span></div>
+      </div>
+    </div>
+    <!-- Story Section (left aligned) -->
+    <div class="section-title" id="section-name"></div>
+    <div class="section-content" id="section-content"></div>
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+      <button id="prevBtn">← Previous</button>
+      <button id="nextBtn">Next →</button>
+      <button id="favBtn">❤️ Favorite</button>
+      <button id="followBtn">👤 Follow Author</button>
+    </div>
+    <!-- Comments Section with Inline Reply Capability -->
+    <div class="comments-section" id="commentsSection">
+      <h2>Comments</h2>
+      <div id="commentList"></div>
+      <div style="margin-top: 2rem;">
+        <textarea id="newComment" rows="3" placeholder="Write a new comment..."></textarea>
+        <button class="post-comment-btn" onclick="postComment()">Post Comment</button>
+      </div>
+    </div>
+    <!-- Back to Stories Link (centered) -->
+    <div style="text-align: center;">
+      <a href="explore-both.html" class="back-link">← Back to stories</a>
+    </div>
+  </main>
+
+  <script>
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const storyId = new URLSearchParams(window.location.search).get("storyId");
+
+    // Element references
+    const titleEl = document.getElementById("title");
+    const blurbEl = document.getElementById("blurb");
+    const coverEl = document.getElementById("cover");
+    const sectionTitleEl = document.getElementById("section-name");
+    const sectionContentEl = document.getElementById("section-content");
+    const viewCountEl = document.getElementById("viewCount");
+    const likeCountEl = document.getElementById("likeCount");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const favBtn = document.getElementById("favBtn");
+    const followBtn = document.getElementById("followBtn");
+    const authorNameEl = document.getElementById("authorName");
+    const authorPhotoEl = document.getElementById("authorPhoto");
+    const authorInfoBox = document.getElementById("authorInfo");
+    const authorProfileLink = document.getElementById("authorProfileLink");
+    const commentList = document.getElementById("commentList");
+
+    let sectionKeys = [];
+    let currentIndex = 0;
+    let sections = {};
+    let currentUser = null;
+    let authorId = null;
+    let storyData = null;
+
+    function renderSection(index) {
+      const key = sectionKeys[index];
+      sectionTitleEl.textContent = key;
+      sectionContentEl.innerHTML = sections[key].content || "";
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === sectionKeys.length - 1;
+    }
+
+    prevBtn.onclick = () => {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderSection(currentIndex);
+      }
+    };
+
+    nextBtn.onclick = () => {
+      if (currentIndex < sectionKeys.length - 1) {
+        currentIndex++;
+        renderSection(currentIndex);
+      }
+    };
+
+    favBtn.onclick = async () => {
+      if (!currentUser || !storyData || !authorId) return;
+      favBtn.disabled = true;
+      try {
+        // Save story as favorite
+        await db.collection("users").doc(currentUser.uid).collection("favorites").doc(storyId).set({
+          id: storyId,
+          title: storyData.title || "Untitled",
+          author: authorId,
+          cover: storyData.coverUrl || "",
+          blurb: storyData.blurb || "",
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        // Increment like count on the story document
+        const storyRef = db.collection("users").doc(authorId).collection("stories").doc(storyId);
+        await storyRef.update({
+          likes: firebase.firestore.FieldValue.increment(1)
+        });
+        likeCountEl.textContent = parseInt(likeCountEl.textContent) + 1;
+        favBtn.textContent = "Favorited";
+      } catch (err) {
+        console.error("Favorite error:", err);
+        alert("Failed to favorite story.");
+        favBtn.disabled = false;
+      }
+    };
+
+    followBtn.onclick = async () => {
+      if (!currentUser || !authorId) return;
+      try {
+        const authorDoc = await db.collection("authors").doc(authorId).get();
+        const data = authorDoc.data();
+        await db.collection("users").doc(currentUser.uid).collection("following").doc(authorId).set({
+          id: authorId,
+          displayName: data.displayName || "Unknown",
+          photoURL: data.photoURL || "",
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        window.location.href = "following-both.html";
+      } catch (err) {
+        console.error("Follow error:", err);
+        alert("Failed to follow author.");
+      }
+    };
+
+    // Toggle reply box below a comment
+    function toggleReplyBox(commentId) {
+      const container = document.getElementById("reply-container-" + commentId);
+      if (container.innerHTML.trim() !== "") {
+        container.innerHTML = "";
+      } else {
+        container.innerHTML = `
+          <textarea rows="2" placeholder="Write a reply..."></textarea>
+          <button class="post-reply-btn" onclick="postReply('${commentId}')">Submit Reply</button>
+        `;
+      }
+    }
+
+    async function postReply(parentId) {
+      const container = document.getElementById("reply-container-" + parentId);
+      const textarea = container.querySelector("textarea");
+      const text = textarea.value.trim();
+      if (!text) return alert("Please write a reply.");
+      try {
+        const userDoc = await db.collection("users").doc(currentUser.uid).get();
+        const userData = userDoc.exists ? userDoc.data() : {};
+        // FIX: use saved username field first
+        const username = userData.username || userData.displayName || "Anonymous";
+        const userPhotoURL = userData.photoURL || "https://placehold.co/32x32";
+        await db.collection("comments").add({
+          storyId,
+          userId: currentUser.uid,
+          text,
+          username,
+          userPhotoURL,
+          parentId: parentId,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          storyTitle: storyData.title || "Untitled"
+        });
+        textarea.value = "";
+        container.innerHTML = "";
+        loadComments();
+      } catch (err) {
+        console.error("Error posting reply:", err);
+        alert("Failed to post reply.");
+      }
+    }
+
+    async function postComment() {
+      const textarea = document.getElementById("newComment");
+      const text = textarea.value.trim();
+      if (!text) return alert("Please write something first.");
+      try {
+        const userDoc = await db.collection("users").doc(currentUser.uid).get();
+        const userData = userDoc.exists ? userDoc.data() : {};
+        // FIX: use saved username field first
+        const username = userData.username || userData.displayName || "Anonymous";
+        const userPhotoURL = userData.photoURL || "https://placehold.co/32x32";
+        await db.collection("comments").add({
+          storyId,
+          userId: currentUser.uid,
+          text,
+          username,
+          userPhotoURL,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          storyTitle: storyData.title || "Untitled"
+        });
+        textarea.value = "";
+        loadComments();
+      } catch (err) {
+        console.error("Error posting comment:", err);
+        alert("Something went wrong while posting your comment.");
+      }
+    }
+
+    async function loadComments() {
+      commentList.innerHTML = "Loading comments...";
+      try {
+        const commentsSnap = await db.collection("comments")
+          .where("storyId", "==", storyId)
+          .orderBy("timestamp", "asc")
+          .get();
+        if (commentsSnap.empty) {
+          commentList.innerHTML = "<p>No comments yet.</p>";
+          return;
+        }
+        let comments = [];
+        commentsSnap.forEach(doc => {
+          let data = doc.data();
+          data.id = doc.id;
+          comments.push(data);
+        });
+        const topComments = comments.filter(c => !c.parentId);
+        const replies = {};
+        comments.filter(c => c.parentId).forEach(c => {
+          if (!replies[c.parentId]) replies[c.parentId] = [];
+          replies[c.parentId].push(c);
+        });
+        commentList.innerHTML = "";
+        topComments.forEach(c => {
+          const div = document.createElement("div");
+          div.className = "comment";
+          div.innerHTML = `
+            <div class="comment-header">
+              <img src="${c.userPhotoURL || 'https://placehold.co/32x32'}" alt="User">
+              <span class="comment-author">${c.username || "Anonymous"}</span>
+            </div>
+            <div class="comment-content">${c.text || ""}</div>
+            <button class="reply-btn" onclick="toggleReplyBox('${c.id}')">Reply</button>
+            <div class="reply-container" id="replycontainer-${c.id}"></div>
+            <div class="replies" id="replies-${c.id}"></div>
+          `;
+          commentList.appendChild(div);
+          if (replies[c.id]) {
+            const repliesDiv = div.querySelector("#replies-" + c.id);
+            replies[c.id].forEach(reply => {
+              const replyDiv = document.createElement("div");
+              replyDiv.className = "comment";
+              replyDiv.style.marginTop = "1rem";
+              replyDiv.innerHTML = `
+                <div class="comment-header">
+                  <img src="${reply.userPhotoURL || 'https://placehold.co/32x32'}" alt="User">
+                  <span class="comment-author">${reply.username || "Anonymous"}</span>
+                </div>
+                <div class="comment-content">${reply.text || ""}</div>
+                <button class="reply-btn" onclick="toggleReplyBox('${reply.id}')">Reply</button>
+                <div class="reply-container" id="replycontainer-${reply.id}"></div>
+              `;
+              repliesDiv.appendChild(replyDiv);
+            });
+          }
+        });
+      } catch (err) {
+        console.error("Error loading comments:", err);
+        commentList.innerHTML = "<p>Error loading comments.</p>";
+      }
+    }
+
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        titleEl.textContent = "You must be logged in.";
+        return;
+      }
+      currentUser = user;
+      try {
+        const snap = await db.collectionGroup("stories")
+          .where("id", "==", storyId)
+          .get();
+        if (snap.empty) {
+          titleEl.textContent = "Story not found.";
+          return;
+        }
+        const doc = snap.docs[0];
+        storyData = doc.data();
+        authorId = doc.ref.parent.parent.id;
+        const storyRef = db.collection("users").doc(authorId).collection("stories").doc(storyId);
+        await storyRef.update({ reads: firebase.firestore.FieldValue.increment(1) });
+        titleEl.textContent = storyData.title || "Untitled";
+        blurbEl.textContent = storyData.blurb || "";
+        if (storyData.coverUrl) {
+          coverEl.src = storyData.coverUrl;
+          coverEl.style.display = "block";
+        }
+        sections = storyData.sections || {};
+        sectionKeys = storyData.sectionOrder || Object.keys(sections);
+        currentIndex = 0;
+        renderSection(currentIndex);
+        likeCountEl.textContent = storyData.likes ?? 0;
+        viewCountEl.textContent = storyData.reads ?? 0;
+        const authorDoc = await db.collection("authors").doc(authorId).get();
+        if (authorDoc.exists) {
+          const aData = authorDoc.data();
+          authorNameEl.textContent = aData.displayName || "Unknown Author";
+          authorPhotoEl.src = aData.photoURL || "https://placehold.co/48x48";
+          authorProfileLink.href = `author-profile-both.html?authorId=${authorId}`;
+          authorInfoBox.style.display = "flex";
+        }
+        const favDoc = await db.collection("users").doc(currentUser.uid).collection("favorites").doc(storyId).get();
+        if (favDoc.exists) {
+          favBtn.disabled = true;
+          favBtn.textContent = "Favorited";
+        }
+        loadComments();
+      } catch (err) {
+        console.error("Error loading story:", err);
+        titleEl.textContent = "Error loading story.";
+      }
+    });
+  </script>
+</body>
+</html>
