@@ -89,6 +89,14 @@
       margin-bottom: 1.5rem;
     }
 
+    .search-bar {
+      margin-bottom: 1.5rem;
+      padding: 0.5rem;
+      width: 100%;
+      max-width: 400px;
+      font-size: 1rem;
+    }
+
     .story-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -103,10 +111,20 @@
       transition: transform 0.2s;
       position: relative;
       cursor: pointer;
+      display: flex;
+      flex-direction: column;
     }
 
     .story-card:hover {
       transform: scale(1.01);
+    }
+
+    .story-image {
+      width: 100%;
+      height: 160px;
+      object-fit: cover;
+      border-radius: 6px 6px 0 0;
+      margin-bottom: 0.75rem;
     }
 
     .story-title {
@@ -147,14 +165,7 @@
     .story-blurb {
       font-size: 0.9rem;
       color: var(--muted);
-    }
-
-    .search-bar {
-      margin-bottom: 1.5rem;
-      padding: 0.5rem;
-      width: 100%;
-      max-width: 400px;
-      font-size: 1rem;
+      margin-top: auto;
     }
 
     .heart-icon {
@@ -164,7 +175,7 @@
       font-size: 1.2rem;
       color: #e25555;
     }
-    /* Modal styles continued */
+
     .modal {
       display: none;
       position: fixed;
@@ -223,7 +234,6 @@
   </style>
 </head>
 <body>
-  <!-- ensure index.html knows you’re a reader -->
   <script>
     sessionStorage.setItem('userRole','reader');
   </script>
@@ -247,7 +257,6 @@
     <div id="storyGrid" class="story-grid"><p>Loading stories...</p></div>
   </div>
 
-  <!-- Modal -->
   <div id="storyModal" class="modal">
     <div class="modal-content">
       <span class="close-button">&times;</span>
@@ -268,7 +277,6 @@
     </div>
   </div>
 
-  <!-- Firebase + Script -->
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
@@ -350,7 +358,9 @@
       const searchInput = document.getElementById("storySearch");
       grid.innerHTML = "";
 
-      const snapshot = await db.collectionGroup("stories").where("status", "==", "published").get();
+      const snapshot = await db.collectionGroup("stories")
+        .where("status", "==", "published")
+        .get();
 
       snapshot.forEach(doc => {
         const data = doc.data();
@@ -358,22 +368,34 @@
         div.className = "story-card";
         div.onclick = () => openModal(data.id);
 
-        const heart = favoriteIds.has(data.id) ? `<div class="heart-icon">❤️</div>` : "";
+        const heart = favoriteIds.has(data.id)
+          ? `<div class="heart-icon">❤️</div>` : "";
+
+        const imgHTML = data.imageURL
+          ? `<img src="${data.imageURL}" alt="${data.title || 'Story cover'}" class="story-image">`
+          : "";
+
         const typeBadge = data.type === "book"
           ? `<span class="badge book">📘 Full Book</span>`
           : `<span class="badge short">📖 Short Story</span>`;
+
         const statusBadge = data.finished
           ? `<span class="badge finished">✅ Finished</span>`
           : `<span class="badge in-progress">🕓 In Progress</span>`;
+
         const genreBadge = data.genre
           ? `<span class="badge genre">${data.genre}</span>` : "";
+
         const tagHTML = (Array.isArray(data.tags) ? data.tags : [])
           .map(tag => `<span class="tag">${tag}</span>`).join(" ");
 
         div.innerHTML = `
           ${heart}
+          ${imgHTML}
           <div class="story-title">${data.title || "Untitled"}</div>
-          <div class="story-info">${typeBadge} ${statusBadge} ${genreBadge} ${tagHTML}</div>
+          <div class="story-info">
+            ${typeBadge} ${statusBadge} ${genreBadge} ${tagHTML}
+          </div>
           <div class="story-blurb">${data.blurb || "No description available."}</div>
         `;
 
