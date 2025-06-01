@@ -539,7 +539,6 @@
           const aData = authorDoc.data();
           authorNameEl.textContent = aData.displayName || "Unknown Author";
           authorPhotoEl.src = aData.photoURL || "https://placehold.co/48x48";
-          authorProfileLink.href = `author-profile.html?authorId=${authorId}`;
           authorInfoBox.style.display = "flex";
         }
         const favDoc = await db.collection("users").doc(currentUser.uid).collection("favorites").doc(storyId).get();
