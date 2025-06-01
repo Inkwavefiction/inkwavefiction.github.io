@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- 1) Declare allowedRoles up front -->
+  <!-- Declare allowedRoles for our guard check -->
   <script>
     window.allowedRoles = ["author", "both"];
   </script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Author Dashboard – Inkwave</title>
@@ -195,13 +196,23 @@
     </table>
   </div>
 
-  <!-- FIREBASE SDKs (compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <!-- FIREBASE v10 (modular) SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      collection,
+      getDocs,
+      deleteDoc
+    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-  <script>
-    // ─── INITIALIZE FIREBASE (compat) ───────────────────────────────────────────
+    // ─── INITIALIZE FIREBASE (modular) ─────────────────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0JEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -210,12 +221,12 @@
       messagingSenderId: "1084811926133",
       appId: "1:1084811926133:web:auto-generated"
     };
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-    const db = firebase.firestore();
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    // ─── CHECK AUTH STATE & VERIFY Firestore ROLE ────────────────────────────────
-    firebase.auth().onAuthStateChanged(async (user) => {
+    // ─── CHECK AUTH STATE & VERIFY Firestore ROLE ─────────────────────────────────
+    onAuthStateChanged(auth, async (user) => {
       if (!user) {
         // No Firebase user at all → redirect
         window.location.href = "login.html";
@@ -225,14 +236,16 @@
       const uid = user.uid;
       try {
         // Fetch users/{uid} document
-        const userDoc = await db.collection("users").doc(uid).get();
-        if (!userDoc.exists) {
+        const userDocRef = doc(db, "users", uid);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (!userDocSnap.exists()) {
           // If there’s no users/{uid} doc, they have no role → redirect
           window.location.href = "login.html";
           return;
         }
 
-        const data = userDoc.data();
+        const data = userDocSnap.data();
         const roles = Array.isArray(data.role) ? data.role : [];
 
         // Check if any of their roles is in allowedRoles
@@ -251,9 +264,9 @@
       }
     });
 
-    // ─── LOAD STORIES, UPDATE STATS ──────────────────────────────────────────────
+    // ─── LOAD STORIES, UPDATE STATS ─────────────────────────────────────────────────
     async function loadStoriesForCurrentUser() {
-      const user = firebase.auth().currentUser;
+      const user = auth.currentUser;
       if (!user) {
         window.location.href = "login.html";
         return;
@@ -261,7 +274,8 @@
       const uid = user.uid;
 
       try {
-        const snapshot = await db.collection("users").doc(uid).collection("stories").get();
+        const storiesCol = collection(db, "users", uid, "stories");
+        const snapshot = await getDocs(storiesCol);
         const table = document.getElementById("story-table");
         table.innerHTML = ""; // Clear “Loading…” row
 
@@ -308,7 +322,7 @@
       }
     }
 
-    // ─── CREATE / OPEN / DELETE STORY FUNCTIONS ───────────────────────────────────
+    // ─── CREATE / OPEN / DELETE STORY FUNCTIONS ────────────────────────────────────
     function createNewStory() {
       const newId = "story-" + Date.now();
       localStorage.setItem("currentStoryId", newId);
@@ -320,26 +334,26 @@
       window.location.href = "new-story.html";
     }
 
-    function deleteStory(storyId, iconElement) {
-      const user = firebase.auth().currentUser;
+    async function deleteStory(storyId, iconElement) {
+      const user = auth.currentUser;
       if (!user) {
         window.location.href = "login.html";
         return;
       }
       const uid = user.uid;
+      const docRef = doc(db, "users", uid, "stories", storyId);
 
       if (!confirm("Delete this story?")) return;
-      db.collection("users").doc(uid).collection("stories").doc(storyId).delete()
-        .then(() => {
-          iconElement.closest("tr").remove();
-        })
-        .catch(err => {
-          alert("Failed to delete story.");
-          console.error(err);
-        });
+      try {
+        await deleteDoc(docRef);
+        iconElement.closest("tr").remove();
+      } catch (err) {
+        alert("Failed to delete story.");
+        console.error(err);
+      }
     }
 
-    // ─── “NEW STORY” BUTTON SETUP ─────────────────────────────────────────────────
+    // ─── “NEW STORY” BUTTON SETUP ──────────────────────────────────────────────────
     window.addEventListener("DOMContentLoaded", () => {
       const newBtn = document.getElementById("new-story-btn");
       if (newBtn) newBtn.addEventListener("click", createNewStory);
