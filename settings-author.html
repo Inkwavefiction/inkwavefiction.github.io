@@ -91,7 +91,6 @@
     label { display: block; margin-bottom: 0.4rem; font-weight: 500; }
     input[type="text"],
     input[type="email"],
-    input[type="password"],
     textarea {
       width: 100%;
       padding: 0.6rem;
@@ -186,15 +185,6 @@
       </div>
 
       <div class="form-group">
-        <label>Password (leave blank if no change)</label>
-        <input type="password" id="passwordField" placeholder="New password" />
-        <label>
-          <input type="checkbox" id="togglePassword" />
-          Show Password
-        </label>
-      </div>
-
-      <div class="form-group">
         <label>Date Joined</label>
         <input type="text" id="dateJoinedField" disabled />
       </div>
@@ -228,8 +218,6 @@
     // DOM refs
     const usernameField   = document.getElementById("usernameField");
     const emailField      = document.getElementById("emailField");
-    const passwordField   = document.getElementById("passwordField");
-    const togglePassword  = document.getElementById("togglePassword");
     const bioField        = document.getElementById("bioField");
     const dateJoinedField = document.getElementById("dateJoinedField");
     const avatarPreview   = document.getElementById("avatarPreview");
@@ -246,11 +234,6 @@
       if (!file) return;
       avatarFile = file;
       avatarPreview.src = URL.createObjectURL(file);
-    });
-
-    // Toggle password visibility
-    togglePassword.addEventListener("change", () => {
-      passwordField.type = togglePassword.checked ? "text" : "password";
     });
 
     // Cloudinary upload helper
@@ -287,10 +270,9 @@
     // Save changes handler
     saveBtn.addEventListener("click", async e => {
       e.preventDefault();
-      const username   = usernameField.value.trim();
-      const email      = emailField.value.trim();
-      const newPassword = passwordField.value.trim();
-      const bio        = bioField.value.trim();
+      const username = usernameField.value.trim();
+      const email    = emailField.value.trim();
+      const bio      = bioField.value.trim();
       if (!username || !email) {
         alert("Username and email cannot be empty.");
         return;
@@ -307,11 +289,7 @@
         if (email !== currentUser.email) {
           await currentUser.updateEmail(email);
         }
-        // 4) update password if provided
-        if (newPassword) {
-          await currentUser.updatePassword(newPassword);
-        }
-        // 5) write to Firestore (authors collection)
+        // 4) write to Firestore (authors collection)
         await db.collection("authors").doc(currentUser.uid).set({
           displayName: username,
           bio,
@@ -319,10 +297,8 @@
           photoURL,
           dateJoined: currentUser.metadata.creationTime
         }, { merge: true });
-        // 6) ALSO write bio under 'users' so it appears for followers
-        await db.collection("users").doc(currentUser.uid).set({
-          bio
-        }, { merge: true });
+        // 5) ALSO write bio under 'users' so it appears for followers
+        await db.collection("users").doc(currentUser.uid).set({ bio }, { merge: true });
 
         alert("Profile updated!");
       } catch (err) {
