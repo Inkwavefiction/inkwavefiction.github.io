@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Story Preview – Inkwave</title>
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: #fafafa;
+      color: #333;
+    }
+
+    main {
+      max-width: 700px;
+      margin: 2rem auto;
+      padding: 0 1rem;
+    }
+
+    /* Header */
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      margin-bottom: 0.5rem;
+      color: #222;
+      text-align: center;
+    }
+    .blurb {
+      font-size: 1rem;
+      color: #555;
+      margin-bottom: 2rem;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* Preview Content */
+    #previewContent {
+      font-size: 1.1rem;
+      line-height: 1.7;
+      color: #444;
+      margin-bottom: 2rem;
+      white-space: pre-wrap;
+    }
+
+    /* Signup prompt */
+    .signup-prompt {
+      text-align: center;
+      font-style: italic;
+      color: #555;
+      margin-bottom: 3rem;
+    }
+    .signup-prompt a {
+      color: #789a91;
+      text-decoration: underline;
+    }
+
+    .back-link {
+      display: block;
+      text-align: center;
+      margin-top: 2rem;
+      color: #789a91;
+      text-decoration: none;
+      font-size: 1rem;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <h1 id="title">Loading preview...</h1>
+    <div class="blurb" id="blurb"></div>
+
+    <div id="previewContent">Fetching story preview...</div>
+
+    <div class="signup-prompt">
+      <span>Want to read the rest? </span>
+      <a href="signup.html">Sign up as a reader →</a>
+    </div>
+
+    <a href="story.html?storyId=<span id='storyIdLink'></span>" class="back-link">
+      ← Back to full story page
+    </a>
+  </main>
+
+  <script>
+    // Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      authDomain: "inkwave-549c0.firebaseapp.com",
+      projectId: "inkwave-549c0"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // Grab storyId from query
+    const storyId = new URLSearchParams(window.location.search).get("storyId") || "";
+    document.getElementById("storyIdLink").textContent = storyId;
+
+    const titleEl = document.getElementById("title");
+    const blurbEl = document.getElementById("blurb");
+    const previewEl = document.getElementById("previewContent");
+
+    async function fetchStoryPreview() {
+      if (!storyId) {
+        titleEl.textContent = "No story specified.";
+        previewEl.textContent = "";
+        return;
+      }
+
+      try {
+        // 1) Fetch the story document via collectionGroup
+        const snap = await db.collectionGroup("stories")
+          .where("id", "==", storyId)
+          .limit(1)
+          .get();
+
+        if (snap.empty) {
+          titleEl.textContent = "Story not found.";
+          blurbEl.textContent = "";
+          previewEl.textContent = "";
+          return;
+        }
+
+        const doc = snap.docs[0];
+        const storyData = doc.data();
+
+        // 2) Populate title and blurb
+        titleEl.textContent = storyData.title || "Untitled";
+        blurbEl.textContent = storyData.blurb || "";
+
+        // 3) Combine all sections into one plain‐text string
+        const sections = storyData.sections || {};
+        const order = storyData.sectionOrder || Object.keys(sections);
+        let fullText = "";
+        order.forEach(key => {
+          // Convert HTML to plain text by injecting into a temporary element
+          const tmp = document.createElement("div");
+          tmp.innerHTML = sections[key].content || "";
+          const sectionText = tmp.textContent || "";
+          fullText += sectionText + "\n\n";
+        });
+
+        if (!fullText.trim()) {
+          previewEl.textContent = "No content available.";
+          return;
+        }
+
+        // 4) Take the first 50% of the characters
+        const halfIndex = Math.floor(fullText.length / 2);
+        const snippet = fullText.slice(0, halfIndex).trim();
+
+        // 5) Display snippet with ellipsis
+        previewEl.textContent = snippet + "…";
+
+      } catch (err) {
+        console.error("Error fetching preview:", err);
+        titleEl.textContent = "Error loading preview.";
+        previewEl.textContent = "";
+      }
+    }
+
+    // On load, fetch and render preview
+    fetchStoryPreview();
+  </script>
+</body>
+</html>
