@@ -237,7 +237,7 @@
     <div class="section-content" id="section-content"></div>
 
     <!-- Navigation Buttons -->
-    <div class="nav-buttons">
+    <div class="nav-buttons" id="navButtons">
       <button id="prevBtn">← Previous</button>
       <button id="nextBtn">Next →</button>
       <button id="favBtn">❤️ Favorite</button>
@@ -285,11 +285,13 @@
     const nextBtn = document.getElementById("nextBtn");
     const favBtn = document.getElementById("favBtn");
     const followBtn = document.getElementById("followBtn");
+    const navButtons = document.getElementById("navButtons");
     const authorNameEl = document.getElementById("authorName");
     const authorPhotoEl = document.getElementById("authorPhoto");
     const authorInfoBox = document.getElementById("authorInfo");
     const authorProfileLink = document.getElementById("authorProfileLink");
     const commentList = document.getElementById("commentList");
+    const commentsSection = document.getElementById("commentsSection");
 
     let sectionKeys = [];
     let currentIndex = 0;
@@ -298,25 +300,12 @@
     let authorId = null;
     let storyData = null;
 
-    // Renders either full or partial (50%) story text depending on guest vs. logged-in
-    function renderSection(index, showPartial = false) {
+    // Renders full story section for logged-in, or does nothing for guests
+    function renderSectionForUser(index) {
       const key = sectionKeys[index];
       const rawHtml = sections[key].content || "";
-      if (showPartial) {
-        // Simply cut the raw HTML string in half (may break tags, but ensures half content)
-        const halfIdx = Math.floor(rawHtml.length / 2);
-        const partialHtml = rawHtml.slice(0, halfIdx);
-
-        sectionTitleEl.textContent = key + " (Preview)";
-        sectionContentEl.innerHTML =
-          partialHtml +
-          `<p style="margin-top:1.5rem; font-style: italic; color: #555;">
-             Signup as a reader to see the rest.
-           </p>`;
-      } else {
-        sectionTitleEl.textContent = key;
-        sectionContentEl.innerHTML = rawHtml;
-      }
+      sectionTitleEl.textContent = key;
+      sectionContentEl.innerHTML = rawHtml;
       prevBtn.disabled = index === 0;
       nextBtn.disabled = index === sectionKeys.length - 1;
     }
@@ -324,14 +313,14 @@
     prevBtn.onclick = () => {
       if (currentIndex > 0) {
         currentIndex--;
-        renderSection(currentIndex, /*showPartial=*/ !currentUser);
+        renderSectionForUser(currentIndex);
       }
     };
 
     nextBtn.onclick = () => {
       if (currentIndex < sectionKeys.length - 1) {
         currentIndex++;
-        renderSection(currentIndex, /*showPartial=*/ !currentUser);
+        renderSectionForUser(currentIndex);
       }
     };
 
@@ -552,7 +541,6 @@
           authorInfoBox.style.display = "flex";
         }
 
-        loadComments();
         return true;
       } catch (err) {
         console.error("Error loading story:", err);
@@ -566,18 +554,36 @@
       const ok = await fetchStoryData();
       if (!ok) return;
 
-      // If guest (no user), show only 50% of each section + signup prompt
-      const showPartial = !currentUser;
-      renderSection(currentIndex, showPartial);
-
-      // Disable favorite and follow buttons for guests
       if (!currentUser) {
-        favBtn.disabled = true;
-        followBtn.disabled = true;
-        favBtn.title = "Log in to favorite";
-        followBtn.title = "Log in to follow";
+        // Guest: hide everything except a signup prompt
+        coverEl.style.display = "none";
+        blurbEl.textContent = "";
+        authorInfoBox.style.display = "none";
+        viewCountEl.textContent = "";
+        likeCountEl.textContent = "";
+        navButtons.style.display = "none";
+        commentsSection.style.display = "none";
+
+        sectionTitleEl.textContent = "";
+        sectionContentEl.innerHTML = `
+          <p style="text-align: center; font-style: italic; color: #555; margin-top: 2rem;">
+            Please sign up as a reader to see this story. 
+            <a href="signup.html" style="color: #789a91; text-decoration: underline;">Sign up now</a>
+          </p>
+        `;
       } else {
-        // Logged-in: enable full functionality
+        // Logged-in: show full story
+        if (storyData.coverUrl) {
+          coverEl.style.display = "block";
+        }
+        blurbEl.textContent = storyData.blurb || "";
+        authorInfoBox.style.display = "flex";
+        navButtons.style.display = "flex";
+        commentsSection.style.display = "block";
+
+        renderSectionForUser(currentIndex);
+
+        // Check if already favorited
         const favDoc = await db
           .collection("users")
           .doc(currentUser.uid)
