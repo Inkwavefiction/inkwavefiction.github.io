@@ -1,13 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- 1) Declare allowedRoles up front (used by role-guard.js if you load it) -->
+  <!-- 1) Declare allowedRoles up front -->
   <script>
     window.allowedRoles = ["author", "both"];
   </script>
-  <!-- 2) (Optionally) role-guard.js, but its checks are now redundant -->
-  <!-- <script src="role-guard.js"></script> -->
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Author Dashboard – Inkwave</title>
@@ -198,13 +195,13 @@
     </table>
   </div>
 
-  <!-- FIREBASE SDKs -->
+  <!-- FIREBASE SDKs (compat) -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // ─── INITIALIZE FIREBASE ────────────────────────────────────────────────────
+    // ─── INITIALIZE FIREBASE (compat) ───────────────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0JEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -214,83 +211,101 @@
       appId: "1:1084811926133:web:auto-generated"
     };
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // ─── CHECK AUTH STATE ─────────────────────────────────────────────────────────
-    firebase.auth().onAuthStateChanged(user => {
-      // Grab whatever role was stored in sessionStorage at login
-      const roleFlag = sessionStorage.getItem('userRole');
+    // ─── CHECK AUTH STATE & VERIFY Firestore ROLE ────────────────────────────────
+    firebase.auth().onAuthStateChanged(async (user) => {
+      if (!user) {
+        // No Firebase user at all → redirect
+        window.location.href = "login.html";
+        return;
+      }
 
-      // 1) If there's no Firebase user, redirect straight to login
+      const uid = user.uid;
+      try {
+        // Fetch users/{uid} document
+        const userDoc = await db.collection("users").doc(uid).get();
+        if (!userDoc.exists) {
+          // If there’s no users/{uid} doc, they have no role → redirect
+          window.location.href = "login.html";
+          return;
+        }
+
+        const data = userDoc.data();
+        const roles = Array.isArray(data.role) ? data.role : [];
+
+        // Check if any of their roles is in allowedRoles
+        const isAllowed = roles.some(r => window.allowedRoles.includes(r));
+        if (!isAllowed) {
+          // They signed in but don’t actually have “author” or “both” → redirect
+          window.location.href = "login.html";
+          return;
+        }
+
+        // At this point: (1) Firebase user is valid, and (2) Firestore role array includes “author” or “both”
+        loadStoriesForCurrentUser();
+      } catch (err) {
+        console.error("Error verifying role in Firestore:", err);
+        window.location.href = "login.html";
+      }
+    });
+
+    // ─── LOAD STORIES, UPDATE STATS ──────────────────────────────────────────────
+    async function loadStoriesForCurrentUser() {
+      const user = firebase.auth().currentUser;
       if (!user) {
         window.location.href = "login.html";
         return;
       }
+      const uid = user.uid;
 
-      // 2) If the stored role isn't “author” or “both,” redirect
-      //    (window.allowedRoles was set above in <head>)
-      if (!roleFlag || !window.allowedRoles.includes(roleFlag)) {
-        window.location.href = "login.html";
-        return;
-      }
+      try {
+        const snapshot = await db.collection("users").doc(uid).collection("stories").get();
+        const table = document.getElementById("story-table");
+        table.innerHTML = ""; // Clear “Loading…” row
 
-      // Only if we have BOTH (a) a real Firebase user object AND (b) a valid roleFlag
-      // do we actually load their stories:
-      loadStoriesForCurrentUser();
-    });
+        if (snapshot.empty) {
+          table.innerHTML = '<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>';
+          return;
+        }
 
-    // ─── LOAD STORIES, UPDATE STATS ──────────────────────────────────────────────
-    function loadStoriesForCurrentUser() {
-      const user = firebase.auth().currentUser;
-      const uid = user.uid; // at this point, user must exist
+        let totalReads = 0, totalLikes = 0, totalEarnings = 0;
 
-      db.collection("users").doc(uid).collection("stories").get()
-        .then(snapshot => {
-          const table = document.getElementById("story-table");
-          table.innerHTML = ""; // Clear “Loading …” row
+        snapshot.forEach(docSnap => {
+          const s = docSnap.data();
+          const title   = s.title   || "(Untitled)";
+          const reads   = s.reads    || 0;
+          const likes   = s.likes    || 0;
+          const revenue = s.revenue  || 0;
+          const status  = s.status   || "draft";
 
-          if (snapshot.empty) {
-            table.innerHTML = '<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>';
-            return;
-          }
+          totalReads    += isNaN(reads)   ? 0 : reads;
+          totalLikes    += isNaN(likes)   ? 0 : likes;
+          totalEarnings += isNaN(revenue) ? 0 : revenue;
 
-          let totalReads = 0, totalLikes = 0, totalEarnings = 0;
-
-          snapshot.forEach(docSnap => {
-            const s = docSnap.data();
-            const title   = s.title   || "(Untitled)";
-            const reads   = s.reads    || 0;
-            const likes   = s.likes    || 0;
-            const revenue = s.revenue  || 0;
-            const status  = s.status   || "draft";
-
-            totalReads    += isNaN(reads)   ? 0 : reads;
-            totalLikes    += isNaN(likes)   ? 0 : likes;
-            totalEarnings += isNaN(revenue) ? 0 : revenue;
-
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td><a href="#" class="story-link" onclick="openStory('${docSnap.id}')">${title}</a></td>
-              <td>${reads}</td>
-              <td>${likes}</td>
-              <td>$${revenue.toFixed(2)}</td>
-              <td>
-                <span class="badge ${status === 'published' ? 'published' : 'draft'}">
-                  ${status.charAt(0).toUpperCase() + status.slice(1)}
-                </span>
-                <span style="margin-left:10px;cursor:pointer;color:crimson;"
-                      onclick="deleteStory('${docSnap.id}', this)">🗑</span>
-              </td>`;
-            table.appendChild(tr);
-          });
-
-          document.getElementById("total-reads").textContent    = totalReads;
-          document.getElementById("total-likes").textContent    = totalLikes;
-          document.getElementById("total-earnings").textContent = `$${totalEarnings.toFixed(2)}`;
-        })
-        .catch(err => {
-          console.error("Error fetching stories:", err);
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><a href="#" class="story-link" onclick="openStory('${docSnap.id}')">${title}</a></td>
+            <td>${reads}</td>
+            <td>${likes}</td>
+            <td>$${revenue.toFixed(2)}</td>
+            <td>
+              <span class="badge ${status === 'published' ? 'published' : 'draft'}">
+                ${status.charAt(0).toUpperCase() + status.slice(1)}
+              </span>
+              <span style="margin-left:10px;cursor:pointer;color:crimson;"
+                    onclick="deleteStory('${docSnap.id}', this)">🗑</span>
+            </td>`;
+          table.appendChild(tr);
         });
+
+        document.getElementById("total-reads").textContent    = totalReads;
+        document.getElementById("total-likes").textContent    = totalLikes;
+        document.getElementById("total-earnings").textContent = `$${totalEarnings.toFixed(2)}`;
+      } catch (err) {
+        console.error("Error fetching stories:", err);
+      }
     }
 
     // ─── CREATE / OPEN / DELETE STORY FUNCTIONS ───────────────────────────────────
@@ -307,9 +322,13 @@
 
     function deleteStory(storyId, iconElement) {
       const user = firebase.auth().currentUser;
-      const uid = user.uid; // we know the user is valid
-      if (!confirm("Delete this story?")) return;
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      const uid = user.uid;
 
+      if (!confirm("Delete this story?")) return;
       db.collection("users").doc(uid).collection("stories").doc(storyId).delete()
         .then(() => {
           iconElement.closest("tr").remove();
