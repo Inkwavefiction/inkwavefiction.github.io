@@ -17,14 +17,11 @@
       background: #fafafa;
       color: #333;
     }
-
     main {
       max-width: 700px;
       margin: 2rem auto;
       padding: 0 1rem;
     }
-
-    /* Header */
     h1 {
       font-family: 'Playfair Display', serif;
       font-size: 2.5rem;
@@ -39,8 +36,6 @@
       text-align: center;
       line-height: 1.6;
     }
-
-    /* Preview Content */
     #previewContent {
       font-size: 1.1rem;
       line-height: 1.7;
@@ -48,8 +43,6 @@
       margin-bottom: 2rem;
       white-space: pre-wrap;
     }
-
-    /* Signup prompt */
     .signup-prompt {
       text-align: center;
       font-style: italic;
@@ -60,7 +53,6 @@
       color: #789a91;
       text-decoration: underline;
     }
-
     .back-link {
       display: block;
       text-align: center;
@@ -86,9 +78,7 @@
       <a href="signup.html">Sign up as a reader →</a>
     </div>
 
-    <a href="story.html?storyId=<span id='storyIdLink'></span>" class="back-link">
-      ← Back to full story page
-    </a>
+    <a id="fullStoryLink" href="#" class="back-link">← Back to full story page</a>
   </main>
 
   <script>
@@ -101,9 +91,9 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // Grab storyId from query
+    // Read storyId from URL
     const storyId = new URLSearchParams(window.location.search).get("storyId") || "";
-    document.getElementById("storyIdLink").textContent = storyId;
+    document.getElementById("fullStoryLink").href = `story.html?storyId=${storyId}`;
 
     const titleEl = document.getElementById("title");
     const blurbEl = document.getElementById("blurb");
@@ -117,48 +107,44 @@
       }
 
       try {
-        // 1) Fetch the story document via collectionGroup
+        // 1) Fetch story document
         const snap = await db.collectionGroup("stories")
           .where("id", "==", storyId)
           .limit(1)
           .get();
-
         if (snap.empty) {
           titleEl.textContent = "Story not found.";
           blurbEl.textContent = "";
           previewEl.textContent = "";
           return;
         }
-
         const doc = snap.docs[0];
         const storyData = doc.data();
 
-        // 2) Populate title and blurb
+        // 2) Populate title + blurb
         titleEl.textContent = storyData.title || "Untitled";
         blurbEl.textContent = storyData.blurb || "";
 
-        // 3) Combine all sections into one plain‐text string
+        // 3) Combine all sections into a single plain-text string
         const sections = storyData.sections || {};
         const order = storyData.sectionOrder || Object.keys(sections);
-        let fullText = "";
+        let allText = "";
         order.forEach(key => {
-          // Convert HTML to plain text by injecting into a temporary element
           const tmp = document.createElement("div");
           tmp.innerHTML = sections[key].content || "";
-          const sectionText = tmp.textContent || "";
-          fullText += sectionText + "\n\n";
+          allText += tmp.textContent + " ";
         });
 
-        if (!fullText.trim()) {
+        // 4) Split by whitespace into words, take half
+        const words = allText.trim().split(/\s+/);
+        if (words.length === 0) {
           previewEl.textContent = "No content available.";
           return;
         }
+        const half = Math.floor(words.length / 2);
+        const snippet = words.slice(0, half).join(" ");
 
-        // 4) Take the first 50% of the characters
-        const halfIndex = Math.floor(fullText.length / 2);
-        const snippet = fullText.slice(0, halfIndex).trim();
-
-        // 5) Display snippet with ellipsis
+        // 5) Display snippet + ellipsis
         previewEl.textContent = snippet + "…";
 
       } catch (err) {
@@ -168,7 +154,7 @@
       }
     }
 
-    // On load, fetch and render preview
+    // On load, fetch preview
     fetchStoryPreview();
   </script>
 </body>
