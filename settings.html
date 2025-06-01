@@ -178,6 +178,7 @@
       <div class="form-group">
         <label>Password</label>
         <div class="password-wrapper">
+          <!-- start with placeholder -->
           <input type="password" id="passwordField" value="********" disabled>
           <button type="button" id="showPasswordBtn">Show Password</button>
           <button type="button" id="editPasswordBtn">Edit Password</button>
@@ -234,23 +235,20 @@
       avatarPreview.src = URL.createObjectURL(file);
     });
 
-    // handle show password click
+    // show password: switch to an empty, editable field so user can type current password
     showPasswordBtn.addEventListener("click", () => {
-      // slide-out animation
       showPasswordBtn.classList.add("slide-out");
-      // after animation, reveal actual password field (dummy in this case)
       setTimeout(() => {
-        passwordField.type = "text";
+        passwordField.disabled = false;
+        passwordField.type = "password";
+        passwordField.value = ""; // let user enter their current password
         editPasswordBtn.style.display = "inline-block";
         showPasswordBtn.style.display = "none";
-      }, 300); // match CSS transition duration
+      }, 300);
     });
 
-    // handle edit password click
+    // edit password: now let them type a new password
     editPasswordBtn.addEventListener("click", () => {
-      // switch to blank password input for editing
-      passwordField.disabled = false;
-      passwordField.type = "password";
       passwordField.value = "";
       passwordField.focus();
       editPasswordBtn.style.display = "none";
@@ -281,7 +279,7 @@
       emailField.value      = user.email;
       dateJoinedField.value = new Date(user.metadata.creationTime).toLocaleDateString();
       avatarPreview.src     = user.photoURL || "https://placehold.co/80x80";
-      passwordField.value   = "********"; // placeholder, real password isn't retrievable
+      passwordField.value   = "********"; // placeholder
 
       try {
         const doc = await db.collection("users").doc(user.uid).get();
@@ -296,9 +294,9 @@
     // save changes
     saveBtn.addEventListener("click", async e => {
       e.preventDefault();
-      const username = usernameField.value.trim();
-      const newEmail = emailField.value.trim();
-      const newPassword = passwordField.value.trim();
+      const username    = usernameField.value.trim();
+      const newEmail    = emailField.value.trim();
+      const enteredPwd  = passwordField.value.trim();
       if (!username || !newEmail) {
         alert("Username and email cannot be empty.");
         return;
@@ -309,16 +307,27 @@
         if (avatarFile) {
           photoURL = await uploadToCloudinary(avatarFile);
         }
-        // update Firebase Auth profile
+        // update Auth profile
         await currentUser.updateProfile({ displayName: username, photoURL });
+
         // update email if changed
         if (newEmail !== currentUser.email) {
           await currentUser.updateEmail(newEmail);
         }
-        // update password if changed from placeholder
-        if (newPassword && newPassword !== "********") {
-          await currentUser.updatePassword(newPassword);
+        // if password field was used (not placeholder), reauthenticate then update
+        if (enteredPwd && enteredPwd !== "********") {
+          // require reauthentication before changing password
+          const credential = firebase.auth.EmailAuthProvider.credential(
+            currentUser.email,
+            enteredPwd
+          );
+          await currentUser.reauthenticateWithCredential(credential);
+          const newPwd = prompt("Enter new password:");
+          if (newPwd) {
+            await currentUser.updatePassword(newPwd);
+          }
         }
+
         // write to Firestore
         await db.collection("users").doc(currentUser.uid).set({
           username,
@@ -328,12 +337,13 @@
         }, { merge: true });
 
         alert("Profile updated successfully!");
-        // reset password field to placeholder state
+        // reset password field to placeholder
+        passwordField.disabled = true;
         passwordField.type = "password";
         passwordField.value = "********";
-        passwordField.disabled = true;
         showPasswordBtn.style.display = "inline-block";
         showPasswordBtn.classList.remove("slide-out");
+        editPasswordBtn.style.display = "none";
       } catch (err) {
         console.error("saveChanges error:", err);
         if (err.code === "auth/requires-recent-login") {
