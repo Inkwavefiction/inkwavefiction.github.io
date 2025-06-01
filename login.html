@@ -92,6 +92,7 @@
       color: #a33c3c;
       font-size: 0.95rem;
       margin-top: 1rem;
+      text-align: left;
     }
     .reader-options {
       display: none;
@@ -137,10 +138,25 @@
       padding: 1rem;
       border-radius: 8px;
     }
+    /* Debug bar */
+    #debug-msg {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: #a33c3c;
+      color: white;
+      padding: 0.5rem;
+      font-size: 0.9rem;
+      display: none;
+      text-align: center;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
 
+<div id="debug-msg"></div>
 <div class="login-box">
   <h1>Log in to Inkwave</h1>
 
@@ -247,16 +263,25 @@
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  // Show debug bar for errors
+  function showDebug(msg) {
+    console.log(msg);
+    const bar = document.getElementById("debug-msg");
+    bar.textContent = msg;
+    bar.style.display = "block";
+    setTimeout(() => bar.style.display = "none", 3000);
+  }
+
   // ─── ROLE TOGGLE HANDLERS ───────────────────────────────────────────────────────
-  const authorBtn = document.getElementById("author-btn");
-  const readerBtn = document.getElementById("reader-btn");
-  const bothBtn   = document.getElementById("both-btn");
-  const authorForm  = document.getElementById("author-form");
-  const readerLogin = document.getElementById("reader-login");
-  const readerSignup= document.getElementById("reader-signup");
-  const signupForm  = document.getElementById("signup-form");
-  const bothLogin   = document.getElementById("both-login");
-  const errorMsg    = document.getElementById("error-msg");
+  const authorBtn    = document.getElementById("author-btn");
+  const readerBtn    = document.getElementById("reader-btn");
+  const bothBtn      = document.getElementById("both-btn");
+  const authorForm   = document.getElementById("author-form");
+  const readerLogin  = document.getElementById("reader-login");
+  const readerSignup = document.getElementById("reader-signup");
+  const signupForm   = document.getElementById("signup-form");
+  const bothLogin    = document.getElementById("both-login");
+  const errorMsg     = document.getElementById("error-msg");
   let selectedPlan = "beta";
 
   authorBtn.onclick = () => {
@@ -312,14 +337,14 @@
     try {
       const methods = await fetchSignInMethodsForEmail(auth, email);
       if (methods.length > 0) {
-        errorMsg.textContent = "This email is already in use. If you're an author, use the Author login tab.";
+        errorMsg.textContent = "Email already in use. If you're an author, switch to the Author tab.";
         return;
       }
 
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
+      showDebug("New reader signed up: " + uid);
 
-      // Create Firestore document with role=["reader"]
       await setDoc(doc(db, "users", uid), {
         email,
         role: ["reader"],
@@ -330,7 +355,8 @@
       sessionStorage.setItem("userRole", "reader");
       window.location.href = "explore.html";
     } catch (err) {
-      errorMsg.textContent = err.message;
+      console.error("Signup error:", err);
+      errorMsg.textContent = "Signup failed: " + err.message;
     }
   };
 
@@ -343,14 +369,14 @@
     try {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
+      showDebug("Reader logged in: " + uid);
 
-      // Ensure Firestore users/{uid} exists with role including "reader"
+      // Ensure Firestore users/{uid} has role=["reader"]
       await setDoc(doc(db, "users", uid), {
         role: ["reader"],
         lastLogin: serverTimestamp()
       }, { merge: true });
 
-      // Verify Firestore document
       const userDoc = await getDoc(doc(db, "users", uid));
       const data = userDoc.data();
       if (!data.role || !data.role.includes("reader")) {
@@ -361,7 +387,8 @@
       sessionStorage.setItem("userRole", "reader");
       window.location.href = "explore.html";
     } catch (err) {
-      errorMsg.textContent = "Login failed. Please check your credentials.";
+      console.error("Reader login error:", err);
+      errorMsg.textContent = "Login failed: " + err.message;
     }
   };
 
@@ -377,16 +404,15 @@
     }
 
     try {
-      // 1) Sign in with Firebase Auth
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
+      showDebug("Author signed in: " + uid);
 
-      // 2) Check Firestore authors/{uid} document for status
       const authorDocRef = doc(db, "authors", uid);
       const authorDocSnap = await getDoc(authorDocRef);
 
       if (!authorDocSnap.exists()) {
-        errorMsg.textContent = "You haven't submitted an author application yet.";
+        errorMsg.textContent = "You haven’t applied as an author yet.";
         return;
       }
 
@@ -394,20 +420,19 @@
       if (status !== "approved" && status !== "pending") {
         errorMsg.textContent = (status === "denied")
           ? "Your author application was denied."
-          : "Unknown application status. Please contact support.";
+          : "Unknown status. Contact support.";
         return;
       }
 
-      // 3) Write Firestore users/{uid}.role = ["author"]
+      // Write Firestore users/{uid}.role = ["author"]
       await setDoc(doc(db, "users", uid), {
         role: ["author"],
         lastLogin: serverTimestamp()
       }, { merge: true });
 
-      // 4) Store session flag
       sessionStorage.setItem("userRole", "author");
+      showDebug("Firestore role set to author for: " + uid);
 
-      // 5) Redirect
       const seenWelcome = localStorage.getItem("seenWelcome");
       if (!seenWelcome && status === "approved") {
         localStorage.setItem("seenWelcome", "true");
@@ -417,7 +442,7 @@
       }
     } catch (err) {
       console.error("Author login error:", err);
-      errorMsg.textContent = "Login failed. Please check your credentials.";
+      errorMsg.textContent = "Login failed: " + err.message;
     }
   };
 
@@ -435,8 +460,8 @@
     try {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
+      showDebug("Both login signed in: " + uid);
 
-      // Write role=["author","reader"] in Firestore users/{uid}
       await setDoc(doc(db, "users", uid), {
         role: ["author", "reader"],
         lastLogin: serverTimestamp()
@@ -446,7 +471,7 @@
       window.location.href = "both-dashboard.html";
     } catch (err) {
       console.error("Both login error:", err);
-      errorMsg.textContent = "Login failed. Please check your credentials.";
+      errorMsg.textContent = "Login failed: " + err.message;
     }
   };
 </script>
