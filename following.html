@@ -94,17 +94,25 @@
       border-radius: 10px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.05);
       margin-bottom: 1.5rem;
+      cursor: pointer;
     }
 
     .story-title {
       font-weight: 600;
       font-size: 1.1rem;
       margin-bottom: 0.4rem;
+      color: var(--accent);
     }
 
     .comment-meta {
       font-size: 0.85rem;
       color: var(--muted);
+      display: none;
+      margin-top: 0.5rem;
+    }
+
+    .card.expanded .comment-meta {
+      display: block;
     }
   </style>
 </head>
@@ -181,6 +189,10 @@
             <div class="story-title">${author.displayName || "Unknown Author"}</div>
             <div class="comment-meta">${author.bio || "No bio available."}</div>
           `;
+          // Toggle bio visibility on click
+          div.addEventListener("click", () => {
+            div.classList.toggle("expanded");
+          });
           followList.appendChild(div);
         });
       }
