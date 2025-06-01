@@ -72,10 +72,19 @@
     const messageEl    = document.getElementById("message");
     const dashboardBtn = document.getElementById("dashboard-btn");
 
+    function delayedRedirect(url, delay = 2000) {
+      setTimeout(() => {
+        window.location.href = url;
+      }, delay);
+    }
+
     onAuthStateChanged(auth, async user => {
       if (!user) {
         // not logged in
-        window.location.href = "login.html";
+        heading.textContent = "❌ Not logged in";
+        heading.classList.add("denied");
+        messageEl.textContent = "You will be redirected to login in a moment.";
+        delayedRedirect("login.html");
         return;
       }
 
@@ -83,7 +92,10 @@
       const uRef = doc(db, "users", user.uid);
       const uSnap = await getDoc(uRef);
       if (!uSnap.exists()) {
-        window.location.href = "login.html";
+        heading.textContent = "❌ User record not found";
+        heading.classList.add("denied");
+        messageEl.textContent = "You will be redirected to login in a moment.";
+        delayedRedirect("login.html");
         return;
       }
       const uData = uSnap.data();
@@ -97,7 +109,10 @@
 
       // only authors allowed
       if (!isAuthor) {
-        window.location.href = "login.html";
+        heading.textContent = "❌ Access Denied";
+        heading.classList.add("denied");
+        messageEl.textContent = "You need author privileges. Redirecting to login...";
+        delayedRedirect("login.html");
         return;
       }
 
