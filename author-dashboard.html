@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Declare allowedRoles for our guard check -->
+  <!-- Allowed roles for this page -->
   <script>
     window.allowedRoles = ["author", "both"];
   </script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Author Dashboardd – Inkwave</title>
+  <title>Author Dashboard – Inkwave</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -19,6 +19,7 @@
       --accent: #789a91;
       --white: #ffffff;
       --border: #e0e0e0;
+      --error: #a33c3c;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -116,9 +117,25 @@
       text-align: center; color: var(--muted);
       padding: 2rem 0; font-style: italic;
     }
+
+    /* Status message bar for debug errors */
+    #status-msg {
+      background: var(--error);
+      color: white;
+      padding: 0.75rem 1rem;
+      text-align: center;
+      font-size: 0.9rem;
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
+  <!-- Status message (for errors or debug) -->
+  <div id="status-msg"></div>
+
   <div class="sidebar">
     <h2>Inkwave</h2>
     <div class="section">
@@ -154,7 +171,7 @@
   <div class="main">
     <div class="header">
       <div>
-        <h1>Dashboardd</h1>
+        <h1>Dashboard</h1>
         <p style="color: var(--muted); margin-top: 0.3rem;">Welcome back, Author!</p>
       </div>
       <div style="display: flex; gap: 10px;">
@@ -212,7 +229,7 @@
       deleteDoc
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // ─── INITIALIZE FIREBASE (modular) ─────────────────────────────────────────────
+    // ─── INITIALIZE FIREBASE (modular) ─────────────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0JEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -225,57 +242,81 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
+    // Helper to show a message at the top (for errors/debug)
+    function showStatus(message) {
+      const bar = document.getElementById("status-msg");
+      bar.textContent = message;
+      bar.style.display = "block";
+    }
+
     // ─── CHECK AUTH STATE & VERIFY Firestore ROLE ─────────────────────────────────
     onAuthStateChanged(auth, async (user) => {
+      console.log("onAuthStateChanged fired, user =", user);
       if (!user) {
-        // No Firebase user at all → redirect
-        window.location.href = "login.html";
+        showStatus("No Firebase user detected. Redirecting to login...");
+        console.error("Redirect: no user");
+        window.setTimeout(() => window.location.href = "login.html", 1000);
         return;
       }
 
       const uid = user.uid;
+      console.log("Firebase user UID:", uid);
+
       try {
-        // Fetch users/{uid} document
         const userDocRef = doc(db, "users", uid);
         const userDocSnap = await getDoc(userDocRef);
 
         if (!userDocSnap.exists()) {
-          // If there’s no users/{uid} doc, they have no role → redirect
-          window.location.href = "login.html";
+          showStatus("No users/" + uid + " document. Redirecting...");
+          console.error("Redirect: no users/{uid} doc");
+          window.setTimeout(() => window.location.href = "login.html", 1000);
           return;
         }
 
         const data = userDocSnap.data();
-        const roles = Array.isArray(data.role) ? data.role : [];
+        console.log("Fetched user data:", data);
 
-        // Check if any of their roles is in allowedRoles
+        const roles = Array.isArray(data.role) ? data.role : [];
+        console.log("Roles array:", roles);
+
         const isAllowed = roles.some(r => window.allowedRoles.includes(r));
+        console.log("isAllowed? →", isAllowed);
+
         if (!isAllowed) {
-          // They signed in but don’t actually have “author” or “both” → redirect
-          window.location.href = "login.html";
+          showStatus("Your role is not authorized (must be ‘author’ or ‘both’). Redirecting...");
+          console.error("Redirect: role not allowed");
+          window.setTimeout(() => window.location.href = "login.html", 1000);
           return;
         }
 
-        // At this point: (1) Firebase user is valid, and (2) Firestore role array includes “author” or “both”
+        // If we reach here, user + role are valid:
+        console.log("User is authorized; loading stories...");
         loadStoriesForCurrentUser();
       } catch (err) {
         console.error("Error verifying role in Firestore:", err);
-        window.location.href = "login.html";
+        showStatus("Error verifying role. Redirecting...");
+        window.setTimeout(() => window.location.href = "login.html", 1000);
       }
     });
 
     // ─── LOAD STORIES, UPDATE STATS ─────────────────────────────────────────────────
     async function loadStoriesForCurrentUser() {
       const user = auth.currentUser;
+      console.log("loadStoriesForCurrentUser called, currentUser =", user);
+
       if (!user) {
-        window.location.href = "login.html";
+        showStatus("Unexpected: no currentUser when loading stories.");
+        console.error("Redirect: no currentUser inside loadStories");
+        window.setTimeout(() => window.location.href = "login.html", 1000);
         return;
       }
       const uid = user.uid;
 
       try {
-        const storiesCol = collection(db, "users", uid, "stories");
-        const snapshot = await getDocs(storiesCol);
+        const storiesColRef = collection(db, "users", uid, "stories");
+        const snapshot = await getDocs(storiesColRef);
+        console.log("Fetched stories snapshot, count:", snapshot.size);
+
         const table = document.getElementById("story-table");
         table.innerHTML = ""; // Clear “Loading…” row
 
@@ -288,6 +329,7 @@
 
         snapshot.forEach(docSnap => {
           const s = docSnap.data();
+          const docId = docSnap.id;
           const title   = s.title   || "(Untitled)";
           const reads   = s.reads    || 0;
           const likes   = s.likes    || 0;
@@ -300,7 +342,7 @@
 
           const tr = document.createElement("tr");
           tr.innerHTML = `
-            <td><a href="#" class="story-link" onclick="openStory('${docSnap.id}')">${title}</a></td>
+            <td><a href="#" class="story-link" onclick="openStory('${docId}')">${title}</a></td>
             <td>${reads}</td>
             <td>${likes}</td>
             <td>$${revenue.toFixed(2)}</td>
@@ -309,7 +351,7 @@
                 ${status.charAt(0).toUpperCase() + status.slice(1)}
               </span>
               <span style="margin-left:10px;cursor:pointer;color:crimson;"
-                    onclick="deleteStory('${docSnap.id}', this)">🗑</span>
+                    onclick="deleteStory('${docId}', this)">🗑</span>
             </td>`;
           table.appendChild(tr);
         });
@@ -318,7 +360,8 @@
         document.getElementById("total-likes").textContent    = totalLikes;
         document.getElementById("total-earnings").textContent = `$${totalEarnings.toFixed(2)}`;
       } catch (err) {
-        console.error("Error fetching stories:", err);
+        console.error("Error fetching stories from Firestore:", err);
+        showStatus("Error loading your stories. See console for details.");
       }
     }
 
@@ -330,6 +373,7 @@
     }
 
     function openStory(storyId) {
+      console.log("Opening story:", storyId);
       localStorage.setItem("currentStoryId", storyId);
       window.location.href = "new-story.html";
     }
@@ -337,10 +381,14 @@
     async function deleteStory(storyId, iconElement) {
       const user = auth.currentUser;
       if (!user) {
-        window.location.href = "login.html";
+        showStatus("Cannot delete: no user logged in.");
+        console.error("deleteStory called with no user");
+        window.setTimeout(() => window.location.href = "login.html", 1000);
         return;
       }
       const uid = user.uid;
+      console.log("Deleting story", storyId, "for user", uid);
+
       const docRef = doc(db, "users", uid, "stories", storyId);
 
       if (!confirm("Delete this story?")) return;
@@ -348,13 +396,14 @@
         await deleteDoc(docRef);
         iconElement.closest("tr").remove();
       } catch (err) {
-        alert("Failed to delete story.");
-        console.error(err);
+        console.error("Failed to delete story:", err);
+        showStatus("Failed to delete story. Check console for details.");
       }
     }
 
     // ─── “NEW STORY” BUTTON SETUP ──────────────────────────────────────────────────
     window.addEventListener("DOMContentLoaded", () => {
+      console.log("DOMContentLoaded fired");
       const newBtn = document.getElementById("new-story-btn");
       if (newBtn) newBtn.addEventListener("click", createNewStory);
     });
