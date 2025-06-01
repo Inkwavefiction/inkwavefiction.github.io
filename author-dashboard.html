@@ -19,7 +19,6 @@
       --accent: #789a91;
       --white: #ffffff;
       --border: #e0e0e0;
-      --error: #a33c3c;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -118,22 +117,20 @@
       padding: 2rem 0; font-style: italic;
     }
 
-    /* Status message bar for debug errors */
+    /* Debug bar */
     #status-msg {
-      background: var(--error);
+      background: #a33c3c;
       color: white;
-      padding: 0.75rem 1rem;
       text-align: center;
+      padding: 0.75rem 1rem;
       font-size: 0.9rem;
       display: none;
-      position: fixed;
-      top: 0; left: 0; right: 0;
+      position: fixed; top: 0; left: 0; right: 0;
       z-index: 1000;
     }
   </style>
 </head>
 <body>
-  <!-- Status message (for errors or debug) -->
   <div id="status-msg"></div>
 
   <div class="sidebar">
@@ -213,7 +210,6 @@
     </table>
   </div>
 
-  <!-- FIREBASE v10 (modular) SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import {
@@ -229,7 +225,7 @@
       deleteDoc
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-    // ─── INITIALIZE FIREBASE (modular) ─────────────────────────────────────────
+    // ─── INITIALIZE FIREBASE (modular) ─────────────────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0JEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -242,83 +238,85 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    // Helper to show a message at the top (for errors/debug)
-    function showStatus(message) {
+    // Show an on-screen error/debug message
+    function showStatus(msg) {
       const bar = document.getElementById("status-msg");
-      bar.textContent = message;
+      bar.textContent = msg;
       bar.style.display = "block";
     }
 
-    // ─── CHECK AUTH STATE & VERIFY Firestore ROLE ─────────────────────────────────
     onAuthStateChanged(auth, async (user) => {
-      console.log("onAuthStateChanged fired, user =", user);
+      console.log("onAuthStateChanged →", user);
       if (!user) {
-        showStatus("No Firebase user detected. Redirecting to login...");
-        console.error("Redirect: no user");
-        window.setTimeout(() => window.location.href = "login.html", 1000);
+        showStatus("No Firebase user. Redirecting to login…");
+        setTimeout(() => window.location.href = "login.html", 1000);
         return;
       }
 
-      const uid = user.uid;
-      console.log("Firebase user UID:", uid);
+      // Trust sessionStorage first, if present
+      const sessionRole = sessionStorage.getItem("userRole");
+      if (sessionRole && window.allowedRoles.includes(sessionRole)) {
+        console.log("Bypassing Firestore fetch; sessionRole =", sessionRole);
+        loadStoriesForCurrentUser();
+        return;
+      }
 
+      // Otherwise, fetch Firestore users/{uid}.role
+      const uid = user.uid;
+      console.log("Checking Firestore for role of uid =", uid);
       try {
         const userDocRef = doc(db, "users", uid);
         const userDocSnap = await getDoc(userDocRef);
 
         if (!userDocSnap.exists()) {
-          showStatus("No users/" + uid + " document. Redirecting...");
-          console.error("Redirect: no users/{uid} doc");
-          window.setTimeout(() => window.location.href = "login.html", 1000);
+          showStatus("No users/" + uid + " doc. Redirecting…");
+          setTimeout(() => window.location.href = "login.html", 1000);
           return;
         }
 
         const data = userDocSnap.data();
-        console.log("Fetched user data:", data);
-
+        console.log("Firestore user data =", data);
         const roles = Array.isArray(data.role) ? data.role : [];
-        console.log("Roles array:", roles);
+        console.log("Roles array from Firestore =", roles);
 
         const isAllowed = roles.some(r => window.allowedRoles.includes(r));
         console.log("isAllowed? →", isAllowed);
 
         if (!isAllowed) {
-          showStatus("Your role is not authorized (must be ‘author’ or ‘both’). Redirecting...");
-          console.error("Redirect: role not allowed");
-          window.setTimeout(() => window.location.href = "login.html", 1000);
+          showStatus("Your role is not authorized. Redirecting…");
+          setTimeout(() => window.location.href = "login.html", 1000);
           return;
         }
 
-        // If we reach here, user + role are valid:
-        console.log("User is authorized; loading stories...");
+        // Now that Firestore confirms role, set sessionStorage so future checks skip Firestore
+        const chosenRole = roles.includes("both") ? "both" : "author";
+        sessionStorage.setItem("userRole", chosenRole);
         loadStoriesForCurrentUser();
       } catch (err) {
-        console.error("Error verifying role in Firestore:", err);
-        showStatus("Error verifying role. Redirecting...");
-        window.setTimeout(() => window.location.href = "login.html", 1000);
+        console.error("Error fetching Firestore role:", err);
+        showStatus("Error verifying role. Redirecting…");
+        setTimeout(() => window.location.href = "login.html", 1000);
       }
     });
 
     // ─── LOAD STORIES, UPDATE STATS ─────────────────────────────────────────────────
     async function loadStoriesForCurrentUser() {
       const user = auth.currentUser;
-      console.log("loadStoriesForCurrentUser called, currentUser =", user);
-
       if (!user) {
-        showStatus("Unexpected: no currentUser when loading stories.");
-        console.error("Redirect: no currentUser inside loadStories");
-        window.setTimeout(() => window.location.href = "login.html", 1000);
+        showStatus("Unexpected: no user when loading stories.");
+        setTimeout(() => window.location.href = "login.html", 1000);
         return;
       }
-      const uid = user.uid;
+      console.log("Loading stories for uid =", user.uid);
 
+      const uid = user.uid;
       try {
         const storiesColRef = collection(db, "users", uid, "stories");
         const snapshot = await getDocs(storiesColRef);
-        console.log("Fetched stories snapshot, count:", snapshot.size);
+        console.log("Fetched stories count =", snapshot.size);
 
         const table = document.getElementById("story-table");
-        table.innerHTML = ""; // Clear “Loading…” row
+        table.innerHTML = "";
 
         if (snapshot.empty) {
           table.innerHTML = '<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>';
@@ -361,7 +359,7 @@
         document.getElementById("total-earnings").textContent = `$${totalEarnings.toFixed(2)}`;
       } catch (err) {
         console.error("Error fetching stories from Firestore:", err);
-        showStatus("Error loading your stories. See console for details.");
+        showStatus("Error loading your stories.");
       }
     }
 
@@ -373,7 +371,6 @@
     }
 
     function openStory(storyId) {
-      console.log("Opening story:", storyId);
       localStorage.setItem("currentStoryId", storyId);
       window.location.href = "new-story.html";
     }
@@ -382,13 +379,10 @@
       const user = auth.currentUser;
       if (!user) {
         showStatus("Cannot delete: no user logged in.");
-        console.error("deleteStory called with no user");
-        window.setTimeout(() => window.location.href = "login.html", 1000);
+        setTimeout(() => window.location.href = "login.html", 1000);
         return;
       }
       const uid = user.uid;
-      console.log("Deleting story", storyId, "for user", uid);
-
       const docRef = doc(db, "users", uid, "stories", storyId);
 
       if (!confirm("Delete this story?")) return;
@@ -397,13 +391,12 @@
         iconElement.closest("tr").remove();
       } catch (err) {
         console.error("Failed to delete story:", err);
-        showStatus("Failed to delete story. Check console for details.");
+        showStatus("Failed to delete story.");
       }
     }
 
     // ─── “NEW STORY” BUTTON SETUP ──────────────────────────────────────────────────
     window.addEventListener("DOMContentLoaded", () => {
-      console.log("DOMContentLoaded fired");
       const newBtn = document.getElementById("new-story-btn");
       if (newBtn) newBtn.addEventListener("click", createNewStory);
     });
