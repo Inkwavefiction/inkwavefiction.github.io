@@ -240,7 +240,7 @@
     <div class="nav-buttons">
       <button id="prevBtn">← Previous</button>
       <button id="nextBtn">Next →</button>
-      <button id="favBtn">❤️ Favrite</button>
+      <button id="favBtn">❤️ Favorite</button>
       <button id="followBtn">👤 Follow Author</button>
     </div>
 
@@ -303,19 +303,13 @@
       const key = sectionKeys[index];
       const rawHtml = sections[key].content || "";
       if (showPartial) {
-        // Strip HTML tags to measure text length, then take 50%
-        const tmpDiv = document.createElement("div");
-        tmpDiv.innerHTML = rawHtml;
-        const fullText = tmpDiv.textContent || "";
-        const fiftyPercent = Math.floor(fullText.length / 2);
-        const firstHalf = fullText.slice(0, fiftyPercent);
+        // Simply cut the raw HTML string in half (may break tags, but ensures half content)
+        const halfIdx = Math.floor(rawHtml.length / 2);
+        const partialHtml = rawHtml.slice(0, halfIdx);
 
-        // Escape the first-half text by using a temporary element
-        const escDiv = document.createElement("div");
-        escDiv.textContent = firstHalf;
-        // Inject escaped text + signup prompt
         sectionTitleEl.textContent = key + " (Preview)";
-        sectionContentEl.innerHTML = escDiv.innerHTML +
+        sectionContentEl.innerHTML =
+          partialHtml +
           `<p style="margin-top:1.5rem; font-style: italic; color: #555;">
              Signup as a reader to see the rest.
            </p>`;
