@@ -20,13 +20,13 @@
       color: #333;
     }
 
-    /* COVER IMAGE IS NOW FIXED TO 50vw × 50vh, CROPPING BOTTOM */
+    /* COVER IMAGE: full‐width, fixed to 50vh, cropping bottom half */
     #cover {
-      width: 50vw;
+      width: 100vw;
       height: 50vh;
       object-fit: cover;
       object-position: top;
-      display: none; /* only becomes visible if JS assigns a URL */
+      display: none; /* JS will show if coverUrl is set */
     }
 
     main {
@@ -208,7 +208,7 @@
   </style>
 </head>
 <body>
-  <!-- COVER IMAGE (now 50vw × 50vh, cropping any “overflow” off the bottom) -->
+  <!-- COVER IMAGE now spans full viewport width but is only 50vh tall and cropped at bottom -->
   <img id="cover" alt="Cover Image">
 
   <main>
@@ -386,6 +386,7 @@
       try {
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const userData = userDoc.exists ? userDoc.data() : {};
+        // FIX: use saved username field first
         const username = userData.username || userData.displayName || "Anonymous";
         const userPhotoURL = userData.photoURL || "https://placehold.co/32x32";
         await db.collection("comments").add({
@@ -414,6 +415,7 @@
       try {
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const userData = userDoc.exists ? userDoc.data() : {};
+        // FIX: use saved username field first
         const username = userData.username || userData.displayName || "Anonymous";
         const userPhotoURL = userData.photoURL || "https://placehold.co/32x32";
         await db.collection("comments").add({
@@ -514,7 +516,7 @@
         storyData = doc.data();
         authorId = doc.ref.parent.parent.id;
 
-        // Show the cover image at 50vw × 50vh (cropped top half) if there's a URL
+        // Show the cover image at full width (100vw) but only 50vh tall, cropped at bottom
         if (storyData.coverUrl) {
           coverEl.src = storyData.coverUrl;
           coverEl.style.display = "block";
