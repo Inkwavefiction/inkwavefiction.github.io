@@ -12,37 +12,29 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
 
   <style>
+    /* Global Styles */
     body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
       background: #fafafa;
       color: #333;
     }
-    main {
-      max-width: 700px;
-      margin: 2rem auto;
-      padding: 0;
-    }
-    /* Signup prompt styling */
-    #signupPrompt {
-      text-align: center;
-      font-style: italic;
-      color: #555;
-      margin: 3rem 0;
-    }
-    #signupPrompt a {
-      color: #789a91;
-      text-decoration: underline;
-    }
-    /* COVER IMAGE */
+
+    /* COVER IMAGE: full‐width, fixed to 50vh, cropping bottom half */
     #cover {
       width: 100vw;
       height: 50vh;
       object-fit: cover;
       object-position: top;
-      margin-bottom: 1rem;
+      display: none; /* JS will show if coverUrl is set */
     }
-    /* Header */
+
+    main {
+      max-width: 700px;
+      margin: 2rem auto;
+      padding: 0;
+    }
+    /* Header Styles */
     .header {
       text-align: center;
       padding: 0 1rem;
@@ -85,7 +77,7 @@
       font-size: 1rem;
       color: #777;
     }
-    /* Story Section */
+    /* Story Section Styles */
     .section-title {
       font-size: 2rem;
       color: #333;
@@ -137,7 +129,7 @@
     .back-link:hover {
       text-decoration: underline;
     }
-    /* Comments */
+    /* Comments & Replies Styling */
     .comments-section {
       margin-top: 2rem;
       padding-top: 1rem;
@@ -216,64 +208,60 @@
   </style>
 </head>
 <body>
+  <!-- COVER IMAGE now spans full viewport width but is only 50vh tall and cropped at bottom -->
+  <img id="cover" alt="Cover Image">
+
   <main>
-    <!-- Signup prompt (visible to guests) -->
-    <div id="signupPrompt">
-      Please sign up as a reader to see this story.
-      <br/>
-      <a href="signup.html">Sign up now</a>
+    <!-- Header Section -->
+    <div class="header">
+      <!-- Story Title -->
+      <h1 id="title">Loading...</h1>
+      <!-- Story Blurb -->
+      <div class="blurb" id="blurb"></div>
+      <!-- Author info -->
+      <div id="authorInfo" class="author-box" style="display: none;">
+        <a id="authorProfileLink" href="#" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: inherit;">
+          <img id="authorPhoto" src="" alt="Author Photo">
+          <div class="name" id="authorName"></div>
+        </a>
+      </div>
+      <!-- Stats -->
+      <div class="stats">
+        <div>Views: <span id="viewCount">0</span></div>
+        <div>Likes: <span id="likeCount">0</span></div>
+      </div>
     </div>
 
-    <!-- Story container (hidden by default, shown after login) -->
-    <div id="storyContainer" style="display: none;">
-      <!-- Cover Image -->
-      <img id="cover" alt="Cover Image">
+    <!-- Story Section (left aligned) -->
+    <div class="section-title" id="section-name"></div>
+    <div class="section-content" id="section-content"></div>
 
-      <!-- Header Section -->
-      <div class="header">
-        <h1 id="title">Loading...</h1>
-        <div class="blurb" id="blurb"></div>
-        <div id="authorInfo" class="author-box">
-          <a id="authorProfileLink" href="#" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: inherit;">
-            <img id="authorPhoto" src="" alt="Author Photo">
-            <div class="name" id="authorName"></div>
-          </a>
-        </div>
-        <div class="stats">
-          <div>Views: <span id="viewCount">0</span></div>
-          <div>Likes: <span id="likeCount">0</span></div>
-        </div>
-      </div>
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+      <button id="prevBtn">← Previous</button>
+      <button id="nextBtn">Next →</button>
+      <button id="favBtn">❤️ Favorite</button>
+      <button id="followBtn">👤 Follow Author</button>
+    </div>
 
-      <!-- Story Section -->
-      <div class="section-title" id="section-name"></div>
-      <div class="section-content" id="section-content"></div>
-
-      <!-- Navigation Buttons -->
-      <div class="nav-buttons" id="navButtons">
-        <button id="prevBtn">← Previous</button>
-        <button id="nextBtn">Next →</button>
-        <button id="favBtn">❤️ Favorite</button>
-        <button id="followBtn">👤 Follow Author</button>
-      </div>
-
-      <!-- Comments Section -->
-      <div class="comments-section" id="commentsSection">
-        <h2>Comments</h2>
-        <div id="commentList"></div>
+    <!-- Comments Section with Inline Reply Capability -->
+    <div class="comments-section" id="commentsSection">
+      <h2>Comments</h2>
+      <div id="commentList"></div>
+      <div style="margin-top: 2rem;">
         <textarea id="newComment" rows="3" placeholder="Write a new comment..."></textarea>
-        <button class="post-comment-btn" id="postCommentBtn">Post Comment</button>
+        <button class="post-comment-btn" onclick="postComment()">Post Comment</button>
       </div>
+    </div>
 
-      <!-- Back to Stories -->
-      <div style="text-align: center; margin-top: 2rem;">
-        <a href="explore.html" class="back-link">← Back to stories</a>
-      </div>
+    <!-- Back to Stories Link (centered) -->
+    <div style="text-align: center;">
+      <a href="explore.html" class="back-link">← Back to stories</a>
     </div>
   </main>
 
   <script>
-    // 1) Initialize Firebase
+    // Firebase configuration
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -285,156 +273,71 @@
 
     const storyId = new URLSearchParams(window.location.search).get("storyId");
 
-    // 2) DOM references
-    const signupPrompt     = document.getElementById("signupPrompt");
-    const storyContainer   = document.getElementById("storyContainer");
-    const coverEl          = document.getElementById("cover");
-    const titleEl          = document.getElementById("title");
-    const blurbEl          = document.getElementById("blurb");
-    const authorInfoBox    = document.getElementById("authorInfo");
-    const authorNameEl     = document.getElementById("authorName");
-    const authorPhotoEl    = document.getElementById("authorPhoto");
-    const authorProfileLink= document.getElementById("authorProfileLink");
-    const viewCountEl      = document.getElementById("viewCount");
-    const likeCountEl      = document.getElementById("likeCount");
-    const sectionTitleEl   = document.getElementById("section-name");
+    // Element references
+    const coverEl = document.getElementById("cover");
+    const titleEl = document.getElementById("title");
+    const blurbEl = document.getElementById("blurb");
+    const sectionTitleEl = document.getElementById("section-name");
     const sectionContentEl = document.getElementById("section-content");
-    const navButtons       = document.getElementById("navButtons");
-    const prevBtn          = document.getElementById("prevBtn");
-    const nextBtn          = document.getElementById("nextBtn");
-    const favBtn           = document.getElementById("favBtn");
-    const followBtn        = document.getElementById("followBtn");
-    const commentsSection  = document.getElementById("commentsSection");
-    const commentList      = document.getElementById("commentList");
-    const newCommentTA     = document.getElementById("newComment");
-    const postCommentBtn   = document.getElementById("postCommentBtn");
+    const viewCountEl = document.getElementById("viewCount");
+    const likeCountEl = document.getElementById("likeCount");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const favBtn = document.getElementById("favBtn");
+    const followBtn = document.getElementById("followBtn");
+    const authorNameEl = document.getElementById("authorName");
+    const authorPhotoEl = document.getElementById("authorPhoto");
+    const authorInfoBox = document.getElementById("authorInfo");
+    const authorProfileLink = document.getElementById("authorProfileLink");
+    const commentList = document.getElementById("commentList");
 
     let sectionKeys = [];
     let currentIndex = 0;
     let sections = {};
-    let storyData = null;
-    let authorId = null;
     let currentUser = null;
+    let authorId = null;
+    let storyData = null;
 
-    // 3) Show signup prompt; hide story container
-    function showSignupPrompt() {
-      signupPrompt.style.display = "block";
-      storyContainer.style.display = "none";
-    }
-
-    // 4) Show story container; hide signup prompt
-    function showStoryContainer() {
-      signupPrompt.style.display = "none";
-      storyContainer.style.display = "block";
-    }
-
-    // 5) Fetch and render story for a signed-in user
-    async function fetchAndRenderStory() {
-      // 5a) Get the story document
-      const snap = await db.collectionGroup("stories")
-        .where("id", "==", storyId)
-        .get();
-      if (snap.empty) {
-        titleEl.textContent = "Story not found.";
-        return;
-      }
-      const doc = snap.docs[0];
-      storyData = doc.data();
-      authorId = doc.ref.parent.parent.id;
-
-      // 5b) Increment reads counter
-      const storyRef = db.collection("users")
-        .doc(authorId)
-        .collection("stories")
-        .doc(storyId);
-      await storyRef.update({ reads: firebase.firestore.FieldValue.increment(1) });
-
-      // 5c) Populate header
-      if (storyData.coverUrl) {
-        coverEl.src = storyData.coverUrl;
-      }
-      titleEl.textContent = storyData.title || "Untitled";
-      blurbEl.textContent = storyData.blurb || "";
-      viewCountEl.textContent = storyData.reads ?? 0;
-      likeCountEl.textContent = storyData.likes ?? 0;
-
-      // 5d) Populate author info
-      const authorDoc = await db.collection("authors").doc(authorId).get();
-      if (authorDoc.exists) {
-        const aData = authorDoc.data();
-        authorNameEl.textContent = aData.displayName || "Unknown Author";
-        authorPhotoEl.src = aData.photoURL || "https://placehold.co/48x48";
-        authorProfileLink.href = `author-profile.html?authorId=${authorId}`;
-      }
-
-      // 5e) Prepare sections
-      sections = storyData.sections || {};
-      sectionKeys = storyData.sectionOrder || Object.keys(sections);
-      currentIndex = 0;
-      renderCurrentSection();
-
-      // 5f) Load comments
-      loadComments();
-
-      // 5g) Disable “Favorite” if already favorited
-      const favDoc = await db.collection("users")
-        .doc(currentUser.uid)
-        .collection("favorites")
-        .doc(storyId)
-        .get();
-      if (favDoc.exists) {
-        favBtn.disabled = true;
-        favBtn.textContent = "Favorited";
-      }
-    }
-
-    // 6) Render the currently selected section
-    function renderCurrentSection() {
-      const key = sectionKeys[currentIndex];
-      const rawHtml = sections[key].content || "";
-
+    function renderSection(index) {
+      const key = sectionKeys[index];
       sectionTitleEl.textContent = key;
-      sectionContentEl.innerHTML = rawHtml;
-
-      prevBtn.disabled = currentIndex === 0;
-      nextBtn.disabled = currentIndex === sectionKeys.length - 1;
+      sectionContentEl.innerHTML = sections[key].content || "";
+      prevBtn.disabled = index === 0;
+      nextBtn.disabled = index === sectionKeys.length - 1;
     }
 
-    // 7) Button handlers
-    prevBtn.addEventListener("click", () => {
+    prevBtn.onclick = () => {
       if (currentIndex > 0) {
         currentIndex--;
-        renderCurrentSection();
+        renderSection(currentIndex);
       }
-    });
-    nextBtn.addEventListener("click", () => {
+    };
+
+    nextBtn.onclick = () => {
       if (currentIndex < sectionKeys.length - 1) {
         currentIndex++;
-        renderCurrentSection();
+        renderSection(currentIndex);
       }
-    });
+    };
 
-    favBtn.addEventListener("click", async () => {
+    favBtn.onclick = async () => {
       if (!currentUser || !storyData || !authorId) return;
       favBtn.disabled = true;
       try {
-        await db.collection("users")
-          .doc(currentUser.uid)
-          .collection("favorites")
-          .doc(storyId)
-          .set({
-            id: storyId,
-            title: storyData.title || "Untitled",
-            author: authorId,
-            cover: storyData.coverUrl || "",
-            blurb: storyData.blurb || "",
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-          });
-        await db.collection("users")
-          .doc(authorId)
-          .collection("stories")
-          .doc(storyId)
-          .update({ likes: firebase.firestore.FieldValue.increment(1) });
+        // Save story as favorite
+        await db.collection("users").doc(currentUser.uid).collection("favorites").doc(storyId).set({
+          id: storyId,
+          title: storyData.title || "Untitled",
+          author: authorId,
+          cover: storyData.coverUrl || "",
+          blurb: storyData.blurb || "",
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        // Increment like count on the story document
+        const storyRef = db.collection("users").doc(authorId).collection("stories").doc(storyId);
+        await storyRef.update({
+          likes: firebase.firestore.FieldValue.increment(1)
+        });
         likeCountEl.textContent = parseInt(likeCountEl.textContent) + 1;
         favBtn.textContent = "Favorited";
       } catch (err) {
@@ -442,30 +345,27 @@
         alert("Failed to favorite story.");
         favBtn.disabled = false;
       }
-    });
+    };
 
-    followBtn.addEventListener("click", async () => {
+    followBtn.onclick = async () => {
       if (!currentUser || !authorId) return;
       try {
         const authorDoc = await db.collection("authors").doc(authorId).get();
         const data = authorDoc.data();
-        await db.collection("users")
-          .doc(currentUser.uid)
-          .collection("following")
-          .doc(authorId)
-          .set({
-            id: authorId,
-            displayName: data.displayName || "Unknown",
-            photoURL: data.photoURL || "",
-            timestamp: firebase.firestore.FieldValue.serverTimestamp()
-          });
+        await db.collection("users").doc(currentUser.uid).collection("following").doc(authorId).set({
+          id: authorId,
+          displayName: data.displayName || "Unknown",
+          photoURL: data.photoURL || "",
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
         window.location.href = "following.html";
       } catch (err) {
         console.error("Follow error:", err);
         alert("Failed to follow author.");
       }
-    });
+    };
 
+    // Toggle reply box below a comment
     function toggleReplyBox(commentId) {
       const container = document.getElementById("reply-container-" + commentId);
       if (container.innerHTML.trim() !== "") {
@@ -486,6 +386,7 @@
       try {
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const userData = userDoc.exists ? userDoc.data() : {};
+        // FIX: use saved username field first
         const username = userData.username || userData.displayName || "Anonymous";
         const userPhotoURL = userData.photoURL || "https://placehold.co/32x32";
         await db.collection("comments").add({
@@ -508,11 +409,13 @@
     }
 
     async function postComment() {
-      const text = newCommentTA.value.trim();
+      const textarea = document.getElementById("newComment");
+      const text = textarea.value.trim();
       if (!text) return alert("Please write something first.");
       try {
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const userData = userDoc.exists ? userDoc.data() : {};
+        // FIX: use saved username field first
         const username = userData.username || userData.displayName || "Anonymous";
         const userPhotoURL = userData.photoURL || "https://placehold.co/32x32";
         await db.collection("comments").add({
@@ -524,10 +427,10 @@
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
           storyTitle: storyData.title || "Untitled"
         });
-        newCommentTA.value = "";
+        textarea.value = "";
         loadComments();
       } catch (err) {
-        console.error("Error posting comment:", err);
+        console.error("Error loading comments:", err);
         alert("Something went wrong while posting your comment.");
       }
     }
@@ -595,16 +498,60 @@
       }
     }
 
-    // 8) Check auth state: if no user, show signup; if user, show story
     auth.onAuthStateChanged(async user => {
-      currentUser = user;
-      if (!currentUser) {
-        showSignupPrompt();
+      if (!user) {
+        titleEl.textContent = "You must be logged in.";
         return;
       }
-      // Signed in → show story container and fetch content
-      showStoryContainer();
-      await fetchAndRenderStory();
+      currentUser = user;
+      try {
+        const snap = await db.collectionGroup("stories")
+          .where("id", "==", storyId)
+          .get();
+        if (snap.empty) {
+          titleEl.textContent = "Story not found.";
+          return;
+        }
+        const doc = snap.docs[0];
+        storyData = doc.data();
+        authorId = doc.ref.parent.parent.id;
+
+        // Show the cover image at full width (100vw) but only 50vh tall, cropped at bottom
+        if (storyData.coverUrl) {
+          coverEl.src = storyData.coverUrl;
+          coverEl.style.display = "block";
+        }
+
+        const storyRef = db.collection("users").doc(authorId).collection("stories").doc(storyId);
+        await storyRef.update({ reads: firebase.firestore.FieldValue.increment(1) });
+
+        titleEl.textContent = storyData.title || "Untitled";
+        blurbEl.textContent = storyData.blurb || "";
+        sections = storyData.sections || {};
+        sectionKeys = storyData.sectionOrder || Object.keys(sections);
+        currentIndex = 0;
+        renderSection(currentIndex);
+        likeCountEl.textContent = storyData.likes ?? 0;
+        viewCountEl.textContent = storyData.reads ?? 0;
+
+        const authorDoc = await db.collection("authors").doc(authorId).get();
+        if (authorDoc.exists) {
+          const aData = authorDoc.data();
+          authorNameEl.textContent = aData.displayName || "Unknown Author";
+          authorPhotoEl.src = aData.photoURL || "https://placehold.co/48x48";
+          authorProfileLink.href = `author-profile.html?authorId=${authorId}`;
+          authorInfoBox.style.display = "flex";
+        }
+        const favDoc = await db.collection("users").doc(currentUser.uid).collection("favorites").doc(storyId).get();
+        if (favDoc.exists) {
+          favBtn.disabled = true;
+          favBtn.textContent = "Favorited";
+        }
+        loadComments();
+      } catch (err) {
+        console.error("Error loading story:", err);
+        titleEl.textContent = "Error loading story.";
+      }
     });
   </script>
 </body>
