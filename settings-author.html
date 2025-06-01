@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>window.allowedRoles = ["author","both"];</script>
-  <script src="role-guard.js"></script>
+  <!-- Allowed roles for this page -->
+  <script>
+    window.allowedRoles = ["author", "both"];
+  </script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Author Settings – Inkwave</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
+  <title>Author Dashboard – Inkwave</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #fafafa;
-      --text: #222;
-      --accent: #AAD9D4;
+      --bg: #f5f8f7;
+      --text: #1e1e1e;
+      --muted: #6a6a6a;
+      --accent: #789a91;
       --white: #ffffff;
       --border: #e0e0e0;
-      --sidebar-bg: #111;
-      --container-bg: #ffffff;
+      --error: #a33c3c;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -23,116 +27,117 @@
       background-color: var(--bg);
       color: var(--text);
       display: flex;
-      min-height: 100vh;
     }
     .sidebar {
-      width: 300px;
-      background: var(--sidebar-bg);
-      color: var(--white);
-      padding: 2rem 1.5rem;
-      height: 100vh;
-      position: fixed;
+      width: 300px; background: #111; color: #fff;
+      padding: 2rem 1.5rem; height: 100vh; position: fixed;
       overflow-y: auto;
     }
     .sidebar h2 {
       font-family: 'Playfair Display', serif;
-      font-size: 1.8rem;
-      font-weight: 600;
-      margin-bottom: 2rem;
-      cursor: pointer;
+      font-size: 1.8rem; margin-bottom: 2rem; font-weight: 600;
     }
+    .sidebar .section { margin-bottom: 2rem; }
     .section-title {
-      font-size: 0.8rem;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
-      color: #aaa;
-      margin-bottom: 0.6rem;
+      font-size: 0.8rem; text-transform: uppercase;
+      letter-spacing: 0.06em; color: #aaa; margin-bottom: 0.6rem;
       font-weight: 600;
     }
-    .section { margin-bottom: 2rem; }
     .nav-link {
-      display: block;
-      margin: 0.5rem 0;
-      color: #e0e0e0;
-      text-decoration: none;
-      font-size: 1rem;
-      padding: 0.4rem 0.6rem;
-      border-radius: 4px;
-      transition: background 0.2s;
-      cursor: pointer;
+      display: block; margin: 0.5rem 0; color: #e0e0e0;
+      text-decoration: none; font-size: 1rem;
+      padding: 0.4rem 0.6rem; border-radius: 4px;
+      font-weight: 500; transition: background 0.2s;
     }
     .nav-link:hover { background-color: #1e1e1e; }
-    .nav-link.active { background-color: #2a2a2a; font-weight: 600; }
-    .main {
-      margin-left: 300px;
-      padding: 2.5rem;
-      flex: 1;
-    }
+
+    .main { margin-left: 300px; padding: 2.5rem; flex: 1; }
     .header {
-      text-align: center;
-      padding: 20px 0;
-      background: var(--accent);
-      color: var(--text);
-      border-radius: 6px;
-      margin-bottom: 30px;
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 2rem;
     }
-    .header h1 {
+    h1 {
       font-family: 'Playfair Display', serif;
-      font-size: 2.5rem;
-      margin: 0;
-    }
-    .container {
-      background: var(--container-bg);
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    .form-group { margin-bottom: 1.25rem; }
-    label { display: block; margin-bottom: 0.4rem; font-weight: 500; }
-    input[type="text"],
-    input[type="email"],
-    textarea {
-      width: 100%;
-      padding: 0.6rem;
-      font-size: 1rem;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-    }
-    textarea { resize: vertical; min-height: 100px; }
-    .profile-section {
-      display: flex;
-      align-items: center;
-      margin-bottom: 1.5rem;
-    }
-    .profile-section img {
-      width: 80px;
-      height: 80px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-right: 1rem;
-      border: 2px solid #ccc;
+      font-size: 2.4rem; font-weight: 600; margin-bottom: 0.3rem;
     }
     .btn {
-      background-color: var(--accent);
-      color: #000;
-      padding: 0.6rem 1.2rem;
-      border: none;
-      font-size: 1rem;
-      border-radius: 6px;
-      cursor: pointer;
-      margin-right: 1rem;
+      background-color: var(--accent); color: white;
+      border: none; padding: 0.6rem 1.2rem;
+      border-radius: 4px; font-size: 1rem; cursor: pointer;
     }
-    .btn.delete {
-      background-color: #e74c3c;
-      color: #fff;
+    .btn:hover { background-color: #5f7f76; }
+
+    .stats { display: flex; gap: 1.5rem; margin-bottom: 2.5rem; }
+    .stat-box {
+      flex: 1; background: var(--white);
+      padding: 1.25rem; border: 1px solid var(--border);
+      border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
-    .btn:hover { opacity: 0.9; }
+    .stat-box h4 {
+      font-size: 1rem; color: var(--accent);
+      margin-bottom: 0.25rem; font-weight: 500;
+    }
+    .stat-box p { font-size: 1.6rem; font-weight: 600; }
+
+    table {
+      width: 100%; background-color: var(--white);
+      border: 1px solid var(--border); border-collapse: collapse;
+      border-radius: 6px; overflow: hidden;
+    }
+    th, td {
+      text-align: left; padding: 0.85rem 1rem;
+      border-bottom: 1px solid var(--border); font-size: 0.95rem;
+    }
+    th {
+      background-color: #eef3f1; color: #555;
+      text-transform: uppercase; letter-spacing: 0.03em;
+      font-size: 0.8rem;
+    }
+    tr:hover { background-color: #f9f9f9; }
+
+    .story-link {
+      color: var(--accent); text-decoration: none;
+      font-weight: 500;
+    }
+    .story-link:hover { text-decoration: underline; }
+
+    .badge {
+      font-size: 0.75rem; font-weight: 500;
+      padding: 0.3rem 0.6rem; border-radius: 12px;
+      display: inline-block;
+    }
+    .badge.published {
+      background-color: #d7f0e5; color: #2b7a5e;
+    }
+    .badge.draft {
+      background-color: #e8e8e8; color: #555;
+    }
+
+    .no-stories {
+      text-align: center; color: var(--muted);
+      padding: 2rem 0; font-style: italic;
+    }
+
+    /* Status message bar for debug errors */
+    #status-msg {
+      background: var(--error);
+      color: white;
+      padding: 0.75rem 1rem;
+      text-align: center;
+      font-size: 0.9rem;
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 1000;
+    }
   </style>
 </head>
 <body>
-  <!-- Sidebar -->
+  <!-- Status message (for errors or debug) -->
+  <div id="status-msg"></div>
+
   <div class="sidebar">
-    <h2 onclick="location.href='author-dashboard.html'">Inkwave</h2>
+    <h2>Inkwave</h2>
     <div class="section">
       <div class="section-title">Core</div>
       <a href="author-dashboard.html" class="nav-link">🏠 Dashboard</a>
@@ -159,170 +164,248 @@
     <div class="section">
       <div class="section-title">Productivity</div>
       <a href="inkie-chat.html" class="nav-link">🤖 Inky Assistant 🚧</a>
-      <a href="settings-author.html" class="nav-link active">⚙️ Settings</a>
+      <a href="settings-author.html" class="nav-link">⚙️ Settings</a>
     </div>
   </div>
 
-  <!-- Main Content -->
   <div class="main">
     <div class="header">
-      <h1>⚙️ Author Settings</h1>
+      <div>
+        <h1>Dashboard</h1>
+        <p style="color: var(--muted); margin-top: 0.3rem;">Welcome back, Author!</p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn" onclick="window.location.href='index.html'">
+          🔙 Back to Inkwave Main
+        </button>
+        <button id="new-story-btn" class="btn">+ New Story</button>
+      </div>
     </div>
-    <div class="container">
-      <div class="profile-section">
-        <img id="avatarPreview" src="https://placehold.co/80x80" alt="Avatar">
-        <input type="file" id="avatarInput" accept="image/*">
-      </div>
 
-      <div class="form-group">
-        <label>Username</label>
-        <input type="text" id="usernameField" />
+    <div class="stats">
+      <div class="stat-box">
+        <h4>Total Reads</h4>
+        <p id="total-reads">0</p>
       </div>
-
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="emailField" />
+      <div class="stat-box">
+        <h4>Total Likes</h4>
+        <p id="total-likes">0</p>
       </div>
-
-      <div class="form-group">
-        <label>Date Joined</label>
-        <input type="text" id="dateJoinedField" disabled />
+      <div class="stat-box">
+        <h4>Total Earnings</h4>
+        <p id="total-earnings">$0.00</p>
       </div>
-
-      <div class="form-group">
-        <label>Bio</label>
-        <textarea id="bioField" placeholder="Tell readers a bit about yourself..."></textarea>
-      </div>
-
-      <button class="btn" id="saveBtn">Save Changes</button>
-      <button class="btn delete" id="deleteBtn">Delete Account</button>
     </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Reads</th>
+          <th>Likes</th>
+          <th>Revenue</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody id="story-table">
+        <tr><td colspan="5" class="no-stories">Loading your stories...</td></tr>
+      </tbody>
+    </table>
   </div>
 
-  <!-- Firebase & Dependencies -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script>
-    // Initialize Firebase
+  <!-- FIREBASE v10 (modular) SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+    import {
+      getAuth,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc,
+      collection,
+      getDocs,
+      deleteDoc
+    } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+    // ─── INITIALIZE FIREBASE (modular) ─────────────────────────────────────────
     const firebaseConfig = {
-      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+      apiKey: "AIzaSyAJRW3QHNYAucAn0JEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
-      projectId: "inkwave-549c0"
+      projectId: "inkwave-549c0",
+      storageBucket: "inkwave-549c0.appspot.com",
+      messagingSenderId: "1084811926133",
+      appId: "1:1084811926133:web:auto-generated"
     };
-    firebase.initializeApp(firebaseConfig);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-    const auth = firebase.auth();
-    const db   = firebase.firestore();
-
-    // DOM refs
-    const usernameField   = document.getElementById("usernameField");
-    const emailField      = document.getElementById("emailField");
-    const bioField        = document.getElementById("bioField");
-    const dateJoinedField = document.getElementById("dateJoinedField");
-    const avatarPreview   = document.getElementById("avatarPreview");
-    const avatarInput     = document.getElementById("avatarInput");
-    const saveBtn         = document.getElementById("saveBtn");
-    const deleteBtn       = document.getElementById("deleteBtn");
-
-    let currentUser = null;
-    let avatarFile  = null;
-
-    // Preview selected avatar
-    avatarInput.addEventListener("change", () => {
-      const file = avatarInput.files[0];
-      if (!file) return;
-      avatarFile = file;
-      avatarPreview.src = URL.createObjectURL(file);
-    });
-
-    // Cloudinary upload helper
-    async function uploadToCloudinary(file) {
-      const url  = "https://api.cloudinary.com/v1_1/dop6uyjwg/upload";
-      const form = new FormData();
-      form.append("file", file);
-      form.append("upload_preset", "unsigned_preset");
-      const res = await fetch(url, { method: "POST", body: form });
-      if (!res.ok) throw new Error("Upload failed: " + res.statusText);
-      const data = await res.json();
-      return data.secure_url;
+    // Helper to show a message at the top (for errors/debug)
+    function showStatus(message) {
+      const bar = document.getElementById("status-msg");
+      bar.textContent = message;
+      bar.style.display = "block";
     }
 
-    // Auth state listener
-    auth.onAuthStateChanged(async user => {
-      if (!user) return location.href = "login.html";
-      currentUser = user;
-
-      // Populate fields
-      emailField.value      = user.email;
-      dateJoinedField.value = new Date(user.metadata.creationTime).toLocaleDateString();
-      avatarPreview.src     = user.photoURL || "https://placehold.co/80x80";
-
-      // Load author profile
-      const doc = await db.collection("authors").doc(user.uid).get().catch(() => null);
-      if (doc && doc.exists) {
-        const data = doc.data();
-        usernameField.value = data.displayName || "";
-        bioField.value      = data.bio || "";
-      }
-    });
-
-    // Save changes handler
-    saveBtn.addEventListener("click", async e => {
-      e.preventDefault();
-      const username = usernameField.value.trim();
-      const email    = emailField.value.trim();
-      const bio      = bioField.value.trim();
-      if (!username || !email) {
-        alert("Username and email cannot be empty.");
+    // ─── CHECK AUTH STATE & VERIFY Firestore ROLE ─────────────────────────────────
+    onAuthStateChanged(auth, async (user) => {
+      console.log("onAuthStateChanged fired, user =", user);
+      if (!user) {
+        showStatus("No Firebase user detected. Redirecting to login...");
+        console.error("Redirect: no user");
+        window.setTimeout(() => window.location.href = "login.html", 1000);
         return;
       }
+
+      const uid = user.uid;
+      console.log("Firebase user UID:", uid);
+
       try {
-        // 1) upload avatar if changed
-        let photoURL = currentUser.photoURL;
-        if (avatarFile) {
-          photoURL = await uploadToCloudinary(avatarFile);
-        }
-        // 2) update Firebase Auth profile
-        await currentUser.updateProfile({ displayName: username, photoURL });
-        // 3) update email if changed
-        if (email !== currentUser.email) {
-          await currentUser.updateEmail(email);
-        }
-        // 4) write to Firestore (authors collection)
-        await db.collection("authors").doc(currentUser.uid).set({
-          displayName: username,
-          bio,
-          email,
-          photoURL,
-          dateJoined: currentUser.metadata.creationTime
-        }, { merge: true });
+        const userDocRef = doc(db, "users", uid);
+        const userDocSnap = await getDoc(userDocRef);
 
-        // ALSO save bio under 'users' collection so it persists correctly
-        await db.collection("users").doc(currentUser.uid).set({
-          bio
-        }, { merge: true });
+        if (!userDocSnap.exists()) {
+          showStatus("No users/" + uid + " document. Redirecting...");
+          console.error("Redirect: no users/{uid} doc");
+          window.setTimeout(() => window.location.href = "login.html", 1000);
+          return;
+        }
 
-        alert("Profile updated!");
+        const data = userDocSnap.data();
+        console.log("Fetched user data:", data);
+
+        const roles = Array.isArray(data.role) ? data.role : [];
+        console.log("Roles array:", roles);
+
+        const isAllowed = roles.some(r => window.allowedRoles.includes(r));
+        console.log("isAllowed? →", isAllowed);
+
+        if (!isAllowed) {
+          showStatus("Your role is not authorized (must be ‘author’ or ‘both’). Redirecting...");
+          console.error("Redirect: role not allowed");
+          window.setTimeout(() => window.location.href = "login.html", 1000);
+          return;
+        }
+
+        // If we reach here, user + role are valid:
+        console.log("User is authorized; loading stories...");
+        loadStoriesForCurrentUser();
       } catch (err) {
-        console.error(err);
-        alert("Error: " + err.message);
+        console.error("Error verifying role in Firestore:", err);
+        showStatus("Error verifying role. Redirecting...");
+        window.setTimeout(() => window.location.href = "login.html", 1000);
       }
     });
 
-    // Delete account handler
-    deleteBtn.addEventListener("click", async e => {
-      e.preventDefault();
-      if (!confirm("Are you sure you want to delete your account?")) return;
-      try {
-        await db.collection("authors").doc(currentUser.uid).delete();
-        await currentUser.delete();
-        alert("Account deleted.");
-        location.href = "signup.html";
-      } catch (err) {
-        console.error(err);
-        alert("Delete failed: " + err.message);
+    // ─── LOAD STORIES, UPDATE STATS ─────────────────────────────────────────────────
+    async function loadStoriesForCurrentUser() {
+      const user = auth.currentUser;
+      console.log("loadStoriesForCurrentUser called, currentUser =", user);
+
+      if (!user) {
+        showStatus("Unexpected: no currentUser when loading stories.");
+        console.error("Redirect: no currentUser inside loadStories");
+        window.setTimeout(() => window.location.href = "login.html", 1000);
+        return;
       }
+      const uid = user.uid;
+
+      try {
+        const storiesColRef = collection(db, "users", uid, "stories");
+        const snapshot = await getDocs(storiesColRef);
+        console.log("Fetched stories snapshot, count:", snapshot.size);
+
+        const table = document.getElementById("story-table");
+        table.innerHTML = ""; // Clear “Loading…” row
+
+        if (snapshot.empty) {
+          table.innerHTML = '<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>';
+          return;
+        }
+
+        let totalReads = 0, totalLikes = 0, totalEarnings = 0;
+
+        snapshot.forEach(docSnap => {
+          const s = docSnap.data();
+          const docId = docSnap.id;
+          const title   = s.title   || "(Untitled)";
+          const reads   = s.reads    || 0;
+          const likes   = s.likes    || 0;
+          const revenue = s.revenue  || 0;
+          const status  = s.status   || "draft";
+
+          totalReads    += isNaN(reads)   ? 0 : reads;
+          totalLikes    += isNaN(likes)   ? 0 : likes;
+          totalEarnings += isNaN(revenue) ? 0 : revenue;
+
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td><a href="#" class="story-link" onclick="openStory('${docId}')">${title}</a></td>
+            <td>${reads}</td>
+            <td>${likes}</td>
+            <td>$${revenue.toFixed(2)}</td>
+            <td>
+              <span class="badge ${status === 'published' ? 'published' : 'draft'}">
+                ${status.charAt(0).toUpperCase() + status.slice(1)}
+              </span>
+              <span style="margin-left:10px;cursor:pointer;color:crimson;"
+                    onclick="deleteStory('${docId}', this)">🗑</span>
+            </td>`;
+          table.appendChild(tr);
+        });
+
+        document.getElementById("total-reads").textContent    = totalReads;
+        document.getElementById("total-likes").textContent    = totalLikes;
+        document.getElementById("total-earnings").textContent = `$${totalEarnings.toFixed(2)}`;
+      } catch (err) {
+        console.error("Error fetching stories from Firestore:", err);
+        showStatus("Error loading your stories. See console for details.");
+      }
+    }
+
+    // ─── CREATE / OPEN / DELETE STORY FUNCTIONS ────────────────────────────────────
+    function createNewStory() {
+      const newId = "story-" + Date.now();
+      localStorage.setItem("currentStoryId", newId);
+      window.location.href = "new-story.html";
+    }
+
+    function openStory(storyId) {
+      console.log("Opening story:", storyId);
+      localStorage.setItem("currentStoryId", storyId);
+      window.location.href = "new-story.html";
+    }
+
+    async function deleteStory(storyId, iconElement) {
+      const user = auth.currentUser;
+      if (!user) {
+        showStatus("Cannot delete: no user logged in.");
+        console.error("deleteStory called with no user");
+        window.setTimeout(() => window.location.href = "login.html", 1000);
+        return;
+      }
+      const uid = user.uid;
+      console.log("Deleting story", storyId, "for user", uid);
+
+      const docRef = doc(db, "users", uid, "stories", storyId);
+
+      if (!confirm("Delete this story?")) return;
+      try {
+        await deleteDoc(docRef);
+        iconElement.closest("tr").remove();
+      } catch (err) {
+        console.error("Failed to delete story:", err);
+        showStatus("Failed to delete story. Check console for details.");
+      }
+    }
+
+    // ─── “NEW STORY” BUTTON SETUP ──────────────────────────────────────────────────
+    window.addEventListener("DOMContentLoaded", () => {
+      console.log("DOMContentLoaded fired");
+      const newBtn = document.getElementById("new-story-btn");
+      if (newBtn) newBtn.addEventListener("click", createNewStory);
     });
   </script>
 </body>
