@@ -42,7 +42,6 @@
       color: #444;
       margin-bottom: 2rem;
       white-space: pre-wrap; /* preserve spaces, tabs, and line breaks */
-      font-family: monospace; /* optional: show tabs/spaces clearly */
     }
     .signup-prompt {
       text-align: center;
@@ -126,18 +125,18 @@
         titleEl.textContent = storyData.title || "Untitled";
         blurbEl.textContent = storyData.blurb || "";
 
-        // 3) Combine all sections into a single plain-text string, preserving whitespace
+        // 3) Combine all sections into a single plain-text string, preserving whitespace and line breaks
         const sections = storyData.sections || {};
         const order = storyData.sectionOrder || Object.keys(sections);
         let allText = "";
         order.forEach(key => {
           const tmp = document.createElement("div");
           tmp.innerHTML = sections[key].content || "";
-          // innerText preserves line breaks and spacing more faithfully than textContent
-          allText += tmp.innerText + "\n";
+          // textContent preserves original whitespace (spaces, tabs, and newlines)
+          allText += tmp.textContent + "\n";
         });
 
-        // 4) Find positions of all words to take half
+        // 4) Split by non-whitespace into words and take half
         const wordRegex = /\S+/g;
         const matches = [...allText.matchAll(wordRegex)];
         if (matches.length === 0) {
@@ -145,9 +144,10 @@
           return;
         }
         const halfCount = Math.floor(matches.length / 2);
+        // index of end of the half-th word
         const endPos = matches[halfCount - 1].index + matches[halfCount - 1][0].length;
 
-        // 5) Slice original text up to endPos, preserving all spaces/tabs
+        // 5) Slice original text up to endPos, preserving all spaces/tabs/newlines
         const snippet = allText.slice(0, endPos);
 
         // 6) Display snippet + ellipsis
