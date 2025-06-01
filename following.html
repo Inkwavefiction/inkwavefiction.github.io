@@ -102,7 +102,6 @@
       font-size: 1.1rem;
       margin-bottom: 0;
       color: var(--accent);
-      text-decoration: none;
       display: block;
     }
 
@@ -210,13 +209,11 @@
           const cardDiv = document.createElement("div");
           cardDiv.className = "card";
 
-          // Author name/link
-          const titleLink = document.createElement("a");
-          titleLink.className = "story-title";
-          titleLink.textContent = "Loading author...";
-          titleLink.href = `author.html?uid=${authorId}`;
-          titleLink.target = "_blank";
-          cardDiv.appendChild(titleLink);
+          // Author name (no link)
+          const titleDiv = document.createElement("div");
+          titleDiv.className = "story-title";
+          titleDiv.textContent = "Loading author...";
+          cardDiv.appendChild(titleDiv);
 
           // "Bio:" label
           const bioLabel = document.createElement("div");
@@ -250,14 +247,14 @@
           db.collection("authors").doc(authorId).get().then(authorDoc => {
             if (authorDoc.exists) {
               const data = authorDoc.data();
-              titleLink.textContent = data.displayName || "Unknown Author";
+              titleDiv.textContent = data.displayName || "Unknown Author";
               bioDiv.textContent = data.bio || "No bio available.";
             } else {
-              titleLink.textContent = "Unknown Author";
+              titleDiv.textContent = "Unknown Author";
               bioDiv.textContent = "No bio available.";
             }
           }).catch(() => {
-            titleLink.textContent = "Error loading author";
+            titleDiv.textContent = "Error loading author";
             bioDiv.textContent = "";
           });
 
