@@ -459,7 +459,8 @@
             </div>
             <div class="comment-content">${c.text || ""}</div>
             <button class="reply-btn" onclick="toggleReplyBox('${c.id}')">Reply</button>
-            <div class="reply-container" id="replycontainer-${c.id}"></div>
+            <!-- FIXED: Use a plain hyphen in the ID -->
+            <div class="reply-container" id="reply-container-${c.id}"></div>
             <div class="replies" id="replies-${c.id}"></div>
           `;
           commentList.appendChild(div);
@@ -476,7 +477,8 @@
                 </div>
                 <div class="comment-content">${reply.text || ""}</div>
                 <button class="reply-btn" onclick="toggleReplyBox('${reply.id}')">Reply</button>
-                <div class="reply-container" id="replycontainer-${reply.id}"></div>
+                <!-- FIXED: Use a plain hyphen in the ID -->
+                <div class="reply-container" id="reply-container-${reply.id}"></div>
               `;
               repliesDiv.appendChild(replyDiv);
             });
