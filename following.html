@@ -258,10 +258,9 @@
             bioDiv.textContent = "";
           });
 
-          // Fetch all stories by this author
+          // Fetch all stories by this author (no ordering)
           db.collection("stories")
             .where("authorId", "==", authorId)
-            .orderBy("createdAt", "desc")
             .get()
             .then(storySnapshot => {
               storiesList.innerHTML = "";
