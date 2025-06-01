@@ -103,7 +103,8 @@
       font-size: 1.1rem;
       margin-bottom: 0;
       color: var(--accent);
-      display: block;
+      display: inline-block;
+      text-decoration: none;
     }
 
     .label {
@@ -204,6 +205,20 @@
       color: var(--muted);
       text-align: right;
     }
+
+    .modal-read-full {
+      margin-top: 1rem;
+      display: inline-block;
+      background: var(--accent);
+      color: #000;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .modal-read-full:hover {
+      opacity: 0.9;
+    }
   </style>
 </head>
 <body>
@@ -231,13 +246,14 @@
     </div>
   </div>
 
-  <!-- Modal for story details -->
+  <!-- Modal for story preview -->
   <div id="story-modal">
     <div class="modal-content">
       <span id="modal-close" class="modal-close">&times;</span>
       <h2 id="modal-title"></h2>
       <p id="modal-body"></p>
-      <small id="modal-date"></small>
+      <small id="modal-date"></small><br />
+      <a id="modal-read-full" class="modal-read-full" href="#" target="_blank">Read Full Story</a>
     </div>
   </div>
 
@@ -265,6 +281,7 @@
     const modalBody = document.getElementById('modal-body');
     const modalDate = document.getElementById('modal-date');
     const modalClose = document.getElementById('modal-close');
+    const modalReadFull = document.getElementById('modal-read-full');
 
     modalClose.addEventListener('click', () => {
       modal.style.display = 'none';
@@ -300,7 +317,7 @@
           const cardDiv = document.createElement("div");
           cardDiv.className = "card";
 
-          // Author name (no link)
+          // Author name
           const titleDiv = document.createElement("div");
           titleDiv.className = "story-title";
           titleDiv.textContent = "Loading author...";
@@ -349,10 +366,10 @@
             bioDiv.textContent = "";
           });
 
-          // Fetch stories under users/{authorId}/stories
-          db.collection("users").doc(authorId)
-            .collection("stories")
-            .orderBy("createdAt", "desc") // if createdAt is a timestamp field
+          // Fetch all stories by this author
+          db.collection("stories")
+            .where("authorId", "==", authorId)
+            .orderBy("createdAt", "desc")
             .get()
             .then(storySnapshot => {
               storiesList.innerHTML = "";
@@ -366,17 +383,25 @@
                   const li = document.createElement("li");
                   const storyLink = document.createElement("a");
                   storyLink.textContent = storyData.title || "Untitled Story";
-                  storyLink.href = `#`; // Prevent default navigation
-                  // Add click listener for modal
+                  storyLink.style.cursor = "pointer";
+                  // Open preview modal on click
                   storyLink.addEventListener('click', event => {
                     event.preventDefault();
                     modalTitle.textContent = storyData.title || "Untitled Story";
-                    modalBody.textContent = storyData.content || "No content available.";
+                    // Show an excerpt (first 200 chars)
+                    const excerpt = storyData.content
+                      ? (storyData.content.length > 200
+                          ? storyData.content.slice(0, 200) + "…"
+                          : storyData.content)
+                      : "No content available.";
+                    modalBody.textContent = excerpt;
                     if (storyData.createdAt && storyData.createdAt.toDate) {
                       modalDate.textContent = "Created: " + storyData.createdAt.toDate().toLocaleString();
                     } else {
                       modalDate.textContent = "";
                     }
+                    // "Read full" link
+                    modalReadFull.href = `story.html?sid=${storyDoc.id}`;
                     modal.style.display = 'flex';
                   });
                   li.appendChild(storyLink);
