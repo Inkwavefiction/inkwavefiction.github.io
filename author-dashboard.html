@@ -1,21 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- 1) Declare allowedRoles up front (used by role-guard.js if you load it) -->
+  <script>
+    window.allowedRoles = ["author", "both"];
+  </script>
+  <!-- 2) role-guard.js (if you still want to use it) -->
+  <script src="role-guard.js"></script>
+
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Author Dashboard – Inkwave</title>
 
-  <!-- 1) Write userRole before loading role-guard.js -->
-  <script>
-    // We know the author-dashboard page should only be viewed by an author,
-    // so set sessionStorage.userRole = "author" right away.
-    sessionStorage.setItem('userRole', 'author');
-    // Now declare which roles are allowed on this page:
-    window.allowedRoles = ["author", "both"];
-  </script>
-  <script src="role-guard.js"></script>
-
-  <!-- FONT + STYLES -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -202,13 +198,13 @@
     </table>
   </div>
 
-  <!-- FIREBASE SDKS -->
+  <!-- FIREBASE SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
-    // ─── FIREBASE INITIALIZATION ───────────────────────────────────────────────
+    // ─── INITIALIZE FIREBASE ────────────────────────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0JEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -220,45 +216,36 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
-    // ─── NEW STORY / OPEN STORY / DELETE STORY ───────────────────────────────────
-    function createNewStory() {
-      const newId = "story-" + Date.now();
-      localStorage.setItem("currentStoryId", newId);
-      window.location.href = "new-story.html";
-    }
-
-    function openStory(storyId) {
-      localStorage.setItem("currentStoryId", storyId);
-      window.location.href = "new-story.html";
-    }
-
-    function deleteStory(storyId, iconElement) {
-      const user = firebase.auth().currentUser;
-      if (!user) {
-        return window.location.href = "login.html";
-      }
-      if (!confirm("Delete this story?")) return;
-      db.collection("users").doc(user.uid).collection("stories").doc(storyId).delete()
-        .then(() => {
-          iconElement.closest("tr").remove();
-        })
-        .catch(err => {
-          alert("Failed to delete story.");
-          console.error(err);
-        });
-    }
-
-    // ─── ON AUTH STATE CHANGE ────────────────────────────────────────────────────
+    // ─── CHECK AUTH STATE ─────────────────────────────────────────────────────────
     firebase.auth().onAuthStateChanged(user => {
-      if (!user) {
-        // If nobody is signed in, send them back to login.
-        return window.location.href = "author-dashboard.html";
+      // If there's no Firebase user AND no sessionStorage flag, redirect to login.
+      const roleFlag = sessionStorage.getItem('userRole');
+      if (!user && roleFlag !== 'author' && roleFlag !== 'both') {
+        window.location.href = "login.html";
+        return;
+      }
+      // Otherwise, allow the dashboard to load:
+      loadStoriesForCurrentUser();
+    });
+
+    // ─── LOAD STORIES, UPDATE STATS ──────────────────────────────────────────────
+    function loadStoriesForCurrentUser() {
+      const currentUser = firebase.auth().currentUser;
+      // If Firebase says they aren't signed in but sessionStorage says 'author', treat as signed in.
+      const uid = currentUser ? currentUser.uid : null;
+      if (!uid) {
+        // In this case, you have sessionStorage.userRole but no firebase auth.  
+        // You can’t query Firestore without a valid uid.  
+        // Redirect to login.html or show an error:
+        console.warn("No Firebase user, but sessionRole exists. Redirecting to login.");
+        window.location.href = "login.html";
+        return;
       }
 
-      db.collection("users").doc(user.uid).collection("stories").get()
+      db.collection("users").doc(uid).collection("stories").get()
         .then(snapshot => {
           const table = document.getElementById("story-table");
-          table.innerHTML = ""; // clear “Loading...” row
+          table.innerHTML = ""; // Clear “Loading…” row
 
           if (snapshot.empty) {
             table.innerHTML = '<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>';
@@ -266,6 +253,7 @@
           }
 
           let totalReads = 0, totalLikes = 0, totalEarnings = 0;
+
           snapshot.forEach(docSnap => {
             const s = docSnap.data();
             const title   = s.title   || "(Untitled)";
@@ -301,9 +289,37 @@
         .catch(err => {
           console.error("Error fetching stories:", err);
         });
-    });
+    }
 
-    // ─── SET UP “NEW STORY” BUTTON ───────────────────────────────────────────────
+    // ─── CREATE / OPEN / DELETE STORY FUNCTIONS ───────────────────────────────────
+    function createNewStory() {
+      const newId = "story-" + Date.now();
+      localStorage.setItem("currentStoryId", newId);
+      window.location.href = "new-story.html";
+    }
+
+    function openStory(storyId) {
+      localStorage.setItem("currentStoryId", storyId);
+      window.location.href = "new-story.html";
+    }
+
+    function deleteStory(storyId, iconElement) {
+      const user = firebase.auth().currentUser;
+      const uid = user ? user.uid : null;
+      if (!uid) return window.location.href = "login.html";
+
+      if (!confirm("Delete this story?")) return;
+      db.collection("users").doc(uid).collection("stories").doc(storyId).delete()
+        .then(() => {
+          iconElement.closest("tr").remove();
+        })
+        .catch(err => {
+          alert("Failed to delete story.");
+          console.error(err);
+        });
+    }
+
+    // ─── “NEW STORY” BUTTON SETUP ─────────────────────────────────────────────────
     window.addEventListener("DOMContentLoaded", () => {
       const newBtn = document.getElementById("new-story-btn");
       if (newBtn) newBtn.addEventListener("click", createNewStory);
