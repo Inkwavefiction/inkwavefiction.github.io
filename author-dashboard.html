@@ -5,8 +5,8 @@
   <script>
     window.allowedRoles = ["author", "both"];
   </script>
-  <!-- 2) role-guard.js (if you still want to use it) -->
-  <script src="role-guard.js"></script>
+  <!-- 2) (Optionally) role-guard.js, but its checks are now redundant -->
+  <!-- <script src="role-guard.js"></script> -->
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -218,34 +218,36 @@
 
     // ─── CHECK AUTH STATE ─────────────────────────────────────────────────────────
     firebase.auth().onAuthStateChanged(user => {
-      // If there's no Firebase user AND no sessionStorage flag, redirect to login.
+      // Grab whatever role was stored in sessionStorage at login
       const roleFlag = sessionStorage.getItem('userRole');
-      if (!user && roleFlag !== 'author' && roleFlag !== 'both') {
+
+      // 1) If there's no Firebase user, redirect straight to login
+      if (!user) {
         window.location.href = "login.html";
         return;
       }
-      // Otherwise, allow the dashboard to load:
+
+      // 2) If the stored role isn't “author” or “both,” redirect
+      //    (window.allowedRoles was set above in <head>)
+      if (!roleFlag || !window.allowedRoles.includes(roleFlag)) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      // Only if we have BOTH (a) a real Firebase user object AND (b) a valid roleFlag
+      // do we actually load their stories:
       loadStoriesForCurrentUser();
     });
 
     // ─── LOAD STORIES, UPDATE STATS ──────────────────────────────────────────────
     function loadStoriesForCurrentUser() {
-      const currentUser = firebase.auth().currentUser;
-      // If Firebase says they aren't signed in but sessionStorage says 'author', treat as signed in.
-      const uid = currentUser ? currentUser.uid : null;
-      if (!uid) {
-        // In this case, you have sessionStorage.userRole but no firebase auth.  
-        // You can’t query Firestore without a valid uid.  
-        // Redirect to login.html or show an error:
-        console.warn("No Firebase user, but sessionRole exists. Redirecting to login.");
-        window.location.href = "login.html";
-        return;
-      }
+      const user = firebase.auth().currentUser;
+      const uid = user.uid; // at this point, user must exist
 
       db.collection("users").doc(uid).collection("stories").get()
         .then(snapshot => {
           const table = document.getElementById("story-table");
-          table.innerHTML = ""; // Clear “Loading…” row
+          table.innerHTML = ""; // Clear “Loading …” row
 
           if (snapshot.empty) {
             table.innerHTML = '<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>';
@@ -305,10 +307,9 @@
 
     function deleteStory(storyId, iconElement) {
       const user = firebase.auth().currentUser;
-      const uid = user ? user.uid : null;
-      if (!uid) return window.location.href = "login.html";
-
+      const uid = user.uid; // we know the user is valid
       if (!confirm("Delete this story?")) return;
+
       db.collection("users").doc(uid).collection("stories").doc(storyId).delete()
         .then(() => {
           iconElement.closest("tr").remove();
