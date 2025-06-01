@@ -1,8 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>window.allowedRoles = ["reader","both","author"];</script>
-  <script src="role-guard.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Settings – Inkwave</title>
@@ -96,7 +94,10 @@
     }
     .form-group { margin-bottom: 1rem; }
     label { display: block; margin-bottom: 0.4rem; font-weight: 500; }
-    input[type="text"], input[type="email"], input[type="file"], input[type="password"] {
+    input[type="text"],
+    input[type="email"],
+    input[type="file"],
+    input[type="password"] {
       width: 100%; padding: 0.6rem;
       border: 1px solid #ccc; border-radius: 6px; font-size: 1rem;
     }
@@ -117,19 +118,10 @@
       cursor: pointer;
       background-color: #789a91;
       color: white;
-      transition: background 0.2s ease, transform 0.3s ease;
+      transition: background 0.2s ease;
     }
     .password-wrapper button:hover {
       background-color: #5f7f76;
-    }
-    .password-wrapper button.slide-out {
-      transform: translateX(100%);
-      opacity: 0;
-      pointer-events: none;
-    }
-    .password-wrapper button#editPasswordBtn {
-      display: none;
-      background-color: #647a81;
     }
     .save-btn, .delete-btn {
       background-color: #789a91; color: white;
@@ -178,10 +170,9 @@
       <div class="form-group">
         <label>Password</label>
         <div class="password-wrapper">
-          <!-- start with placeholder -->
-          <input type="password" id="passwordField" value="********" disabled>
+          <!-- user types their password here -->
+          <input type="password" id="passwordField" placeholder="Enter your password">
           <button type="button" id="showPasswordBtn">Show Password</button>
-          <button type="button" id="editPasswordBtn">Edit Password</button>
         </div>
       </div>
 
@@ -213,16 +204,15 @@
     const db   = firebase.firestore();
 
     // element refs
-    const emailField        = document.getElementById("emailField");
-    const usernameField     = document.getElementById("usernameField");
-    const dateJoinedField   = document.getElementById("dateJoinedField");
-    const avatarPreview     = document.getElementById("avatarPreview");
-    const avatarInput       = document.getElementById("avatarInput");
-    const saveBtn           = document.getElementById("saveBtn");
-    const deleteBtn         = document.getElementById("deleteBtn");
-    const passwordField     = document.getElementById("passwordField");
-    const showPasswordBtn   = document.getElementById("showPasswordBtn");
-    const editPasswordBtn   = document.getElementById("editPasswordBtn");
+    const emailField      = document.getElementById("emailField");
+    const usernameField   = document.getElementById("usernameField");
+    const dateJoinedField = document.getElementById("dateJoinedField");
+    const avatarPreview   = document.getElementById("avatarPreview");
+    const avatarInput     = document.getElementById("avatarInput");
+    const saveBtn         = document.getElementById("saveBtn");
+    const deleteBtn       = document.getElementById("deleteBtn");
+    const passwordField   = document.getElementById("passwordField");
+    const showPasswordBtn = document.getElementById("showPasswordBtn");
 
     let currentUser = null;
     let avatarFile  = null;
@@ -235,23 +225,15 @@
       avatarPreview.src = URL.createObjectURL(file);
     });
 
-    // show password: switch to an empty, editable field so user can type current password
+    // toggle password visibility
     showPasswordBtn.addEventListener("click", () => {
-      showPasswordBtn.classList.add("slide-out");
-      setTimeout(() => {
-        passwordField.disabled = false;
+      if (passwordField.type === "password") {
+        passwordField.type = "text";
+        showPasswordBtn.textContent = "Hide Password";
+      } else {
         passwordField.type = "password";
-        passwordField.value = ""; // let user enter their current password
-        editPasswordBtn.style.display = "inline-block";
-        showPasswordBtn.style.display = "none";
-      }, 300);
-    });
-
-    // edit password: now let them type a new password
-    editPasswordBtn.addEventListener("click", () => {
-      passwordField.value = "";
-      passwordField.focus();
-      editPasswordBtn.style.display = "none";
+        showPasswordBtn.textContent = "Show Password";
+      }
     });
 
     // upload helper → Cloudinary
@@ -279,7 +261,7 @@
       emailField.value      = user.email;
       dateJoinedField.value = new Date(user.metadata.creationTime).toLocaleDateString();
       avatarPreview.src     = user.photoURL || "https://placehold.co/80x80";
-      passwordField.value   = "********"; // placeholder
+      passwordField.value   = ""; // blank so they can enter
 
       try {
         const doc = await db.collection("users").doc(user.uid).get();
@@ -294,9 +276,9 @@
     // save changes
     saveBtn.addEventListener("click", async e => {
       e.preventDefault();
-      const username    = usernameField.value.trim();
-      const newEmail    = emailField.value.trim();
-      const enteredPwd  = passwordField.value.trim();
+      const username   = usernameField.value.trim();
+      const newEmail   = emailField.value.trim();
+      const enteredPwd = passwordField.value.trim();
       if (!username || !newEmail) {
         alert("Username and email cannot be empty.");
         return;
@@ -314,18 +296,9 @@
         if (newEmail !== currentUser.email) {
           await currentUser.updateEmail(newEmail);
         }
-        // if password field was used (not placeholder), reauthenticate then update
-        if (enteredPwd && enteredPwd !== "********") {
-          // require reauthentication before changing password
-          const credential = firebase.auth.EmailAuthProvider.credential(
-            currentUser.email,
-            enteredPwd
-          );
-          await currentUser.reauthenticateWithCredential(credential);
-          const newPwd = prompt("Enter new password:");
-          if (newPwd) {
-            await currentUser.updatePassword(newPwd);
-          }
+        // update password if they entered one
+        if (enteredPwd) {
+          await currentUser.updatePassword(enteredPwd);
         }
 
         // write to Firestore
@@ -337,13 +310,10 @@
         }, { merge: true });
 
         alert("Profile updated successfully!");
-        // reset password field to placeholder
-        passwordField.disabled = true;
-        passwordField.type = "password";
-        passwordField.value = "********";
-        showPasswordBtn.style.display = "inline-block";
-        showPasswordBtn.classList.remove("slide-out");
-        editPasswordBtn.style.display = "none";
+        // clear password field
+        passwordField.value = "";
+        passwordField.type  = "password";
+        showPasswordBtn.textContent = "Show Password";
       } catch (err) {
         console.error("saveChanges error:", err);
         if (err.code === "auth/requires-recent-login") {
