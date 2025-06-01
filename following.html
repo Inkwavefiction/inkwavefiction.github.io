@@ -103,17 +103,39 @@
       margin-bottom: 0.4rem;
       color: var(--accent);
       text-decoration: none;
+      display: block;
+    }
+
+    .label {
+      font-weight: 600;
+      margin-top: 0.5rem;
+      margin-bottom: 0.25rem;
     }
 
     .comment-meta {
       font-size: 0.85rem;
       color: var(--muted);
-      display: none;
-      margin-top: 0.5rem;
+      margin-bottom: 0.75rem;
     }
 
-    .card.expanded .comment-meta {
+    .stories-list {
+      list-style: disc;
+      margin-left: 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .stories-list li {
+      margin-bottom: 0.25rem;
+    }
+
+    .card.expanded .comment-meta,
+    .card.expanded .stories-container {
       display: block;
+    }
+
+    .comment-meta,
+    .stories-container {
+      display: none;
     }
   </style>
 </head>
@@ -187,24 +209,44 @@
           const cardDiv = document.createElement("div");
           cardDiv.className = "card";
 
-          // Title link placeholder
+          // Author name/link
           const titleLink = document.createElement("a");
           titleLink.className = "story-title";
           titleLink.textContent = "Loading author...";
           titleLink.href = `author.html?uid=${authorId}`;
-          titleLink.target = "_blank"; // open in new tab
+          titleLink.target = "_blank";
           cardDiv.appendChild(titleLink);
 
-          // Bio placeholder
+          // "Bio:" label
+          const bioLabel = document.createElement("div");
+          bioLabel.className = "label";
+          bioLabel.textContent = "Bio:";
+          cardDiv.appendChild(bioLabel);
+
+          // Bio text placeholder
           const bioDiv = document.createElement("div");
           bioDiv.className = "comment-meta";
           bioDiv.textContent = "Loading bio...";
           cardDiv.appendChild(bioDiv);
 
-          // Append card immediately so user sees placeholders
+          // "Content:" label
+          const contentLabel = document.createElement("div");
+          contentLabel.className = "label";
+          contentLabel.textContent = "Content:";
+          cardDiv.appendChild(contentLabel);
+
+          // Container for stories list
+          const storiesContainer = document.createElement("div");
+          storiesContainer.className = "stories-container";
+          const storiesList = document.createElement("ul");
+          storiesList.className = "stories-list";
+          storiesContainer.appendChild(storiesList);
+          cardDiv.appendChild(storiesContainer);
+
+          // Append card with placeholders
           followList.appendChild(cardDiv);
 
-          // Fetch author info from 'authors' collection
+          // Fetch author info
           db.collection("authors").doc(authorId).get().then(authorDoc => {
             if (authorDoc.exists) {
               const data = authorDoc.data();
@@ -219,7 +261,35 @@
             bioDiv.textContent = "";
           });
 
-          // Toggle bio visibility on card click
+          // Fetch stories by this author
+          db.collection("stories")
+            .where("authorId", "==", authorId)
+            .orderBy("createdAt", "desc")
+            .get()
+            .then(storySnapshot => {
+              storiesList.innerHTML = "";
+              if (storySnapshot.empty) {
+                const li = document.createElement("li");
+                li.textContent = "No stories yet.";
+                storiesList.appendChild(li);
+              } else {
+                storySnapshot.forEach(storyDoc => {
+                  const storyData = storyDoc.data();
+                  const li = document.createElement("li");
+                  const storyLink = document.createElement("a");
+                  storyLink.textContent = storyData.title || "Untitled Story";
+                  storyLink.href = `story.html?sid=${storyDoc.id}`;
+                  storyLink.target = "_blank";
+                  li.appendChild(storyLink);
+                  storiesList.appendChild(li);
+                });
+              }
+            })
+            .catch(() => {
+              storiesList.innerHTML = "<li>Error loading stories</li>";
+            });
+
+          // Toggle bio + content visibility on click
           cardDiv.addEventListener("click", () => {
             cardDiv.classList.toggle("expanded");
           });
