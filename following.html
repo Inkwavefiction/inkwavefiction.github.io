@@ -102,6 +102,7 @@
       font-size: 1.1rem;
       margin-bottom: 0.4rem;
       color: var(--accent);
+      text-decoration: none;
     }
 
     .comment-meta {
@@ -182,18 +183,46 @@
         followList.innerHTML = `<div class="card">You're not following any authors yet.</div>`;
       } else {
         snapshot.forEach(doc => {
-          const author = doc.data();
-          const div = document.createElement("div");
-          div.className = "card";
-          div.innerHTML = `
-            <div class="story-title">${author.displayName || "Unknown Author"}</div>
-            <div class="comment-meta">${author.bio || "No bio available."}</div>
-          `;
-          // Toggle bio visibility on click
-          div.addEventListener("click", () => {
-            div.classList.toggle("expanded");
+          const authorId = doc.id;
+          const cardDiv = document.createElement("div");
+          cardDiv.className = "card";
+
+          // Title link placeholder
+          const titleLink = document.createElement("a");
+          titleLink.className = "story-title";
+          titleLink.textContent = "Loading author...";
+          titleLink.href = `author.html?uid=${authorId}`;
+          titleLink.target = "_blank"; // open in new tab
+          cardDiv.appendChild(titleLink);
+
+          // Bio placeholder
+          const bioDiv = document.createElement("div");
+          bioDiv.className = "comment-meta";
+          bioDiv.textContent = "Loading bio...";
+          cardDiv.appendChild(bioDiv);
+
+          // Append card immediately so user sees placeholders
+          followList.appendChild(cardDiv);
+
+          // Fetch author info from 'authors' collection
+          db.collection("authors").doc(authorId).get().then(authorDoc => {
+            if (authorDoc.exists) {
+              const data = authorDoc.data();
+              titleLink.textContent = data.displayName || "Unknown Author";
+              bioDiv.textContent = data.bio || "No bio available.";
+            } else {
+              titleLink.textContent = "Unknown Author";
+              bioDiv.textContent = "No bio available.";
+            }
+          }).catch(() => {
+            titleLink.textContent = "Error loading author";
+            bioDiv.textContent = "";
           });
-          followList.appendChild(div);
+
+          // Toggle bio visibility on card click
+          cardDiv.addEventListener("click", () => {
+            cardDiv.classList.toggle("expanded");
+          });
         });
       }
     });
