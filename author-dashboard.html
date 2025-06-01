@@ -252,7 +252,7 @@
     firebase.auth().onAuthStateChanged(user => {
       if (!user) {
         // If nobody is signed in, send them back to login.
-        return window.location.href = "login.html";
+        return window.location.href = "author-dashboard.html";
       }
 
       db.collection("users").doc(user.uid).collection("stories").get()
