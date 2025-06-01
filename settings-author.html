@@ -99,9 +99,6 @@
       border: 1px solid var(--border);
       border-radius: 6px;
     }
-    input[type="checkbox"] {
-      margin-top: 0.5rem;
-    }
     textarea { resize: vertical; min-height: 100px; }
     .profile-section {
       display: flex;
@@ -189,8 +186,8 @@
       </div>
 
       <div class="form-group">
-        <label>Password</label>
-        <input type="password" id="passwordField" placeholder="Enter new password if you want to change" />
+        <label>Password (leave blank if no change)</label>
+        <input type="password" id="passwordField" placeholder="New password" />
         <label>
           <input type="checkbox" id="togglePassword" />
           Show Password
@@ -290,36 +287,30 @@
     // Save changes handler
     saveBtn.addEventListener("click", async e => {
       e.preventDefault();
-      const username = usernameField.value.trim();
-      const email    = emailField.value.trim();
+      const username   = usernameField.value.trim();
+      const email      = emailField.value.trim();
       const newPassword = passwordField.value.trim();
-      const bio      = bioField.value.trim();
-
+      const bio        = bioField.value.trim();
       if (!username || !email) {
         alert("Username and email cannot be empty.");
         return;
       }
-
       try {
         // 1) upload avatar if changed
         let photoURL = currentUser.photoURL;
         if (avatarFile) {
           photoURL = await uploadToCloudinary(avatarFile);
         }
-
-        // 2) update Firebase Auth profile (displayName + photoURL)
+        // 2) update Firebase Auth profile
         await currentUser.updateProfile({ displayName: username, photoURL });
-
         // 3) update email if changed
         if (email !== currentUser.email) {
           await currentUser.updateEmail(email);
         }
-
         // 4) update password if provided
         if (newPassword) {
           await currentUser.updatePassword(newPassword);
         }
-
         // 5) write to Firestore (authors collection)
         await db.collection("authors").doc(currentUser.uid).set({
           displayName: username,
@@ -327,6 +318,10 @@
           email,
           photoURL,
           dateJoined: currentUser.metadata.creationTime
+        }, { merge: true });
+        // 6) ALSO write bio under 'users' so it appears for followers
+        await db.collection("users").doc(currentUser.uid).set({
+          bio
         }, { merge: true });
 
         alert("Profile updated!");
