@@ -298,10 +298,23 @@
     let authorId = null;
     let storyData = null;
 
-    function renderSection(index) {
+    // Renders either full or partial (50%) story text depending on guest vs. logged-in
+    function renderSection(index, showPartial = false) {
       const key = sectionKeys[index];
-      sectionTitleEl.textContent = key;
-      sectionContentEl.innerHTML = sections[key].content || "";
+      let rawHtml = sections[key].content || "";
+      if (showPartial) {
+        // Strip HTML tags to measure text length, then take 50%
+        const tmpDiv = document.createElement("div");
+        tmpDiv.innerHTML = rawHtml;
+        const fullText = tmpDiv.textContent || "";
+        const fiftyPercent = Math.floor(fullText.length / 2);
+        const partialText = fullText.slice(0, fiftyPercent) + "…";
+        sectionTitleEl.textContent = key + " (Preview)";
+        sectionContentEl.textContent = partialText;
+      } else {
+        sectionTitleEl.textContent = key;
+        sectionContentEl.innerHTML = rawHtml;
+      }
       prevBtn.disabled = index === 0;
       nextBtn.disabled = index === sectionKeys.length - 1;
     }
@@ -309,14 +322,14 @@
     prevBtn.onclick = () => {
       if (currentIndex > 0) {
         currentIndex--;
-        renderSection(currentIndex);
+        renderSection(currentIndex, /*showPartial=*/ !currentUser);
       }
     };
 
     nextBtn.onclick = () => {
       if (currentIndex < sectionKeys.length - 1) {
         currentIndex++;
-        renderSection(currentIndex);
+        renderSection(currentIndex, /*showPartial=*/ !currentUser);
       }
     };
 
@@ -365,7 +378,6 @@
       }
     };
 
-    // Toggle reply box below a comment
     function toggleReplyBox(commentId) {
       const container = document.getElementById("reply-container-" + commentId);
       if (container.innerHTML.trim() !== "") {
@@ -430,7 +442,7 @@
         textarea.value = "";
         loadComments();
       } catch (err) {
-        console.error("Error posting comment:", err);
+        console.error("Error loading comments:", err);
         alert("Something went wrong while posting your comment.");
       }
     }
@@ -498,30 +510,27 @@
       }
     }
 
-    auth.onAuthStateChanged(async user => {
-      if (!user) {
-        titleEl.textContent = "You must be logged in.";
-        return;
-      }
-      currentUser = user;
+    // Helper: fetch story data (works for both guest and logged-in)
+    async function fetchStoryData() {
       try {
         const snap = await db.collectionGroup("stories")
           .where("id", "==", storyId)
           .get();
         if (snap.empty) {
           titleEl.textContent = "Story not found.";
-          return;
+          return null;
         }
         const doc = snap.docs[0];
         storyData = doc.data();
         authorId = doc.ref.parent.parent.id;
 
-        // Show the cover image at full width (100vw) but only 50vh tall, cropped at bottom
+        // Show cover image if available
         if (storyData.coverUrl) {
           coverEl.src = storyData.coverUrl;
           coverEl.style.display = "block";
         }
 
+        // Immediately increment reads for everyone
         const storyRef = db.collection("users").doc(authorId).collection("stories").doc(storyId);
         await storyRef.update({ reads: firebase.firestore.FieldValue.increment(1) });
 
@@ -530,10 +539,10 @@
         sections = storyData.sections || {};
         sectionKeys = storyData.sectionOrder || Object.keys(sections);
         currentIndex = 0;
-        renderSection(currentIndex);
         likeCountEl.textContent = storyData.likes ?? 0;
         viewCountEl.textContent = storyData.reads ?? 0;
 
+        // Load author info (public)
         const authorDoc = await db.collection("authors").doc(authorId).get();
         if (authorDoc.exists) {
           const aData = authorDoc.data();
@@ -542,15 +551,43 @@
           authorProfileLink.href = `author-profile.html?authorId=${authorId}`;
           authorInfoBox.style.display = "flex";
         }
-        const favDoc = await db.collection("users").doc(currentUser.uid).collection("favorites").doc(storyId).get();
+
+        loadComments();
+        return true;
+      } catch (err) {
+        console.error("Error loading story:", err);
+        titleEl.textContent = "Error loading story.";
+        return null;
+      }
+    }
+
+    auth.onAuthStateChanged(async user => {
+      currentUser = user;
+      const ok = await fetchStoryData();
+      if (!ok) return;
+
+      // If guest (no user), show only 50% of each section
+      const showPartial = !currentUser;
+      renderSection(currentIndex, showPartial);
+
+      // Disable favorite and follow buttons for guests
+      if (!currentUser) {
+        favBtn.disabled = true;
+        followBtn.disabled = true;
+        favBtn.title = "Log in to favorite";
+        followBtn.title = "Log in to follow";
+      } else {
+        // Logged-in: enable full functionality
+        const favDoc = await db
+          .collection("users")
+          .doc(currentUser.uid)
+          .collection("favorites")
+          .doc(storyId)
+          .get();
         if (favDoc.exists) {
           favBtn.disabled = true;
           favBtn.textContent = "Favorited";
         }
-        loadComments();
-      } catch (err) {
-        console.error("Error loading story:", err);
-        titleEl.textContent = "Error loading story.";
       }
     });
   </script>
