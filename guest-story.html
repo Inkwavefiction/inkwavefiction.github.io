@@ -41,7 +41,7 @@
       line-height: 1.7;
       color: #444;
       margin-bottom: 2rem;
-      white-space: pre-wrap; /* preserve spaces, tabs, and line breaks */
+      white-space: pre-wrap; /* preserve whitespace exactly */
     }
     .signup-prompt {
       text-align: center;
@@ -125,33 +125,27 @@
         titleEl.textContent = storyData.title || "Untitled";
         blurbEl.textContent = storyData.blurb || "";
 
-        // 3) Combine all sections into a single plain-text string, preserving whitespace and line breaks
+        // 3) Combine all sections' raw HTML into a single string
         const sections = storyData.sections || {};
         const order = storyData.sectionOrder || Object.keys(sections);
-        let allText = "";
+        let combinedHTML = "";
         order.forEach(key => {
-          const tmp = document.createElement("div");
-          tmp.innerHTML = sections[key].content || "";
-          // textContent preserves original whitespace (spaces, tabs, and newlines)
-          allText += tmp.textContent + "\n";
+          combinedHTML += sections[key].content || "";
         });
 
-        // 4) Split by non-whitespace into words and take half
-        const wordRegex = /\S+/g;
-        const matches = [...allText.matchAll(wordRegex)];
-        if (matches.length === 0) {
+        if (!combinedHTML) {
           previewEl.textContent = "No content available.";
           return;
         }
-        const halfCount = Math.floor(matches.length / 2);
-        // index of end of the half-th word
-        const endPos = matches[halfCount - 1].index + matches[halfCount - 1][0].length;
 
-        // 5) Slice original text up to endPos, preserving all spaces/tabs/newlines
-        const snippet = allText.slice(0, endPos);
+        // 4) Calculate half of all characters in this raw HTML
+        const halfIndex = Math.floor(combinedHTML.length / 2);
 
-        // 6) Display snippet + ellipsis
-        previewEl.textContent = snippet + "…";
+        // 5) Slice exactly half of the raw HTML (preserving tags/spacing)
+        const snippetHTML = combinedHTML.slice(0, halfIndex);
+
+        // 6) Display snippet as innerHTML, then append an ellipsis
+        previewEl.innerHTML = snippetHTML + "…";
 
       } catch (err) {
         console.error("Error fetching preview:", err);
