@@ -349,10 +349,10 @@
             bioDiv.textContent = "";
           });
 
-          // Fetch all stories by this author
-          db.collection("stories")
-            .where("authorId", "==", authorId)
-            .orderBy("createdAt", "desc")
+          // Fetch stories under users/{authorId}/stories
+          db.collection("users").doc(authorId)
+            .collection("stories")
+            .orderBy("createdAt", "desc") // if createdAt is a timestamp field
             .get()
             .then(storySnapshot => {
               storiesList.innerHTML = "";
@@ -366,12 +366,10 @@
                   const li = document.createElement("li");
                   const storyLink = document.createElement("a");
                   storyLink.textContent = storyData.title || "Untitled Story";
-                  storyLink.href = `story.html?id=${storyDoc.id}`;
-                  storyLink.target = "_blank";
+                  storyLink.href = `#`; // Prevent default navigation
                   // Add click listener for modal
                   storyLink.addEventListener('click', event => {
                     event.preventDefault();
-                    // Show modal with story details
                     modalTitle.textContent = storyData.title || "Untitled Story";
                     modalBody.textContent = storyData.content || "No content available.";
                     if (storyData.createdAt && storyData.createdAt.toDate) {
