@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Allowed roles for this page -->
-  <script>
-    window.allowedRoles = ["author", "both"];
-  </script>
+  <!-- Only allow “author” or “both” roles on this page -->
+  <script>window.allowedRoles = ["author","both"];</script>
+  <script src="role-guard.js"></script>
 
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Author Dashboard – Inkwave</title>
+  <title>Settings – Inkwave (Author)</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -50,6 +49,7 @@
       font-weight: 500; transition: background 0.2s;
     }
     .nav-link:hover { background-color: #1e1e1e; }
+    .nav-link.active { background-color: #2a2a2a; color: #fff; font-weight: 600; }
 
     .main { margin-left: 300px; padding: 2.5rem; flex: 1; }
     .header {
@@ -67,58 +67,29 @@
     }
     .btn:hover { background-color: #5f7f76; }
 
-    .stats { display: flex; gap: 1.5rem; margin-bottom: 2.5rem; }
-    .stat-box {
-      flex: 1; background: var(--white);
-      padding: 1.25rem; border: 1px solid var(--border);
-      border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    .section-group {
+      margin-bottom: 2rem;
     }
-    .stat-box h4 {
-      font-size: 1rem; color: var(--accent);
-      margin-bottom: 0.25rem; font-weight: 500;
+    .section-group h3 {
+      font-size: 1.2rem; margin-bottom: 1rem; color: var(--accent);
     }
-    .stat-box p { font-size: 1.6rem; font-weight: 600; }
-
-    table {
-      width: 100%; background-color: var(--white);
-      border: 1px solid var(--border); border-collapse: collapse;
-      border-radius: 6px; overflow: hidden;
+    .form-group {
+      margin-bottom: 1.5rem;
     }
-    th, td {
-      text-align: left; padding: 0.85rem 1rem;
-      border-bottom: 1px solid var(--border); font-size: 0.95rem;
+    .form-group label {
+      display: block; margin-bottom: 0.4rem; font-weight: 500;
     }
-    th {
-      background-color: #eef3f1; color: #555;
-      text-transform: uppercase; letter-spacing: 0.03em;
-      font-size: 0.8rem;
+    .form-group input,
+    .form-group textarea {
+      width: 100%; padding: 0.6rem; font-size: 1rem;
+      border: 1px solid var(--border); border-radius: 4px;
+      background: var(--white);
     }
-    tr:hover { background-color: #f9f9f9; }
-
-    .story-link {
-      color: var(--accent); text-decoration: none;
-      font-weight: 500;
-    }
-    .story-link:hover { text-decoration: underline; }
-
-    .badge {
-      font-size: 0.75rem; font-weight: 500;
-      padding: 0.3rem 0.6rem; border-radius: 12px;
-      display: inline-block;
-    }
-    .badge.published {
-      background-color: #d7f0e5; color: #2b7a5e;
-    }
-    .badge.draft {
-      background-color: #e8e8e8; color: #555;
+    .form-actions {
+      margin-top: 2rem; text-align: right;
     }
 
-    .no-stories {
-      text-align: center; color: var(--muted);
-      padding: 2rem 0; font-style: italic;
-    }
-
-    /* Status message bar for debug errors */
+    /* Status message bar for errors/debug */
     #status-msg {
       background: var(--error);
       color: white;
@@ -140,77 +111,76 @@
     <h2>Inkwave</h2>
     <div class="section">
       <div class="section-title">Core</div>
-      <a href="author-dashboard.html" class="nav-link">🏠 Dashboard</a>
-      <a href="earnings.html" class="nav-link">💰 Earnings 🚧</a>
+      <a href="author-dashboard.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">🏠 Dashboard</a>
+      <a href="earnings.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">💰 Earnings 🚧</a>
     </div>
     <div class="section">
       <div class="section-title">Writing Tools</div>
-      <a href="blurb-generator.html" class="nav-link">🧠 Blurb Generator 🚧</a>
-      <a href="grammar.html" class="nav-link">📝 Grammar Fixer 🚧</a>
-      <a href="story-templates.html" class="nav-link">📄 Story Templates</a>
-      <a href="formatting.tools.html" class="nav-link">📈 Graphing Plots 🚧</a>
-      <a href="genre-tags.html" class="nav-link">🏷️ Genre & Tags</a>
+      <a href="blurb-generator.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">🧠 Blurb Generator 🚧</a>
+      <a href="grammar.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">📝 Grammar Fixer 🚧</a>
+      <a href="story-templates.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">📄 Story Templates</a>
+      <a href="formatting.tools.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">📈 Graphing Plots 🚧</a>
+      <a href="genre-tags.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">🏷️ Genre & Tags</a>
     </div>
     <div class="section">
       <div class="section-title">Testing & Feedback</div>
-      <a href="A-B.html" class="nav-link">🧪 A/B Testing 🚧</a>
-      <a href="reader-heatmap.html" class="nav-link">🔥 Reader Heatmap 🚧</a>
+      <a href="A-B.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">🧪 A/B Testing 🚧</a>
+      <a href="reader-heatmap.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">🔥 Reader Heatmap 🚧</a>
     </div>
     <div class="section">
       <div class="section-title">Publishing</div>
-      <a href="checklist.html" class="nav-link">✅ Checklist</a>
-      <a href="cover-generator.html" class="nav-link">🖼️ Cover Generator 🚧</a>
+      <a href="checklist.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">✅ Checklist</a>
+      <a href="cover-generator.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">🖼️ Cover Generator 🚧</a>
     </div>
     <div class="section">
       <div class="section-title">Productivity</div>
-      <a href="inkie-chat.html" class="nav-link">🤖 Inky Assistant 🚧</a>
-      <a href="settings-author.html" class="nav-link">⚙️ Settings</a>
+      <a href="inkie-chat.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">🤖 Inky Assistant 🚧</a>
+      <a href="settings-author.html" class="nav-link active" onclick="sessionStorage.setItem('userRole','author')">⚙️ Settings</a>
     </div>
   </div>
 
   <div class="main">
     <div class="header">
       <div>
-        <h1>Dashboard</h1>
-        <p style="color: var(--muted); margin-top: 0.3rem;">Welcome back, Author!</p>
+        <h1>⚙️ Settings</h1>
+        <p style="color: var(--muted); margin-top: 0.3rem;">Manage your author profile and preferences</p>
       </div>
-      <div style="display: flex; gap: 10px;">
-        <button class="btn" onclick="window.location.href='index.html'">
-          🔙 Back to Inkwave Main
-        </button>
-        <button id="new-story-btn" class="btn">+ New Story</button>
+      <div>
+        <button class="btn" onclick="window.location.href='author-dashboard.html'">← Back to Dashboard</button>
       </div>
     </div>
 
-    <div class="stats">
-      <div class="stat-box">
-        <h4>Total Reads</h4>
-        <p id="total-reads">0</p>
+    <div class="section-group">
+      <h3>Profile Information</h3>
+      <div class="form-group">
+        <label for="displayName">Display Name</label>
+        <input type="text" id="displayName" placeholder="Your display name" />
       </div>
-      <div class="stat-box">
-        <h4>Total Likes</h4>
-        <p id="total-likes">0</p>
+      <div class="form-group">
+        <label for="bio">Bio</label>
+        <textarea id="bio" rows="3" placeholder="Tell readers about yourself..."></textarea>
       </div>
-      <div class="stat-box">
-        <h4>Total Earnings</h4>
-        <p id="total-earnings">$0.00</p>
+      <div class="form-group">
+        <label for="photoURL">Photo URL</label>
+        <input type="text" id="photoURL" placeholder="https://example.com/your-photo.jpg" />
       </div>
     </div>
 
-    <table>
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Reads</th>
-          <th>Likes</th>
-          <th>Revenue</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="story-table">
-        <tr><td colspan="5" class="no-stories">Loading your stories...</td></tr>
-      </tbody>
-    </table>
+    <div class="section-group">
+      <h3>Account Settings</h3>
+      <div class="form-group">
+        <label for="email">Email (read-only)</label>
+        <input type="email" id="email" readonly />
+      </div>
+      <div class="form-group">
+        <label for="password">Change Password</label>
+        <input type="password" id="password" placeholder="New password" />
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button id="save-btn" class="btn">Save Changes</button>
+    </div>
   </div>
 
   <!-- FIREBASE v10 (modular) SDKs -->
@@ -218,20 +188,21 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
     import {
       getAuth,
-      onAuthStateChanged
+      onAuthStateChanged,
+      updatePassword,
+      updateEmail
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-auth.js";
     import {
       getFirestore,
       doc,
       getDoc,
-      collection,
-      getDocs,
-      deleteDoc
+      setDoc,
+      serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
     // ─── INITIALIZE FIREBASE (modular) ─────────────────────────────────────────
     const firebaseConfig = {
-      apiKey: "AIzaSyAJRW3QHNYAucAn0JEN-w7CJfOAa0NzIE",
+      apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
       projectId: "inkwave-549c0",
       storageBucket: "inkwave-549c0.appspot.com",
@@ -247,7 +218,10 @@
       const bar = document.getElementById("status-msg");
       bar.textContent = message;
       bar.style.display = "block";
+      setTimeout(() => (bar.style.display = "none"), 3000);
     }
+
+    let currentUserUid = null;
 
     // ─── CHECK AUTH STATE & VERIFY Firestore ROLE ─────────────────────────────────
     onAuthStateChanged(auth, async (user) => {
@@ -260,6 +234,7 @@
       }
 
       const uid = user.uid;
+      currentUserUid = uid;
       console.log("Firebase user UID:", uid);
 
       try {
@@ -267,7 +242,7 @@
         const userDocSnap = await getDoc(userDocRef);
 
         if (!userDocSnap.exists()) {
-          showStatus("No users/" + uid + " document. Redirecting...");
+          showStatus(`No users/${uid} document. Redirecting...`);
           console.error("Redirect: no users/{uid} doc");
           window.setTimeout(() => window.location.href = "login.html", 1000);
           return;
@@ -289,9 +264,8 @@
           return;
         }
 
-        // If we reach here, user + role are valid:
-        console.log("User is authorized; loading stories...");
-        loadStoriesForCurrentUser();
+        // If we reach here, user + role are valid: populate settings form
+        populateSettingsForm(data);
       } catch (err) {
         console.error("Error verifying role in Firestore:", err);
         showStatus("Error verifying role. Redirecting...");
@@ -299,113 +273,68 @@
       }
     });
 
-    // ─── LOAD STORIES, UPDATE STATS ─────────────────────────────────────────────────
-    async function loadStoriesForCurrentUser() {
-      const user = auth.currentUser;
-      console.log("loadStoriesForCurrentUser called, currentUser =", user);
+    // ─── POPULATE FORM WITH CURRENT USER DATA ───────────────────────────────────────
+    function populateSettingsForm(userData) {
+      document.getElementById("displayName").value = userData.displayName || "";
+      document.getElementById("bio").value         = userData.bio         || "";
+      document.getElementById("photoURL").value    = userData.photoURL    || "";
+      document.getElementById("email").value       = auth.currentUser.email;
+    }
 
-      if (!user) {
-        showStatus("Unexpected: no currentUser when loading stories.");
-        console.error("Redirect: no currentUser inside loadStories");
-        window.setTimeout(() => window.location.href = "login.html", 1000);
+    // ─── SAVE BUTTON HANDLER ───────────────────────────────────────────────────────
+    document.getElementById("save-btn").addEventListener("click", async () => {
+      if (!currentUserUid) {
+        showStatus("No user loaded. Cannot save.");
         return;
       }
-      const uid = user.uid;
 
+      const displayName = document.getElementById("displayName").value.trim();
+      const bio         = document.getElementById("bio").value.trim();
+      const photoURL    = document.getElementById("photoURL").value.trim();
+      const newEmail    = document.getElementById("email").value.trim();
+      const newPassword = document.getElementById("password").value.trim();
+
+      // 1) Update Firestore users/{uid} document
       try {
-        const storiesColRef = collection(db, "users", uid, "stories");
-        const snapshot = await getDocs(storiesColRef);
-        console.log("Fetched stories snapshot, count:", snapshot.size);
+        await setDoc(doc(db, "users", currentUserUid), {
+          displayName,
+          bio,
+          photoURL,
+          updatedAt: serverTimestamp()
+        }, { merge: true });
+        console.log("Firestore profile updated");
+      } catch (err) {
+        console.error("Error updating Firestore:", err);
+        showStatus("Failed to save profile info.");
+        return;
+      }
 
-        const table = document.getElementById("story-table");
-        table.innerHTML = ""; // Clear “Loading…” row
-
-        if (snapshot.empty) {
-          table.innerHTML = '<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>';
+      // 2) Update Firebase Auth email, if changed
+      if (newEmail && newEmail !== auth.currentUser.email) {
+        try {
+          await updateEmail(auth.currentUser, newEmail);
+          console.log("Auth email updated");
+        } catch (err) {
+          console.error("Error updating email:", err);
+          showStatus("Failed to update email: " + err.message);
           return;
         }
-
-        let totalReads = 0, totalLikes = 0, totalEarnings = 0;
-
-        snapshot.forEach(docSnap => {
-          const s = docSnap.data();
-          const docId = docSnap.id;
-          const title   = s.title   || "(Untitled)";
-          const reads   = s.reads    || 0;
-          const likes   = s.likes    || 0;
-          const revenue = s.revenue  || 0;
-          const status  = s.status   || "draft";
-
-          totalReads    += isNaN(reads)   ? 0 : reads;
-          totalLikes    += isNaN(likes)   ? 0 : likes;
-          totalEarnings += isNaN(revenue) ? 0 : revenue;
-
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td><a href="#" class="story-link" onclick="openStory('${docId}')">${title}</a></td>
-            <td>${reads}</td>
-            <td>${likes}</td>
-            <td>$${revenue.toFixed(2)}</td>
-            <td>
-              <span class="badge ${status === 'published' ? 'published' : 'draft'}">
-                ${status.charAt(0).toUpperCase() + status.slice(1)}
-              </span>
-              <span style="margin-left:10px;cursor:pointer;color:crimson;"
-                    onclick="deleteStory('${docId}', this)">🗑</span>
-            </td>`;
-          table.appendChild(tr);
-        });
-
-        document.getElementById("total-reads").textContent    = totalReads;
-        document.getElementById("total-likes").textContent    = totalLikes;
-        document.getElementById("total-earnings").textContent = `$${totalEarnings.toFixed(2)}`;
-      } catch (err) {
-        console.error("Error fetching stories from Firestore:", err);
-        showStatus("Error loading your stories. See console for details.");
       }
-    }
 
-    // ─── CREATE / OPEN / DELETE STORY FUNCTIONS ────────────────────────────────────
-    function createNewStory() {
-      const newId = "story-" + Date.now();
-      localStorage.setItem("currentStoryId", newId);
-      window.location.href = "new-story.html";
-    }
-
-    function openStory(storyId) {
-      console.log("Opening story:", storyId);
-      localStorage.setItem("currentStoryId", storyId);
-      window.location.href = "new-story.html";
-    }
-
-    async function deleteStory(storyId, iconElement) {
-      const user = auth.currentUser;
-      if (!user) {
-        showStatus("Cannot delete: no user logged in.");
-        console.error("deleteStory called with no user");
-        window.setTimeout(() => window.location.href = "login.html", 1000);
-        return;
+      // 3) Update Firebase Auth password, if provided
+      if (newPassword) {
+        try {
+          await updatePassword(auth.currentUser, newPassword);
+          console.log("Auth password updated");
+        } catch (err) {
+          console.error("Error updating password:", err);
+          showStatus("Failed to update password: " + err.message);
+          return;
+        }
       }
-      const uid = user.uid;
-      console.log("Deleting story", storyId, "for user", uid);
 
-      const docRef = doc(db, "users", uid, "stories", storyId);
-
-      if (!confirm("Delete this story?")) return;
-      try {
-        await deleteDoc(docRef);
-        iconElement.closest("tr").remove();
-      } catch (err) {
-        console.error("Failed to delete story:", err);
-        showStatus("Failed to delete story. Check console for details.");
-      }
-    }
-
-    // ─── “NEW STORY” BUTTON SETUP ──────────────────────────────────────────────────
-    window.addEventListener("DOMContentLoaded", () => {
-      console.log("DOMContentLoaded fired");
-      const newBtn = document.getElementById("new-story-btn");
-      if (newBtn) newBtn.addEventListener("click", createNewStory);
+      showStatus("Settings saved successfully!");
+      document.getElementById("password").value = ""; // clear password field
     });
   </script>
 </body>
