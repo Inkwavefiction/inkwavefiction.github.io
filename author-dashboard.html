@@ -1,15 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <script>
-    window.allowedRoles = ["author", "both"];
-  </script>
-  <script src="role-guard.js"></script>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Author Dashboard – Inkwave</title>
 
+  <!-- 1) Write userRole before loading role-guard.js -->
+  <script>
+    // We know the author-dashboard page should only be viewed by an author,
+    // so set sessionStorage.userRole = "author" right away.
+    sessionStorage.setItem('userRole', 'author');
+    // Now declare which roles are allowed on this page:
+    window.allowedRoles = ["author", "both"];
+  </script>
+  <script src="role-guard.js"></script>
+
+  <!-- FONT + STYLES -->
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -119,10 +125,6 @@
   </style>
 </head>
 <body>
-  <script>
-    sessionStorage.setItem('userRole','author');
-  </script>
-
   <div class="sidebar">
     <h2>Inkwave</h2>
     <div class="section">
@@ -200,11 +202,13 @@
     </table>
   </div>
 
+  <!-- FIREBASE SDKS -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
   <script>
+    // ─── FIREBASE INITIALIZATION ───────────────────────────────────────────────
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0JEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -216,6 +220,7 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.firestore();
 
+    // ─── NEW STORY / OPEN STORY / DELETE STORY ───────────────────────────────────
     function createNewStory() {
       const newId = "story-" + Date.now();
       localStorage.setItem("currentStoryId", newId);
@@ -243,48 +248,62 @@
         });
     }
 
+    // ─── ON AUTH STATE CHANGE ────────────────────────────────────────────────────
     firebase.auth().onAuthStateChanged(user => {
-      if (!user) return window.location.href = "login.html";
+      if (!user) {
+        // If nobody is signed in, send them back to login.
+        return window.location.href = "login.html";
+      }
 
-      db.collection("users").doc(user.uid).collection("stories").get().then(snapshot => {
-        const table = document.getElementById("story-table");
-        table.innerHTML = "";
-        if (snapshot.empty) {
-          table.innerHTML = '<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>';
-          return;
-        }
-        let totalReads = 0, totalLikes = 0, totalEarnings = 0;
-        snapshot.forEach(doc => {
-          const s = doc.data();
-          const title   = s.title   || "(Untitled)";
-          const reads   = s.reads    || 0;
-          const likes   = s.likes    || 0;
-          const revenue = s.revenue  || 0;
-          const status  = s.status   || "draft";
-          totalReads    += isNaN(reads)   ? 0 : reads;
-          totalLikes    += isNaN(likes)   ? 0 : likes;
-          totalEarnings += isNaN(revenue) ? 0 : revenue;
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-            <td><a href="#" class="story-link" onclick="openStory('${doc.id}')">${title}</a></td>
-            <td>${reads}</td>
-            <td>${likes}</td>
-            <td>$${revenue.toFixed(2)}</td>
-            <td>
-              <span class="badge ${status==='published'?'published':'draft'}">
-                ${status.charAt(0).toUpperCase()+status.slice(1)}
-              </span>
-              <span style="margin-left:10px;cursor:pointer;color:crimson;"
-                    onclick="deleteStory('${doc.id}', this)">🗑</span>
-            </td>`;
-          table.appendChild(tr);
+      db.collection("users").doc(user.uid).collection("stories").get()
+        .then(snapshot => {
+          const table = document.getElementById("story-table");
+          table.innerHTML = ""; // clear “Loading...” row
+
+          if (snapshot.empty) {
+            table.innerHTML = '<tr><td colspan="5" class="no-stories">You haven’t created any stories yet.</td></tr>';
+            return;
+          }
+
+          let totalReads = 0, totalLikes = 0, totalEarnings = 0;
+          snapshot.forEach(docSnap => {
+            const s = docSnap.data();
+            const title   = s.title   || "(Untitled)";
+            const reads   = s.reads    || 0;
+            const likes   = s.likes    || 0;
+            const revenue = s.revenue  || 0;
+            const status  = s.status   || "draft";
+
+            totalReads    += isNaN(reads)   ? 0 : reads;
+            totalLikes    += isNaN(likes)   ? 0 : likes;
+            totalEarnings += isNaN(revenue) ? 0 : revenue;
+
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td><a href="#" class="story-link" onclick="openStory('${docSnap.id}')">${title}</a></td>
+              <td>${reads}</td>
+              <td>${likes}</td>
+              <td>$${revenue.toFixed(2)}</td>
+              <td>
+                <span class="badge ${status === 'published' ? 'published' : 'draft'}">
+                  ${status.charAt(0).toUpperCase() + status.slice(1)}
+                </span>
+                <span style="margin-left:10px;cursor:pointer;color:crimson;"
+                      onclick="deleteStory('${docSnap.id}', this)">🗑</span>
+              </td>`;
+            table.appendChild(tr);
+          });
+
+          document.getElementById("total-reads").textContent    = totalReads;
+          document.getElementById("total-likes").textContent    = totalLikes;
+          document.getElementById("total-earnings").textContent = `$${totalEarnings.toFixed(2)}`;
+        })
+        .catch(err => {
+          console.error("Error fetching stories:", err);
         });
-        document.getElementById("total-reads").textContent    = totalReads;
-        document.getElementById("total-likes").textContent    = totalLikes;
-        document.getElementById("total-earnings").textContent = `$${totalEarnings.toFixed(2)}`;
-      });
     });
 
+    // ─── SET UP “NEW STORY” BUTTON ───────────────────────────────────────────────
     window.addEventListener("DOMContentLoaded", () => {
       const newBtn = document.getElementById("new-story-btn");
       if (newBtn) newBtn.addEventListener("click", createNewStory);
