@@ -258,8 +258,8 @@
       dateJoinedField.value = new Date(user.metadata.creationTime).toLocaleDateString();
       avatarPreview.src     = user.photoURL || "https://placehold.co/80x80";
 
-      // Load author profile
-      const doc = await db.collection("authors").doc(user.uid).get().catch(()=>null);
+      // Load author profile from users/{uid}
+      const doc = await db.collection("users").doc(user.uid).get().catch(() => null);
       if (doc && doc.exists) {
         const data = doc.data();
         usernameField.value = data.displayName || "";
@@ -283,14 +283,26 @@
         if (avatarFile) {
           photoURL = await uploadToCloudinary(avatarFile);
         }
+
         // 2) update Firebase Auth profile
         await currentUser.updateProfile({ displayName: username, photoURL });
+
         // 3) update email if changed
         if (email !== currentUser.email) {
           await currentUser.updateEmail(email);
         }
-        // 4) write to Firestore
-        await db.collection("authors").doc(currentUser.uid).set({
+
+        // DEBUG: show exactly what we’re writing
+        console.log("About to write user profile to users/", currentUser.uid, {
+          displayName: username,
+          bio,
+          email,
+          photoURL,
+          dateJoined: currentUser.metadata.creationTime
+        });
+
+        // 4) write to Firestore under users/{uid}
+        await db.collection("users").doc(currentUser.uid).set({
           displayName: username,
           bio,
           email,
@@ -298,9 +310,10 @@
           dateJoined: currentUser.metadata.creationTime
         }, { merge: true });
 
+        console.log("→ Profile (including bio) saved successfully under users/" + currentUser.uid);
         alert("Profile updated!");
       } catch (err) {
-        console.error(err);
+        console.error("Error writing to Firestore:", err);
         alert("Error: " + err.message);
       }
     });
@@ -310,7 +323,8 @@
       e.preventDefault();
       if (!confirm("Are you sure you want to delete your account?")) return;
       try {
-        await db.collection("authors").doc(currentUser.uid).delete();
+        // Delete Firestore doc from users/{uid} then delete auth user
+        await db.collection("users").doc(currentUser.uid).delete();
         await currentUser.delete();
         alert("Account deleted.");
         location.href = "signup.html";
