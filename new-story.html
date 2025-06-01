@@ -190,12 +190,27 @@
     if (docSnap.exists) {
       const data = docSnap.data();
       document.getElementById("story-title").value = data.title || "";
-      Object.entries(data.sections || {}).forEach(([name, section]) => {
-        sectionData[name] = { content: section.content || "" };
-      });
-      (data.sectionOrder || Object.keys(sectionData)).forEach(name => {
-        if (sectionData[name]) sectionOrder.push(name);
-      });
+      // If there's a published version, load it; otherwise, load draft or blank
+      const sourceData = data; 
+      // If the story is published but has a draft object, load the draft sections/title.
+      if (data.status === "published" && data.draft) {
+        document.getElementById("story-title").value = data.draft.title || data.title;
+        Object.entries(data.draft.sections || {}).forEach(([name, section]) => {
+          sectionData[name] = { content: section.content || "" };
+        });
+        (data.draft.sectionOrder || Object.keys(sectionData)).forEach(name => {
+          if (sectionData[name]) sectionOrder.push(name);
+        });
+      } else {
+        // Either still in draft, or published-without-draft. Load main fields.
+        Object.entries(data.sections || {}).forEach(([name, section]) => {
+          sectionData[name] = { content: section.content || "" };
+        });
+        (data.sectionOrder || Object.keys(sectionData)).forEach(name => {
+          if (sectionData[name]) sectionOrder.push(name);
+        });
+      }
+
       renderSections();
       if (sectionOrder.length > 0) {
         switchSection(sectionOrder[0]);
@@ -271,30 +286,48 @@
     });
   }
 
-  function saveDraft(manual = false) {
+  // Updated saveDraft: if story is already published, send new edits to `draft` field
+  async function saveDraft(manual = false) {
     if (!currentUser || !storyId || !currentSection) return;
 
     const title = document.getElementById("story-title").value;
     sectionData[currentSection].content = quill.root.innerHTML;
-
     document.getElementById("save-status").textContent = "Saving...";
 
-    db.collection("users").doc(currentUser.uid).collection("stories").doc(storyId).set({
-      title,
-      status: "draft",
-      sections: sectionData,
-      sectionOrder
-    }).then(() => {
+    const docRef = db.collection("users").doc(currentUser.uid).collection("stories").doc(storyId);
+    try {
+      const snap = await docRef.get();
+      if (snap.exists && snap.data().status === "published") {
+        // Story is already published → update only the draft object
+        await docRef.update({
+          draft: {
+            title,
+            sections: sectionData,
+            sectionOrder: sectionOrder,
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+          }
+        });
+      } else {
+        // Story is still a draft (or new) → overwrite main fields as before
+        await docRef.set({
+          title,
+          status: "draft",
+          sections: sectionData,
+          sectionOrder: sectionOrder,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }
       hasUnsavedChanges = false;
       document.getElementById("save-status").textContent = "Saved ✓";
+
       if (manual) {
         alert("Draft saved!");
         window.location.href = "author-dashboard.html";
       }
-    }).catch(err => {
+    } catch (err) {
       console.error("Save error", err);
       alert("Failed to save.");
-    });
+    }
   }
 
   function goToPublish() {
