@@ -171,12 +171,12 @@
 
     <div class="section">
       <div class="section-title">Reader</div>
-              <div class="section-title">Writing Tools</div>
-        <div class="nav-link" id="nav-favorites" onclick="window.location.href='favorites-both.html'">📚 Favorites</div>
-        <div class="nav-link" id="nav-comments" onclick="window.location.href='comments-both.html'">💬 Comments</div>
-        <div class="nav-link" id="nav-following" onclick="window.location.href='following-both.html'">👤 Following</div>
-        <div class="nav-link" id="nav-explore" onclick="window.location.href='explore-both.html'">📰 Explore Stories</div>
-        <div class="nav-link" id="nav-reader-settings" onclick="window.location.href='settings-both.html'">⚙️ Reader Settings</div>
+      <div class="section-title">Writing Tools</div>
+      <div class="nav-link" id="nav-favorites" onclick="window.location.href='favorites-both.html'">📚 Favorites</div>
+      <div class="nav-link" id="nav-comments" onclick="window.location.href='comments-both.html'">💬 Comments</div>
+      <div class="nav-link" id="nav-following" onclick="window.location.href='following-both.html'">👤 Following</div>
+      <div class="nav-link" id="nav-explore" onclick="showReader('explore')">📰 Explore Stories</div>
+      <div class="nav-link" id="nav-reader-settings" onclick="window.location.href='settings-both.html'">⚙️ Reader Settings</div>
     </div>
   </div>
 
@@ -248,7 +248,6 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
-
     let isApproved = false;
 
     // Navigation helpers
@@ -413,41 +412,39 @@
 
     // On load / auth state
     auth.onAuthStateChanged(user => {
-      // 1) If there's no logged-in user, force a redirect to login:
+      // 1) If there's no user, redirect immediately
       if (!user) {
         window.location.href = 'login.html';
         return;
       }
 
-      // 2) Guard #1 → is the user an APPROVED author?
+      // 2) First guard: check "authors/{uid}" for approved status
       db.collection('authors').doc(user.uid).get()
         .then(authorSnap => {
-          if (authorSnap.exists && authorSnap.data().status === 'approved') {
-            // Passed author‐check:
-            isApproved = true;
-            // Show author dashboard
-            document.querySelectorAll('.author-section').forEach(el => el.style.display = 'block');
-            showAuthor();
-          } else {
-            // 3) Author check failed → now guard #2: is the user a READER?
-            // (Here we assume you have a 'readers' collection. If not, treat any auth user as a reader.)
-            db.collection('readers').doc(user.uid).get()
-              .then(readerSnap => {
-                if (readerSnap.exists) {
-                  // Passed reader‐check:
-                  isApproved = false;
-                  document.querySelectorAll('.author-section').forEach(el => el.style.display = 'none');
-                  showReader('explore');
-                } else {
-                  // Both checks failed → no author, no reader → redirect to login:
-                  window.location.href = 'login.html';
-                }
-              })
-              .catch(err => {
-                console.error('Reader‐guard error:', err);
-                window.location.href = 'login.html';
-              });
+          if (!authorSnap.exists || authorSnap.data().status !== 'approved') {
+            // If author check fails, redirect
+            window.location.href = 'login.html';
+            return;
           }
+
+          // 3) Second guard: check "readers/{uid}" existence
+          db.collection('readers').doc(user.uid).get()
+            .then(readerSnap => {
+              if (!readerSnap.exists) {
+                // If reader check fails, redirect
+                window.location.href = 'login.html';
+                return;
+              }
+
+              // Both checks passed → fully authorized as BOTH author & reader
+              isApproved = true;
+              document.querySelectorAll('.author-section').forEach(el => el.style.display = 'block');
+              showAuthor();
+            })
+            .catch(err => {
+              console.error('Reader‐guard error:', err);
+              window.location.href = 'login.html';
+            });
         })
         .catch(err => {
           console.error('Author‐guard error:', err);
