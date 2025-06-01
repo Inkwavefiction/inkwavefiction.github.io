@@ -376,7 +376,6 @@
       try {
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const userData = userDoc.exists ? userDoc.data() : {};
-        // FIX: use saved username field first
         const username = userData.username || userData.displayName || "Anonymous";
         const userPhotoURL = userData.photoURL || "https://placehold.co/32x32";
         await db.collection("comments").add({
@@ -405,7 +404,6 @@
       try {
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const userData = userDoc.exists ? userDoc.data() : {};
-        // FIX: use saved username field first
         const username = userData.username || userData.displayName || "Anonymous";
         const userPhotoURL = userData.photoURL || "https://placehold.co/32x32";
         await db.collection("comments").add({
@@ -444,10 +442,13 @@
         });
         const topComments = comments.filter(c => !c.parentId);
         const replies = {};
-        comments.filter(c => c.parentId).forEach(c => {
-          if (!replies[c.parentId]) replies[c.parentId] = [];
-          replies[c.parentId].push(c);
-        });
+        comments
+          .filter(c => c.parentId)
+          .forEach(c => {
+            if (!replies[c.parentId]) replies[c.parentId] = [];
+            replies[c.parentId].push(c);
+          });
+
         commentList.innerHTML = "";
         topComments.forEach(c => {
           const div = document.createElement("div");
@@ -459,10 +460,12 @@
             </div>
             <div class="comment-content">${c.text || ""}</div>
             <button class="reply-btn" onclick="toggleReplyBox('${c.id}')">Reply</button>
-            <div class="reply-container" id="replycontainer-${c.id}"></div>
+            <!-- FIXED: Use a plain hyphen in the ID -->
+            <div class="reply-container" id="reply-container-${c.id}"></div>
             <div class="replies" id="replies-${c.id}"></div>
           `;
           commentList.appendChild(div);
+
           if (replies[c.id]) {
             const repliesDiv = div.querySelector("#replies-" + c.id);
             replies[c.id].forEach(reply => {
@@ -476,7 +479,8 @@
                 </div>
                 <div class="comment-content">${reply.text || ""}</div>
                 <button class="reply-btn" onclick="toggleReplyBox('${reply.id}')">Reply</button>
-                <div class="reply-container" id="replycontainer-${reply.id}"></div>
+                <!-- FIXED: Use a plain hyphen in the ID -->
+                <div class="reply-container" id="reply-container-${reply.id}"></div>
               `;
               repliesDiv.appendChild(replyDiv);
             });
