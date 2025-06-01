@@ -20,13 +20,13 @@
       color: #333;
     }
 
-    /* Make the cover image span the full viewport width */
+    /* COVER IMAGE IS NOW FIXED TO 50vw × 50vh, CROPPING BOTTOM */
     #cover {
-      width: 100vw;
-      max-width: none;
-      height: auto;
+      width: 50vw;
+      height: 50vh;
       object-fit: cover;
-      display: none; /* Shown only if a URL is set via JS */
+      object-position: top;
+      display: none; /* only becomes visible if JS assigns a URL */
     }
 
     main {
@@ -208,8 +208,8 @@
   </style>
 </head>
 <body>
-  <!-- FIXED: Cover image now sits *above* <main> so it can span 100vw -->
-  <img id="cover" class="cover" alt="Cover Image">
+  <!-- COVER IMAGE (now 50vw × 50vh, cropping any “overflow” off the bottom) -->
+  <img id="cover" alt="Cover Image">
 
   <main>
     <!-- Header Section -->
@@ -386,7 +386,6 @@
       try {
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const userData = userDoc.exists ? userDoc.data() : {};
-        // FIX: use saved username field first
         const username = userData.username || userData.displayName || "Anonymous";
         const userPhotoURL = userData.photoURL || "https://placehold.co/32x32";
         await db.collection("comments").add({
@@ -415,7 +414,6 @@
       try {
         const userDoc = await db.collection("users").doc(currentUser.uid).get();
         const userData = userDoc.exists ? userDoc.data() : {};
-        // FIX: use saved username field first
         const username = userData.username || userData.displayName || "Anonymous";
         const userPhotoURL = userData.photoURL || "https://placehold.co/32x32";
         await db.collection("comments").add({
@@ -516,7 +514,7 @@
         storyData = doc.data();
         authorId = doc.ref.parent.parent.id;
 
-        // Show the cover image at full width if there's a URL
+        // Show the cover image at 50vw × 50vh (cropped top half) if there's a URL
         if (storyData.coverUrl) {
           coverEl.src = storyData.coverUrl;
           coverEl.style.display = "block";
