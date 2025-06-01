@@ -258,17 +258,13 @@
             bioDiv.textContent = "";
           });
 
-          // Fetch all stories by this author (no ordering)
+          // Fetch all stories by this author (first try top-level "stories" collection)
           db.collection("stories")
             .where("authorId", "==", authorId)
             .get()
             .then(storySnapshot => {
-              storiesList.innerHTML = "";
-              if (storySnapshot.empty) {
-                const li = document.createElement("li");
-                li.textContent = "No stories yet.";
-                storiesList.appendChild(li);
-              } else {
+              if (!storySnapshot.empty) {
+                storiesList.innerHTML = "";
                 storySnapshot.forEach(storyDoc => {
                   const storyData = storyDoc.data();
                   const li = document.createElement("li");
@@ -279,6 +275,31 @@
                   li.appendChild(storyLink);
                   storiesList.appendChild(li);
                 });
+              } else {
+                // Fallback: check if stories are stored under users/{authorId}/stories
+                db.collection("users").doc(authorId).collection("stories").get()
+                  .then(fallbackSnapshot => {
+                    storiesList.innerHTML = "";
+                    if (!fallbackSnapshot.empty) {
+                      fallbackSnapshot.forEach(storyDoc => {
+                        const storyData = storyDoc.data();
+                        const li = document.createElement("li");
+                        const storyLink = document.createElement("a");
+                        storyLink.textContent = storyData.title || "Untitled Story";
+                        storyLink.href = `story.html?sid=${storyDoc.id}`;
+                        storyLink.target = "_blank";
+                        li.appendChild(storyLink);
+                        storiesList.appendChild(li);
+                      });
+                    } else {
+                      const li = document.createElement("li");
+                      li.textContent = "No stories yet.";
+                      storiesList.appendChild(li);
+                    }
+                  })
+                  .catch(() => {
+                    storiesList.innerHTML = "<li>Error loading stories</li>";
+                  });
               }
             })
             .catch(() => {
