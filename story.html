@@ -12,27 +12,37 @@
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Poppins&display=swap" rel="stylesheet">
 
   <style>
-    /* Global Styles */
     body {
       margin: 0;
       font-family: 'Poppins', sans-serif;
       background: #fafafa;
       color: #333;
     }
-    /* COVER IMAGE: full-width, fixed to 50vh, cropping bottom half */
-    #cover {
-      width: 100vw;
-      height: 50vh;
-      object-fit: cover;
-      object-position: top;
-      display: none; /* only shown for logged-in readers */
-    }
     main {
       max-width: 700px;
       margin: 2rem auto;
       padding: 0;
     }
-    /* Header Styles */
+    /* Signup prompt styling */
+    #signupPrompt {
+      text-align: center;
+      font-style: italic;
+      color: #555;
+      margin: 3rem 0;
+    }
+    #signupPrompt a {
+      color: #789a91;
+      text-decoration: underline;
+    }
+    /* COVER IMAGE */
+    #cover {
+      width: 100vw;
+      height: 50vh;
+      object-fit: cover;
+      object-position: top;
+      margin-bottom: 1rem;
+    }
+    /* Header */
     .header {
       text-align: center;
       padding: 0 1rem;
@@ -55,7 +65,6 @@
       align-items: center;
       gap: 15px;
       margin-bottom: 1rem;
-      display: none; /* only for logged-in readers */
     }
     .author-box img {
       width: 50px;
@@ -69,17 +78,14 @@
       color: #444;
     }
     .stats {
-      display: none; /* only for logged-in readers */
+      display: flex;
       justify-content: center;
       gap: 30px;
       margin: 1rem 0;
       font-size: 1rem;
       color: #777;
     }
-    .stats > div {
-      display: inline-block;
-    }
-    /* Story Section Styles */
+    /* Story Section */
     .section-title {
       font-size: 2rem;
       color: #333;
@@ -87,7 +93,6 @@
       border-bottom: 1px solid #ddd;
       padding-bottom: 0.25rem;
       text-align: left;
-      display: none; /* only for logged-in readers */
     }
     .section-content {
       font-size: 1.2rem;
@@ -95,11 +100,10 @@
       margin-bottom: 2rem;
       color: #444;
       text-align: left;
-      display: none; /* only for logged-in readers */
     }
     /* Navigation Buttons */
     .nav-buttons {
-      display: none; /* only for logged-in readers */
+      display: flex;
       flex-wrap: wrap;
       justify-content: center;
       gap: 10px;
@@ -123,13 +127,22 @@
       color: #666;
       cursor: not-allowed;
     }
-    /* Comments & Replies Styling */
+    .back-link {
+      display: inline-block;
+      margin-top: 1rem;
+      color: #789a91;
+      text-decoration: none;
+      font-size: 1rem;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    /* Comments */
     .comments-section {
       margin-top: 2rem;
       padding-top: 1rem;
       border-top: 1px solid #ddd;
       text-align: left;
-      display: none; /* only for logged-in readers */
     }
     .comments-section h2 {
       font-family: 'Playfair Display', serif;
@@ -186,7 +199,6 @@
       border-radius: 4px;
       resize: vertical;
       margin-top: 0.5rem;
-      display: none; /* only for logged-in readers */
     }
     .post-comment-btn, .post-reply-btn {
       margin-top: 0.5rem;
@@ -197,66 +209,66 @@
       border-radius: 4px;
       cursor: pointer;
       transition: background 0.3s ease;
-      display: none; /* only for logged-in readers */
     }
     .post-comment-btn:hover, .post-reply-btn:hover {
       background-color: #647a81;
     }
-    /* Signup prompt for guests */
-    .signup-prompt {
-      text-align: center;
-      font-style: italic;
-      color: #555;
-      margin: 3rem 0;
-    }
-    .signup-prompt a {
-      color: #789a91;
-      text-decoration: underline;
-    }
   </style>
 </head>
 <body>
-  <!-- COVER IMAGE for readers only -->
-  <img id="cover" alt="Cover Image">
-
   <main>
-    <div class="header">
-      <h1 id="title">Loading...</h1>
-      <div class="blurb" id="blurb"></div>
-      <div id="authorInfo" class="author-box">
-        <a id="authorProfileLink" href="#" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: inherit;">
-          <img id="authorPhoto" src="" alt="Author Photo">
-          <div class="name" id="authorName"></div>
-        </a>
+    <!-- Signup prompt (visible to guests) -->
+    <div id="signupPrompt">
+      Please sign up as a reader to see this story.
+      <br/>
+      <a href="signup.html">Sign up now</a>
+    </div>
+
+    <!-- Story container (hidden by default, shown after login) -->
+    <div id="storyContainer" style="display: none;">
+      <!-- Cover Image -->
+      <img id="cover" alt="Cover Image">
+
+      <!-- Header Section -->
+      <div class="header">
+        <h1 id="title">Loading...</h1>
+        <div class="blurb" id="blurb"></div>
+        <div id="authorInfo" class="author-box">
+          <a id="authorProfileLink" href="#" style="display: flex; align-items: center; gap: 15px; text-decoration: none; color: inherit;">
+            <img id="authorPhoto" src="" alt="Author Photo">
+            <div class="name" id="authorName"></div>
+          </a>
+        </div>
+        <div class="stats">
+          <div>Views: <span id="viewCount">0</span></div>
+          <div>Likes: <span id="likeCount">0</span></div>
+        </div>
       </div>
-      <div class="stats">
-        <div>Views: <span id="viewCount">0</span></div>
-        <div>Likes: <span id="likeCount">0</span></div>
+
+      <!-- Story Section -->
+      <div class="section-title" id="section-name"></div>
+      <div class="section-content" id="section-content"></div>
+
+      <!-- Navigation Buttons -->
+      <div class="nav-buttons" id="navButtons">
+        <button id="prevBtn">← Previous</button>
+        <button id="nextBtn">Next →</button>
+        <button id="favBtn">❤️ Favorite</button>
+        <button id="followBtn">👤 Follow Author</button>
       </div>
-    </div>
 
-    <!-- Story Content (readers only) -->
-    <div class="section-title" id="section-name"></div>
-    <div class="section-content" id="section-content"></div>
+      <!-- Comments Section -->
+      <div class="comments-section" id="commentsSection">
+        <h2>Comments</h2>
+        <div id="commentList"></div>
+        <textarea id="newComment" rows="3" placeholder="Write a new comment..."></textarea>
+        <button class="post-comment-btn" id="postCommentBtn">Post Comment</button>
+      </div>
 
-    <div class="nav-buttons" id="navButtons">
-      <button id="prevBtn">← Previous</button>
-      <button id="nextBtn">Next →</button>
-      <button id="favBtn">❤️ Favorite</button>
-      <button id="followBtn">👤 Follow Author</button>
-    </div>
-
-    <!-- Comments (readers only) -->
-    <div class="comments-section" id="commentsSection">
-      <h2>Comments</h2>
-      <div id="commentList"></div>
-      <textarea id="newComment" rows="3" placeholder="Write a new comment..."></textarea>
-      <button class="post-comment-btn" id="postCommentBtn">Post Comment</button>
-    </div>
-
-    <!-- Back to Stories -->
-    <div style="text-align: center; margin-top: 2rem;">
-      <a href="explore.html" class="back-link">← Back to stories</a>
+      <!-- Back to Stories -->
+      <div style="text-align: center; margin-top: 2rem;">
+        <a href="explore.html" class="back-link">← Back to stories</a>
+      </div>
     </div>
   </main>
 
@@ -273,27 +285,29 @@
 
     const storyId = new URLSearchParams(window.location.search).get("storyId");
 
-    // 2) Grab DOM references
-    const coverEl           = document.getElementById("cover");
-    const titleEl           = document.getElementById("title");
-    const blurbEl           = document.getElementById("blurb");
-    const authorInfoBox     = document.getElementById("authorInfo");
-    const authorNameEl      = document.getElementById("authorName");
-    const authorPhotoEl     = document.getElementById("authorPhoto");
-    const authorProfileLink = document.getElementById("authorProfileLink");
-    const viewCountEl       = document.getElementById("viewCount");
-    const likeCountEl       = document.getElementById("likeCount");
-    const sectionTitleEl    = document.getElementById("section-name");
-    const sectionContentEl  = document.getElementById("section-content");
-    const navButtons        = document.getElementById("navButtons");
-    const prevBtn           = document.getElementById("prevBtn");
-    const nextBtn           = document.getElementById("nextBtn");
-    const favBtn            = document.getElementById("favBtn");
-    const followBtn         = document.getElementById("followBtn");
-    const commentsSection   = document.getElementById("commentsSection");
-    const commentList       = document.getElementById("commentList");
-    const newCommentTA      = document.getElementById("newComment");
-    const postCommentBtn    = document.getElementById("postCommentBtn");
+    // 2) DOM references
+    const signupPrompt     = document.getElementById("signupPrompt");
+    const storyContainer   = document.getElementById("storyContainer");
+    const coverEl          = document.getElementById("cover");
+    const titleEl          = document.getElementById("title");
+    const blurbEl          = document.getElementById("blurb");
+    const authorInfoBox    = document.getElementById("authorInfo");
+    const authorNameEl     = document.getElementById("authorName");
+    const authorPhotoEl    = document.getElementById("authorPhoto");
+    const authorProfileLink= document.getElementById("authorProfileLink");
+    const viewCountEl      = document.getElementById("viewCount");
+    const likeCountEl      = document.getElementById("likeCount");
+    const sectionTitleEl   = document.getElementById("section-name");
+    const sectionContentEl = document.getElementById("section-content");
+    const navButtons       = document.getElementById("navButtons");
+    const prevBtn          = document.getElementById("prevBtn");
+    const nextBtn          = document.getElementById("nextBtn");
+    const favBtn           = document.getElementById("favBtn");
+    const followBtn        = document.getElementById("followBtn");
+    const commentsSection  = document.getElementById("commentsSection");
+    const commentList      = document.getElementById("commentList");
+    const newCommentTA     = document.getElementById("newComment");
+    const postCommentBtn   = document.getElementById("postCommentBtn");
 
     let sectionKeys = [];
     let currentIndex = 0;
@@ -302,33 +316,21 @@
     let authorId = null;
     let currentUser = null;
 
-    // 3) If not signed in, show signup prompt and hide everything else
+    // 3) Show signup prompt; hide story container
     function showSignupPrompt() {
-      coverEl.style.display = "none";
-      blurbEl.textContent = "";
-      titleEl.textContent = "";
-      authorInfoBox.style.display = "none";
-      viewCountEl.textContent = "";
-      likeCountEl.textContent = "";
-
-      sectionTitleEl.style.display = "none";
-      sectionContentEl.style.display = "none";
-      navButtons.style.display = "none";
-      commentsSection.style.display = "none";
-
-      // Inject a single “please sign up” message in section-content
-      sectionContentEl.style.display = "block";
-      sectionContentEl.innerHTML = `
-        <p class="signup-prompt">
-          Please sign up as a reader to see this story. 
-          <a href="signup.html">Sign up now</a>
-        </p>
-      `;
+      signupPrompt.style.display = "block";
+      storyContainer.style.display = "none";
     }
 
-    // 4) Once we confirm the user is signed in, fetch the story and render everything
+    // 4) Show story container; hide signup prompt
+    function showStoryContainer() {
+      signupPrompt.style.display = "none";
+      storyContainer.style.display = "block";
+    }
+
+    // 5) Fetch and render story for a signed-in user
     async function fetchAndRenderStory() {
-      // 4a) Get the story document via collectionGroup
+      // 5a) Get the story document
       const snap = await db.collectionGroup("stories")
         .where("id", "==", storyId)
         .get();
@@ -340,24 +342,23 @@
       storyData = doc.data();
       authorId = doc.ref.parent.parent.id;
 
-      // 4b) Increment reads counter
+      // 5b) Increment reads counter
       const storyRef = db.collection("users")
         .doc(authorId)
         .collection("stories")
         .doc(storyId);
       await storyRef.update({ reads: firebase.firestore.FieldValue.increment(1) });
 
-      // 4c) Show cover, title, blurb, stats, author info
+      // 5c) Populate header
       if (storyData.coverUrl) {
         coverEl.src = storyData.coverUrl;
-        coverEl.style.display = "block";
       }
       titleEl.textContent = storyData.title || "Untitled";
       blurbEl.textContent = storyData.blurb || "";
       viewCountEl.textContent = storyData.reads ?? 0;
       likeCountEl.textContent = storyData.likes ?? 0;
-      authorInfoBox.style.display = "flex";
 
+      // 5d) Populate author info
       const authorDoc = await db.collection("authors").doc(authorId).get();
       if (authorDoc.exists) {
         const aData = authorDoc.data();
@@ -366,22 +367,16 @@
         authorProfileLink.href = `author-profile.html?authorId=${authorId}`;
       }
 
-      // 4d) Prepare and show the first content section
+      // 5e) Prepare sections
       sections = storyData.sections || {};
       sectionKeys = storyData.sectionOrder || Object.keys(sections);
       currentIndex = 0;
       renderCurrentSection();
 
-      // 4e) Show nav, comments
-      sectionTitleEl.style.display = "block";
-      sectionContentEl.style.display = "block";
-      navButtons.style.display = "flex";
-      commentsSection.style.display = "block";
-
-      // 4f) Load comments
+      // 5f) Load comments
       loadComments();
 
-      // 4g) If already favorited, disable favBtn
+      // 5g) Disable “Favorite” if already favorited
       const favDoc = await db.collection("users")
         .doc(currentUser.uid)
         .collection("favorites")
@@ -393,7 +388,7 @@
       }
     }
 
-    // 5) Render the currently selected section
+    // 6) Render the currently selected section
     function renderCurrentSection() {
       const key = sectionKeys[currentIndex];
       const rawHtml = sections[key].content || "";
@@ -405,7 +400,7 @@
       nextBtn.disabled = currentIndex === sectionKeys.length - 1;
     }
 
-    // 6) Button handlers
+    // 7) Button handlers
     prevBtn.addEventListener("click", () => {
       if (currentIndex > 0) {
         currentIndex--;
@@ -600,30 +595,15 @@
       }
     }
 
-    // 7) Main gate: run this after Firebase Auth state changes
+    // 8) Check auth state: if no user, show signup; if user, show story
     auth.onAuthStateChanged(async user => {
       currentUser = user;
-
       if (!currentUser) {
-        // not signed in → show sign-up prompt, do not fetch story
         showSignupPrompt();
         return;
       }
-
-      // signed in → fetch & render full story
-      // ensure all “reader only” elements become visible
-      coverEl.style.display = "block";
-      blurbEl.style.display = "block";
-      titleEl.style.display = "block";
-      authorInfoBox.style.display = "flex";
-      document.querySelector(".stats").style.display = "flex";
-      sectionTitleEl.style.display = "block";
-      sectionContentEl.style.display = "block";
-      navButtons.style.display = "flex";
-      commentsSection.style.display = "block";
-      newCommentTA.style.display = "block";
-      postCommentBtn.style.display = "block";
-
+      // Signed in → show story container and fetch content
+      showStoryContainer();
       await fetchAndRenderStory();
     });
   </script>
