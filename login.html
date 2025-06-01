@@ -24,6 +24,7 @@
       max-width: 600px;
       width: 100%;
       text-align: center;
+      position: relative;
     }
     h1 {
       font-family: 'Playfair Display', serif;
@@ -159,7 +160,7 @@
       <label for="author-password">Password</label>
       <input type="password" id="author-password" placeholder="Your password" />
     </div>
-    <button class="login-btn" id="author-login-btn">Log In</button>
+    <button class="login-btn" id="author-login-btn">Log In as Author</button>
     <div class="note">New here? <a href="become-author.html">Apply to be an author</a></div>
   </div>
 
@@ -173,7 +174,7 @@
       <label for="reader-password">Password</label>
       <input type="password" id="reader-password" />
     </div>
-    <button class="login-btn" id="reader-login-btn">Log In</button>
+    <button class="login-btn" id="reader-login-btn">Log In as Reader</button>
     <div class="signup-link" id="show-reader-signup">Not a reader yet? Sign up here :)</div>
   </div>
 
@@ -209,7 +210,7 @@
       <label for="both-password">Password</label>
       <input type="password" id="both-password" placeholder="Your password" />
     </div>
-    <button class="login-btn" id="both-login-btn">Log In</button>
+    <button class="login-btn" id="both-login-btn">Log In as Both</button>
     <div class="signup-link">You can create a both account from within your singular account.</div>
   </div>
 
@@ -233,29 +234,29 @@
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+  // ─── INITIALIZE FIREBASE (modular) ─────────────────────────────────────────────
   const firebaseConfig = {
-    apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
+    apiKey: "AIzaSyAJRW3QHNYAucAn0JEN-w7CJfOAa0NzIE",
     authDomain: "inkwave-549c0.firebaseapp.com",
     projectId: "inkwave-549c0",
     storageBucket: "inkwave-549c0.appspot.com",
     messagingSenderId: "1084811926133",
     appId: "1:1084811926133:web:f1656fce68d5c4d697363c"
   };
-
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
+  // ─── ROLE TOGGLE HANDLERS ───────────────────────────────────────────────────────
   const authorBtn = document.getElementById("author-btn");
   const readerBtn = document.getElementById("reader-btn");
-  const bothBtn = document.getElementById("both-btn");
-  const authorForm = document.getElementById("author-form");
+  const bothBtn   = document.getElementById("both-btn");
+  const authorForm  = document.getElementById("author-form");
   const readerLogin = document.getElementById("reader-login");
-  const readerSignup = document.getElementById("reader-signup");
-  const signupForm = document.getElementById("signup-form");
-  const bothLogin = document.getElementById("both-login");
-  const errorMsg = document.getElementById("error-msg");
-
+  const readerSignup= document.getElementById("reader-signup");
+  const signupForm  = document.getElementById("signup-form");
+  const bothLogin   = document.getElementById("both-login");
+  const errorMsg    = document.getElementById("error-msg");
   let selectedPlan = "beta";
 
   authorBtn.onclick = () => {
@@ -302,6 +303,7 @@
     signupForm.classList.add("active");
   };
 
+  // ─── READER SIGNUP ─────────────────────────────────────────────────────────────
   document.getElementById("signup-btn").onclick = async () => {
     const email = document.getElementById("signup-email").value.trim();
     const password = document.getElementById("signup-password").value.trim();
@@ -317,6 +319,7 @@
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
 
+      // Create Firestore document with role=["reader"]
       await setDoc(doc(db, "users", uid), {
         email,
         role: ["reader"],
@@ -331,6 +334,7 @@
     }
   };
 
+  // ─── READER LOGIN ───────────────────────────────────────────────────────────────
   document.getElementById("reader-login-btn").onclick = async () => {
     const email = document.getElementById("reader-email").value.trim();
     const password = document.getElementById("reader-password").value.trim();
@@ -339,16 +343,15 @@
     try {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
+
+      // Ensure Firestore users/{uid} exists with role including "reader"
       await setDoc(doc(db, "users", uid), {
-        joinedAt: serverTimestamp()
+        role: ["reader"],
+        lastLogin: serverTimestamp()
       }, { merge: true });
 
+      // Verify Firestore document
       const userDoc = await getDoc(doc(db, "users", uid));
-      if (!userDoc.exists()) {
-        errorMsg.textContent = "No reader profile found.";
-        return;
-      }
-
       const data = userDoc.data();
       if (!data.role || !data.role.includes("reader")) {
         errorMsg.textContent = "This account is not registered as a reader.";
@@ -362,6 +365,7 @@
     }
   };
 
+  // ─── AUTHOR LOGIN ──────────────────────────────────────────────────────────────
   document.getElementById("author-login-btn").onclick = async () => {
     const email = document.getElementById("author-email").value.trim();
     const password = document.getElementById("author-password").value.trim();
@@ -373,68 +377,51 @@
     }
 
     try {
-      // 1) Sign in
+      // 1) Sign in with Firebase Auth
       const userCred = await signInWithEmailAndPassword(auth, email, password);
-      const user = userCred.user;
-      const uid = user.uid;
+      const uid = userCred.user.uid;
 
-      // 2) Check author‐application status
-      const docRef = doc(db, "authors", uid);
-      const docSnap = await getDoc(docRef);
+      // 2) Check Firestore authors/{uid} document for status
+      const authorDocRef = doc(db, "authors", uid);
+      const authorDocSnap = await getDoc(authorDocRef);
 
-      if (!docSnap.exists()) {
+      if (!authorDocSnap.exists()) {
         errorMsg.textContent = "You haven't submitted an author application yet.";
         return;
       }
 
-      const status = docSnap.data().status;
+      const status = authorDocSnap.data().status;
+      if (status !== "approved" && status !== "pending") {
+        errorMsg.textContent = (status === "denied")
+          ? "Your author application was denied."
+          : "Unknown application status. Please contact support.";
+        return;
+      }
 
-      if (status === "approved") {
-        // 3) **Write “author” into users/{uid}.role** so that role‐guard on author-dashboard can see it
-        await updateDoc(doc(db, "users", uid), {
-          role: ["author"],
-          lastLogin: serverTimestamp()
-        }).catch(async err => {
-          // If the users/{uid} doc doesn’t exist yet, create it with merge: true
-          await setDoc(doc(db, "users", uid), {
-            role: ["author"],
-            lastLogin: serverTimestamp()
-          }, { merge: true });
-        });
+      // 3) Write Firestore users/{uid}.role = ["author"]
+      await setDoc(doc(db, "users", uid), {
+        role: ["author"],
+        lastLogin: serverTimestamp()
+      }, { merge: true });
 
-        sessionStorage.setItem("userRole", "author");
+      // 4) Store session flag
+      sessionStorage.setItem("userRole", "author");
 
-        const seenWelcome = localStorage.getItem("seenWelcome");
-        if (!seenWelcome) {
-          localStorage.setItem("seenWelcome", "true");
-          window.location.href = "approved.html";
-        } else {
-          window.location.href = "author-dashboard.html";
-        }
-      } else if (status === "pending") {
-        // If they’re pending, we still tag them as “author” so they won’t bounce out immediately
-        await updateDoc(doc(db, "users", uid), {
-          role: ["author"],
-          lastLogin: serverTimestamp()
-        }).catch(async () => {
-          await setDoc(doc(db, "users", uid), {
-            role: ["author"],
-            lastLogin: serverTimestamp()
-          }, { merge: true });
-        });
-
-        sessionStorage.setItem("userRole", "author");
-        window.location.href = "dashboard.html";
-      } else if (status === "denied") {
-        errorMsg.textContent = "Your author application was denied.";
+      // 5) Redirect
+      const seenWelcome = localStorage.getItem("seenWelcome");
+      if (!seenWelcome && status === "approved") {
+        localStorage.setItem("seenWelcome", "true");
+        window.location.href = "approved.html";
       } else {
-        errorMsg.textContent = "Unknown status. Please contact support.";
+        window.location.href = "author-dashboard.html";
       }
     } catch (err) {
+      console.error("Author login error:", err);
       errorMsg.textContent = "Login failed. Please check your credentials.";
     }
   };
 
+  // ─── BOTH LOGIN ────────────────────────────────────────────────────────────────
   document.getElementById("both-login-btn").onclick = async () => {
     const email = document.getElementById("both-email").value.trim();
     const password = document.getElementById("both-password").value.trim();
@@ -448,19 +435,17 @@
     try {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
-      await updateDoc(doc(db, "users", uid), {
+
+      // Write role=["author","reader"] in Firestore users/{uid}
+      await setDoc(doc(db, "users", uid), {
         role: ["author", "reader"],
         lastLogin: serverTimestamp()
-      }).catch(async () => {
-        await setDoc(doc(db, "users", uid), {
-          role: ["author", "reader"],
-          lastLogin: serverTimestamp()
-        }, { merge: true });
-      });
+      }, { merge: true });
 
       sessionStorage.setItem("userRole", "both");
       window.location.href = "both-dashboard.html";
     } catch (err) {
+      console.error("Both login error:", err);
       errorMsg.textContent = "Login failed. Please check your credentials.";
     }
   };
