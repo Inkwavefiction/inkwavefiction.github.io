@@ -75,7 +75,7 @@
 
     <div class="signup-prompt">
       <span>Want to read the rest? </span>
-      <a href="signup.html">Sign up as a reader →</a>
+      <a href="login.html">Sign up as a reader →</a>
     </div>
 
     <a id="fullStoryLink" href="#" class="back-link">← Back to full story page</a>
@@ -93,7 +93,7 @@
 
     // Read storyId from URL
     const storyId = new URLSearchParams(window.location.search).get("storyId") || "";
-    document.getElementById("fullStoryLink").href = `story.html?storyId=${storyId}`;
+    document.getElementById("fullStoryLink").href = `stories.html?storyId=${storyId}`;
 
     const titleEl = document.getElementById("title");
     const blurbEl = document.getElementById("blurb");
