@@ -96,30 +96,9 @@
     }
     .form-group { margin-bottom: 1rem; }
     label { display: block; margin-bottom: 0.4rem; font-weight: 500; }
-    input[type="text"],
-    input[type="email"],
-    input[type="file"],
-    input[type="password"] {
+    input[type="text"], input[type="email"], input[type="file"] {
       width: 100%; padding: 0.6rem;
       border: 1px solid #ccc; border-radius: 6px; font-size: 1rem;
-    }
-    .password-wrapper {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-    .password-wrapper button {
-      padding: 0.5rem 1rem;
-      font-size: 0.9rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      background-color: #789a91;
-      color: white;
-      transition: background 0.2s ease;
-    }
-    .password-wrapper button:hover {
-      background-color: #5f7f76;
     }
     .save-btn, .delete-btn {
       background-color: #789a91; color: white;
@@ -166,20 +145,6 @@
       </div>
 
       <div class="form-group">
-        <label>Password</label>
-        <div class="password-wrapper">
-          <!-- Show a placeholder hash; user clicks "Edit Password" to enable typing -->
-          <input
-            type="password"
-            id="passwordField"
-            value="********"
-            disabled
-          >
-          <button type="button" id="editPasswordBtn">Edit Password</button>
-        </div>
-      </div>
-
-      <div class="form-group">
         <label>Date Joined</label>
         <input type="text" id="dateJoinedField" disabled>
       </div>
@@ -207,15 +172,13 @@
     const db   = firebase.firestore();
 
     // element refs
-    const emailField        = document.getElementById("emailField");
-    const usernameField     = document.getElementById("usernameField");
-    const dateJoinedField   = document.getElementById("dateJoinedField");
-    const avatarPreview     = document.getElementById("avatarPreview");
-    const avatarInput       = document.getElementById("avatarInput");
-    const saveBtn           = document.getElementById("saveBtn");
-    const deleteBtn         = document.getElementById("deleteBtn");
-    const passwordField     = document.getElementById("passwordField");
-    const editPasswordBtn   = document.getElementById("editPasswordBtn");
+    const emailField      = document.getElementById("emailField");
+    const usernameField   = document.getElementById("usernameField");
+    const dateJoinedField = document.getElementById("dateJoinedField");
+    const avatarPreview   = document.getElementById("avatarPreview");
+    const avatarInput     = document.getElementById("avatarInput");
+    const saveBtn         = document.getElementById("saveBtn");
+    const deleteBtn       = document.getElementById("deleteBtn");
 
     let currentUser = null;
     let avatarFile  = null;
@@ -226,15 +189,6 @@
       if (!file) return;
       avatarFile = file;
       avatarPreview.src = URL.createObjectURL(file);
-    });
-
-    // click "Edit Password" → enable and clear field for user to type new password
-    editPasswordBtn.addEventListener("click", () => {
-      passwordField.disabled = false;
-      passwordField.type = "password";
-      passwordField.value = "";
-      passwordField.focus();
-      editPasswordBtn.style.display = "none";
     });
 
     // upload helper → Cloudinary
@@ -262,7 +216,6 @@
       emailField.value      = user.email;
       dateJoinedField.value = new Date(user.metadata.creationTime).toLocaleDateString();
       avatarPreview.src     = user.photoURL || "https://placehold.co/80x80";
-      passwordField.value   = "********"; // placeholder
 
       try {
         const doc = await db.collection("users").doc(user.uid).get();
@@ -277,12 +230,8 @@
     // save changes
     saveBtn.addEventListener("click", async e => {
       e.preventDefault();
-      const username   = usernameField.value.trim();
-      const newEmail   = emailField.value.trim();
-      const newPassword = passwordField.disabled
-        ? null
-        : passwordField.value.trim();
-
+      const username = usernameField.value.trim();
+      const newEmail = emailField.value.trim();
       if (!username || !newEmail) {
         alert("Username and email cannot be empty.");
         return;
@@ -293,18 +242,12 @@
         if (avatarFile) {
           photoURL = await uploadToCloudinary(avatarFile);
         }
-        // update Auth profile
+        // update Firebase Auth profile
         await currentUser.updateProfile({ displayName: username, photoURL });
-
         // update email if changed
         if (newEmail !== currentUser.email) {
           await currentUser.updateEmail(newEmail);
         }
-        // update password if user edited it
-        if (newPassword) {
-          await currentUser.updatePassword(newPassword);
-        }
-
         // write to Firestore
         await db.collection("users").doc(currentUser.uid).set({
           username,
@@ -314,15 +257,10 @@
         }, { merge: true });
 
         alert("Profile updated successfully!");
-        // reset password field to placeholder and disable
-        passwordField.disabled = true;
-        passwordField.type = "password";
-        passwordField.value = "********";
-        editPasswordBtn.style.display = "inline-block";
       } catch (err) {
         console.error("saveChanges error:", err);
         if (err.code === "auth/requires-recent-login") {
-          alert("Please re-authenticate to update your email or password.");
+          alert("Please re-authenticate to update your email.");
         } else {
           alert("Update failed: " + err.message);
         }
