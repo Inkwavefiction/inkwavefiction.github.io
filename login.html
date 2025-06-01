@@ -229,6 +229,7 @@
     doc,
     getDoc,
     setDoc,
+    updateDoc,
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
@@ -372,9 +373,13 @@
     }
 
     try {
+      // 1) Sign in
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const user = userCred.user;
-      const docRef = doc(db, "authors", user.uid);
+      const uid = user.uid;
+
+      // 2) Check author‐application status
+      const docRef = doc(db, "authors", uid);
       const docSnap = await getDoc(docRef);
 
       if (!docSnap.exists()) {
@@ -385,7 +390,20 @@
       const status = docSnap.data().status;
 
       if (status === "approved") {
+        // 3) **Write “author” into users/{uid}.role** so that role‐guard on author-dashboard can see it
+        await updateDoc(doc(db, "users", uid), {
+          role: ["author"],
+          lastLogin: serverTimestamp()
+        }).catch(async err => {
+          // If the users/{uid} doc doesn’t exist yet, create it with merge: true
+          await setDoc(doc(db, "users", uid), {
+            role: ["author"],
+            lastLogin: serverTimestamp()
+          }, { merge: true });
+        });
+
         sessionStorage.setItem("userRole", "author");
+
         const seenWelcome = localStorage.getItem("seenWelcome");
         if (!seenWelcome) {
           localStorage.setItem("seenWelcome", "true");
@@ -394,6 +412,17 @@
           window.location.href = "author-dashboard.html";
         }
       } else if (status === "pending") {
+        // If they’re pending, we still tag them as “author” so they won’t bounce out immediately
+        await updateDoc(doc(db, "users", uid), {
+          role: ["author"],
+          lastLogin: serverTimestamp()
+        }).catch(async () => {
+          await setDoc(doc(db, "users", uid), {
+            role: ["author"],
+            lastLogin: serverTimestamp()
+          }, { merge: true });
+        });
+
         sessionStorage.setItem("userRole", "author");
         window.location.href = "dashboard.html";
       } else if (status === "denied") {
@@ -406,7 +435,6 @@
     }
   };
 
-  // BOTH LOGIN HANDLER
   document.getElementById("both-login-btn").onclick = async () => {
     const email = document.getElementById("both-email").value.trim();
     const password = document.getElementById("both-password").value.trim();
@@ -418,7 +446,18 @@
     }
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      const uid = userCred.user.uid;
+      await updateDoc(doc(db, "users", uid), {
+        role: ["author", "reader"],
+        lastLogin: serverTimestamp()
+      }).catch(async () => {
+        await setDoc(doc(db, "users", uid), {
+          role: ["author", "reader"],
+          lastLogin: serverTimestamp()
+        }, { merge: true });
+      });
+
       sessionStorage.setItem("userRole", "both");
       window.location.href = "both-dashboard.html";
     } catch (err) {
