@@ -132,6 +132,7 @@
     .stories-list a {
       color: var(--accent);
       text-decoration: none;
+      cursor: pointer;
     }
     .stories-list a:hover {
       text-decoration: underline;
@@ -383,12 +384,10 @@
                   const li = document.createElement("li");
                   const storyLink = document.createElement("a");
                   storyLink.textContent = storyData.title || "Untitled Story";
-                  storyLink.style.cursor = "pointer";
-                  // Open preview modal on click
+                  // Open modal preview on click
                   storyLink.addEventListener('click', event => {
                     event.preventDefault();
                     modalTitle.textContent = storyData.title || "Untitled Story";
-                    // Show an excerpt (first 200 chars)
                     const excerpt = storyData.content
                       ? (storyData.content.length > 200
                           ? storyData.content.slice(0, 200) + "…"
@@ -400,7 +399,6 @@
                     } else {
                       modalDate.textContent = "";
                     }
-                    // "Read full" link
                     modalReadFull.href = `story.html?sid=${storyDoc.id}`;
                     modal.style.display = 'flex';
                   });
