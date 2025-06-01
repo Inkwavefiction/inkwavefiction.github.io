@@ -17,6 +17,7 @@
       --border: #e0e0e0;
       --sidebar-bg: #0d0d0d;
       --sidebar-width: 280px;
+      --modal-bg: rgba(0, 0, 0, 0.5);
     }
 
     * {
@@ -127,6 +128,14 @@
       margin-bottom: 0.25rem;
     }
 
+    .stories-list a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .stories-list a:hover {
+      text-decoration: underline;
+    }
+
     /* Hide bio and stories until expanded */
     .label,
     .comment-meta,
@@ -138,6 +147,62 @@
     .card.expanded .comment-meta,
     .card.expanded .stories-container {
       display: block;
+    }
+
+    /* Modal styles */
+    #story-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--modal-bg);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .modal-content {
+      background: var(--white);
+      padding: 1.5rem;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 0.5rem;
+      right: 0.75rem;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--muted);
+      cursor: pointer;
+    }
+
+    .modal-close:hover {
+      color: var(--accent);
+    }
+
+    #modal-title {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    #modal-body {
+      margin-bottom: 1rem;
+      font-size: 1rem;
+      line-height: 1.4;
+      color: var(--text);
+    }
+
+    #modal-date {
+      font-size: 0.85rem;
+      color: var(--muted);
+      text-align: right;
     }
   </style>
 </head>
@@ -166,6 +231,16 @@
     </div>
   </div>
 
+  <!-- Modal for story details -->
+  <div id="story-modal">
+    <div class="modal-content">
+      <span id="modal-close" class="modal-close">&times;</span>
+      <h2 id="modal-title"></h2>
+      <p id="modal-body"></p>
+      <small id="modal-date"></small>
+    </div>
+  </div>
+
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
@@ -183,6 +258,22 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.firestore();
+
+    // Modal references
+    const modal = document.getElementById('story-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const modalBody = document.getElementById('modal-body');
+    const modalDate = document.getElementById('modal-date');
+    const modalClose = document.getElementById('modal-close');
+
+    modalClose.addEventListener('click', () => {
+      modal.style.display = 'none';
+    });
+    modal.addEventListener('click', e => {
+      if (e.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
 
     auth.onAuthStateChanged(async user => {
       if (!user) {
@@ -258,48 +349,41 @@
             bioDiv.textContent = "";
           });
 
-          // Fetch all stories by this author (first try top-level "stories" collection)
+          // Fetch all stories by this author
           db.collection("stories")
             .where("authorId", "==", authorId)
+            .orderBy("createdAt", "desc")
             .get()
             .then(storySnapshot => {
-              if (!storySnapshot.empty) {
-                storiesList.innerHTML = "";
+              storiesList.innerHTML = "";
+              if (storySnapshot.empty) {
+                const li = document.createElement("li");
+                li.textContent = "No stories yet.";
+                storiesList.appendChild(li);
+              } else {
                 storySnapshot.forEach(storyDoc => {
                   const storyData = storyDoc.data();
                   const li = document.createElement("li");
                   const storyLink = document.createElement("a");
                   storyLink.textContent = storyData.title || "Untitled Story";
-                  storyLink.href = `story.html?sid=${storyDoc.id}`;
+                  storyLink.href = `story.html?id=${storyDoc.id}`;
                   storyLink.target = "_blank";
+                  // Add click listener for modal
+                  storyLink.addEventListener('click', event => {
+                    event.preventDefault();
+                    // Show modal with story details
+                    modalTitle.textContent = storyData.title || "Untitled Story";
+                    modalBody.textContent = storyData.content || "No content available.";
+                    if (storyData.createdAt && storyData.createdAt.toDate) {
+                      modalDate.textContent = "Created: " + storyData.createdAt.toDate().toLocaleString();
+                    } else {
+                      modalDate.textContent = "";
+                    }
+                    modal.style.display = 'flex';
+                  });
                   li.appendChild(storyLink);
                   storiesList.appendChild(li);
                 });
-              } else {
-                // Fallback: check if stories are stored under users/{authorId}/stories
-                db.collection("users").doc(authorId).collection("stories").get()
-                  .then(fallbackSnapshot => {
-                    storiesList.innerHTML = "";
-                    if (!fallbackSnapshot.empty) {
-                      fallbackSnapshot.forEach(storyDoc => {
-                        const storyData = storyDoc.data();
-                        const li = document.createElement("li");
-                        const storyLink = document.createElement("a");
-                        storyLink.textContent = storyData.title || "Untitled Story";
-                        storyLink.href = `story.html?sid=${storyDoc.id}`;
-                        storyLink.target = "_blank";
-                        li.appendChild(storyLink);
-                        storiesList.appendChild(li);
-                      });
-                    } else {
-                      const li = document.createElement("li");
-                      li.textContent = "No stories yet.";
-                      storiesList.appendChild(li);
-                    }
-                  })
-                  .catch(() => {
-                    storiesList.innerHTML = "<li>Error loading stories</li>";
-                  });
               }
             })
             .catch(() => {
