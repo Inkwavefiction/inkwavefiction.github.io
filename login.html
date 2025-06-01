@@ -138,24 +138,10 @@
       padding: 1rem;
       border-radius: 8px;
     }
-    #debug-msg {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      background: #a33c3c;
-      color: white;
-      padding: 0.5rem;
-      font-size: 0.9rem;
-      display: none;
-      text-align: center;
-      z-index: 1000;
-    }
   </style>
 </head>
 <body>
 
-<div id="debug-msg"></div>
 <div class="login-box">
   <h1>Log in to Inkwave</h1>
 
@@ -256,17 +242,13 @@
     projectId: "inkwave-549c0",
     storageBucket: "inkwave-549c0.appspot.com",
     messagingSenderId: "1084811926133",
-    appId: "1:1084811926133:web:abcdef1234567890" // (if your console shows a different appId, copy that too)
+    appId: "1:1084811926133:web:abcdef1234567890"
   };
 
-  // Initialize Firebase and log the API key to confirm
+  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
-  console.log("👉 Using Firebase API key:", firebaseConfig.apiKey);
-  document.getElementById("debug-msg").textContent = "Firebase API key: " + firebaseConfig.apiKey;
-  document.getElementById("debug-msg").style.display = "block";
-  setTimeout(() => document.getElementById("debug-msg").style.display = "none", 3000);
 
   // ——— ROLE TOGGLE HANDLERS ——————————————————————————————————————————
   const authorBtn    = document.getElementById("author-btn");
@@ -339,7 +321,6 @@
 
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
-      console.log("✅ New reader signed up:", uid);
 
       await setDoc(doc(db, "users", uid), {
         email,
@@ -365,9 +346,7 @@
     try {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
-      console.log("✅ Reader logged in:", uid);
 
-      // Guarantee Firestore users/{uid}.role includes “reader”
       await setDoc(doc(db, "users", uid), {
         role: ["reader"],
         lastLogin: serverTimestamp()
@@ -388,7 +367,7 @@
     }
   };
 
-  // ——— AUTHOR LOGIN ————————————————————————————————————————————————————
+  // ——— AUTHOR LOGIN (mirrors reader code, but redirects to author-dashboard.html) ———————————————————————————
   document.getElementById("author-login-btn").onclick = async () => {
     const email = document.getElementById("author-email").value.trim();
     const password = document.getElementById("author-password").value.trim();
@@ -402,40 +381,21 @@
     try {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
-      console.log("✅ Author signed in:", uid);
 
-      const authorDocRef = doc(db, "authors", uid);
-      const authorDocSnap = await getDoc(authorDocRef);
-
-      if (!authorDocSnap.exists()) {
-        errorMsg.textContent = "You haven’t applied as an author yet.";
-        return;
-      }
-
-      const status = authorDocSnap.data().status;
-      if (status !== "approved" && status !== "pending") {
-        errorMsg.textContent = (status === "denied")
-          ? "Your author application was denied."
-          : "Unknown application status. Please contact support.";
-        return;
-      }
-
-      // Write Firestore users/{uid}.role = ["author"]
       await setDoc(doc(db, "users", uid), {
         role: ["author"],
         lastLogin: serverTimestamp()
       }, { merge: true });
 
-      sessionStorage.setItem("userRole", "author");
-      console.log("✅ Firestore role set to author for:", uid);
-
-      const seenWelcome = localStorage.getItem("seenWelcome");
-      if (!seenWelcome && status === "approved") {
-        localStorage.setItem("seenWelcome", "true");
-        window.location.href = "approved.html";
-      } else {
-        window.location.href = "author-dashboard.html";
+      const userDoc = await getDoc(doc(db, "users", uid));
+      const data = userDoc.data() || {};
+      if (!data.role || !data.role.includes("author")) {
+        errorMsg.textContent = "This account is not registered as an author.";
+        return;
       }
+
+      sessionStorage.setItem("userRole", "author");
+      window.location.href = "author-dashboard.html";
     } catch (err) {
       console.error("Author login error:", err);
       errorMsg.textContent = "Login failed: " + err.message;
@@ -456,7 +416,6 @@
     try {
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
-      console.log("✅ Both login signed in:", uid);
 
       await setDoc(doc(db, "users", uid), {
         role: ["author", "reader"],
