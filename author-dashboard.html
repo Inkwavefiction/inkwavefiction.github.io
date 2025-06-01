@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- 1) Only allow “author” or “both” to stay on this page -->
+  <!-- Only allow “author” or “both” roles on this page -->
   <script>window.allowedRoles = ["author","both"];</script>
   <script src="role-guard.js"></script>
 
@@ -27,176 +27,242 @@
       min-height: 100vh;
     }
     .sidebar {
-      width: 280px;
-      background: #111;
+      width: 300px; 
+      background: #111; 
       color: #fff;
-      padding: 2rem 1.5rem;
-      height: 100vh;
+      padding: 2rem 1.5rem; 
+      height: 100vh; 
       position: fixed;
       overflow-y: auto;
     }
     .sidebar h2 {
       font-family: 'Playfair Display', serif;
-      font-size: 2rem;
-      margin-bottom: 2.5rem;
+      font-size: 1.8rem; 
+      margin-bottom: 2rem; 
+      font-weight: 600;
+    }
+    .sidebar .section {
+      margin-bottom: 2rem;
+    }
+    .section-title {
+      font-size: 0.8rem; 
+      text-transform: uppercase;
+      letter-spacing: 0.06em; 
+      color: #aaa; 
+      margin-bottom: 0.6rem;
       font-weight: 600;
     }
     .nav-link {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
+      display: block; 
+      margin: 0.5rem 0; 
       color: #e0e0e0;
-      text-decoration: none;
+      text-decoration: none; 
       font-size: 1rem;
-      padding: 0.75rem 1rem;
-      border-radius: 8px;
-      font-weight: 500;
-      margin-bottom: 0.6rem;
-      transition: background 0.2s, color 0.2s;
+      padding: 0.4rem 0.6rem; 
+      border-radius: 4px;
+      font-weight: 500; 
+      transition: background 0.2s;
     }
-    .nav-link:hover {
-      background-color: #1a1a1a;
+    .nav-link:hover { 
+      background-color: #1e1e1e; 
     }
     .nav-link.active {
       background-color: #2a2a2a;
       color: #ffffff;
       font-weight: 600;
     }
+
     .main {
-      margin-left: 280px;
-      padding: 2.5rem;
+      margin-left: 300px; 
+      padding: 2.5rem; 
       flex: 1;
+    }
+    .header {
+      display: flex; 
+      justify-content: space-between;
+      align-items: center; 
+      margin-bottom: 2rem;
     }
     h1 {
       font-family: 'Playfair Display', serif;
-      font-size: 2.2rem;
-      font-weight: 600;
-      margin-bottom: 1.5rem;
+      font-size: 2.4rem; 
+      font-weight: 600; 
+      margin-bottom: 0.3rem;
     }
-    .stats {
-      display: flex;
-      gap: 1.5rem;
-      margin-bottom: 2rem;
+    .btn {
+      background-color: var(--accent); 
+      color: white;
+      border: none; 
+      padding: 0.6rem 1.2rem;
+      border-radius: 4px; 
+      font-size: 1rem; 
+      cursor: pointer;
+      margin-right: 1rem;
+    }
+    .btn:hover { 
+      background-color: #5f7f76; 
+    }
+
+    .stats { 
+      display: flex; 
+      gap: 1.5rem; 
+      margin-bottom: 2.5rem; 
     }
     .stat-box {
-      flex: 1;
+      flex: 1; 
       background: var(--white);
-      padding: 1.25rem;
+      padding: 1.25rem; 
       border: 1px solid var(--border);
-      border-radius: 8px;
+      border-radius: 8px; 
       box-shadow: 0 2px 8px rgba(0,0,0,0.03);
     }
     .stat-box h4 {
-      font-size: 1rem;
+      font-size: 1rem; 
       color: var(--accent);
-      margin-bottom: 0.25rem;
+      margin-bottom: 0.25rem; 
       font-weight: 500;
     }
-    .stat-box p {
-      font-size: 1.6rem;
-      font-weight: 600;
+    .stat-box p { 
+      font-size: 1.6rem; 
+      font-weight: 600; 
     }
+
     table {
-      width: 100%;
+      width: 100%; 
       background-color: var(--white);
-      border: 1px solid var(--border);
+      border: 1px solid var(--border); 
       border-collapse: collapse;
-      border-radius: 6px;
+      border-radius: 6px; 
       overflow: hidden;
-      margin-bottom: 2rem;
+      margin-bottom: 2.5rem;
     }
     th, td {
-      text-align: left;
+      text-align: left; 
       padding: 0.85rem 1rem;
-      border-bottom: 1px solid var(--border);
+      border-bottom: 1px solid var(--border); 
       font-size: 0.95rem;
     }
     th {
-      background-color: #eef3f1;
+      background-color: #eef3f1; 
       color: #555;
-      text-transform: uppercase;
+      text-transform: uppercase; 
       letter-spacing: 0.03em;
       font-size: 0.8rem;
     }
-    tr:hover {
-      background-color: #f9f9f9;
+    tr:hover { 
+      background-color: #f9f9f9; 
     }
+
     .story-link {
-      color: var(--accent);
+      color: var(--accent); 
       text-decoration: none;
       font-weight: 500;
     }
-    .story-link:hover {
-      text-decoration: underline;
+    .story-link:hover { 
+      text-decoration: underline; 
     }
+
     .badge {
-      font-size: 0.75rem;
+      font-size: 0.75rem; 
       font-weight: 500;
-      padding: 0.3rem 0.6rem;
+      padding: 0.3rem 0.6rem; 
       border-radius: 12px;
       display: inline-block;
     }
     .badge.published {
-      background-color: #d7f0e5;
+      background-color: #d7f0e5; 
       color: #2b7a5e;
     }
     .badge.draft {
-      background-color: #e8e8e8;
+      background-color: #e8e8e8; 
       color: #555;
     }
+
     .no-stories {
-      text-align: center;
+      text-align: center; 
       color: var(--muted);
-      padding: 2rem 0;
+      padding: 2rem 0; 
       font-style: italic;
-    }
-    .btn {
-      background-color: var(--accent);
-      color: white;
-      border: none;
-      padding: 0.6rem 1.2rem;
-      border-radius: 4px;
-      font-size: 1rem;
-      cursor: pointer;
-      margin-right: 1rem;
-    }
-    .btn:hover {
-      background-color: #5f7f76;
     }
   </style>
 </head>
 <body>
-  <!-- 2) Force sessionStorage.setItem('userRole','author') on every sidebar link -->
+  <!-- Force sessionStorage.userRole="author" on every sidebar navigation -->
   <script>sessionStorage.setItem('userRole','author');</script>
 
   <div class="sidebar">
-    <a href="index.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
-      <h2>Inkwave</h2>
-    </a>
-    <a href="author-dashboard.html" class="nav-link active" onclick="sessionStorage.setItem('userRole','author')">
-      🏠 Dashboard
-    </a>
-    <a href="earnings.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
-      💰 Earnings
-    </a>
-    <a href="blurb-generator.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
-      🧠 Blurb Generator
-    </a>
-    <a href="grammar.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
-      📝 Grammar Fixer
-    </a>
-    <a href="story-templates.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
-      📄 Story Templates
-    </a>
-    <a href="settings-author.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
-      ⚙️ Settings
-    </a>
+    <h2>Inkwave</h2>
+    <div class="section">
+      <div class="section-title">Core</div>
+      <a href="author-dashboard.html" class="nav-link active" onclick="sessionStorage.setItem('userRole','author')">
+        🏠 Dashboard
+      </a>
+      <a href="earnings.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
+        💰 Earnings 🚧
+      </a>
+    </div>
+    <div class="section">
+      <div class="section-title">Writing Tools</div>
+      <a href="blurb-generator.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
+        🧠 Blurb Generator 🚧
+      </a>
+      <a href="grammar.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
+        📝 Grammar Fixer 🚧
+      </a>
+      <a href="story-templates.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
+        📄 Story Templates
+      </a>
+      <a href="formatting.tools.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
+        📈 Graphing Plots 🚧
+      </a>
+      <a href="genre-tags.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
+        🏷️ Genre & Tags
+      </a>
+    </div>
+    <div class="section">
+      <div class="section-title">Testing & Feedback</div>
+      <a href="A-B.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
+        🧪 A/B Testing 🚧
+      </a>
+      <a href="reader-heatmap.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
+        🔥 Reader Heatmap 🚧
+      </a>
+    </div>
+    <div class="section">
+      <div class="section-title">Publishing</div>
+      <a href="checklist.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
+        ✅ Checklist
+      </a>
+      <a href="cover-generator.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
+        🖼️ Cover Generator 🚧
+      </a>
+    </div>
+    <div class="section">
+      <div class="section-title">Productivity</div>
+      <a href="inkie-chat.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
+        🤖 Inky Assistant 🚧
+      </a>
+      <a href="settings-author.html" class="nav-link" onclick="sessionStorage.setItem('userRole','author')">
+        ⚙️ Settings
+      </a>
+    </div>
   </div>
 
   <div class="main">
-    <h1>📊 Author Dashboard</h1>
+    <div class="header">
+      <div>
+        <h1>📊 Dashboard</h1>
+        <p style="color: var(--muted); margin-top: 0.3rem;">Welcome back, Author!</p>
+      </div>
+      <div style="display: flex; gap: 10px;">
+        <button class="btn" onclick="window.location.href='index.html'">
+          🔙 Back to Inkwave Main
+        </button>
+        <button id="new-story-btn" class="btn">+ New Story</button>
+      </div>
+    </div>
 
-    <!-- 3) Summary Stats -->
+    <!-- Summary Stats -->
     <div class="stats">
       <div class="stat-box">
         <h4>Total Reads</h4>
@@ -212,8 +278,7 @@
       </div>
     </div>
 
-    <!-- 4) Stories Table -->
-    <button class="btn" id="new-story-btn">+ New Story</button>
+    <!-- Stories Table -->
     <table>
       <thead>
         <tr>
@@ -225,9 +290,7 @@
         </tr>
       </thead>
       <tbody id="story-table">
-        <tr>
-          <td colspan="5" class="no-stories">Loading your stories…</td>
-        </tr>
+        <tr><td colspan="5" class="no-stories">Loading your stories…</td></tr>
       </tbody>
     </table>
   </div>
@@ -237,7 +300,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
   <script>
-    // 5) Initialize Firebase
+    // Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
       authDomain: "inkwave-549c0.firebaseapp.com",
@@ -247,7 +310,7 @@
     const auth = firebase.auth();
     const db   = firebase.firestore();
 
-    // 6) “+ New Story” button handler
+    // “+ New Story” button handler
     function createNewStory() {
       const newId = "story-" + Date.now();
       localStorage.setItem("currentStoryId", newId);
@@ -255,7 +318,7 @@
     }
     document.getElementById("new-story-btn").addEventListener("click", createNewStory);
 
-    // 7) Listen for Auth state and load only this author’s stories
+    // Listen for Auth state and load this author’s stories
     auth.onAuthStateChanged(async user => {
       if (!user) {
         alert("Please log in first.");
@@ -263,10 +326,10 @@
       }
       const uid = user.uid;
 
-      // Fetch all stories in users/{uid}/stories
+      // Fetch stories from users/{uid}/stories
       const snapshot = await db.collection("users").doc(uid).collection("stories").get();
       const table = document.getElementById("story-table");
-            table.innerHTML = ""; // clear “Loading…”
+      table.innerHTML = ""; // clear “Loading…”
 
       if (snapshot.empty) {
         table.innerHTML =
@@ -315,13 +378,13 @@
       document.getElementById("total-earnings").textContent = `$${totalEarnings.toFixed(2)}`;
     });
 
-    // 8) Open a story in “new-story.html” for editing
+    // Open a story in “new-story.html” for editing
     function openStory(storyId) {
       localStorage.setItem("currentStoryId", storyId);
       window.location.href = "new-story.html";
     }
 
-    // 9) Delete a story
+    // Delete a story
     async function deleteStory(storyId, iconElement) {
       const user = auth.currentUser;
       if (!user) {
