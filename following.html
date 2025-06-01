@@ -100,7 +100,7 @@
     .story-title {
       font-weight: 600;
       font-size: 1.1rem;
-      margin-bottom: 0.4rem;
+      margin-bottom: 0;
       color: var(--accent);
       text-decoration: none;
       display: block;
@@ -108,7 +108,7 @@
 
     .label {
       font-weight: 600;
-      margin-top: 0.5rem;
+      margin-top: 0.75rem;
       margin-bottom: 0.25rem;
     }
 
@@ -128,19 +128,21 @@
       margin-bottom: 0.25rem;
     }
 
-    .card.expanded .comment-meta,
-    .card.expanded .stories-container {
-      display: block;
-    }
-
+    /* Hide bio and stories until expanded */
+    .label,
     .comment-meta,
     .stories-container {
       display: none;
     }
+
+    .card.expanded .label,
+    .card.expanded .comment-meta,
+    .card.expanded .stories-container {
+      display: block;
+    }
   </style>
 </head>
 <body>
-  <!-- ensure index.html knows you’re a reader -->
   <script>
     sessionStorage.setItem('userRole','reader');
   </script>
@@ -165,7 +167,6 @@
     </div>
   </div>
 
-  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore-compat.js"></script>
@@ -243,7 +244,6 @@
           storiesContainer.appendChild(storiesList);
           cardDiv.appendChild(storiesContainer);
 
-          // Append card with placeholders
           followList.appendChild(cardDiv);
 
           // Fetch author info
@@ -261,7 +261,7 @@
             bioDiv.textContent = "";
           });
 
-          // Fetch stories by this author
+          // Fetch all stories by this author
           db.collection("stories")
             .where("authorId", "==", authorId)
             .orderBy("createdAt", "desc")
@@ -289,7 +289,7 @@
               storiesList.innerHTML = "<li>Error loading stories</li>";
             });
 
-          // Toggle bio + content visibility on click
+          // Toggle bio + stories visibility on click
           cardDiv.addEventListener("click", () => {
             cardDiv.classList.toggle("expanded");
           });
