@@ -234,6 +234,7 @@
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
+  // Your Firebase config
   const firebaseConfig = {
     apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
     authDomain: "inkwave-549c0.firebaseapp.com",
@@ -243,6 +244,7 @@
     appId: "1:1084811926133:web:abcdef1234567890"
   };
 
+  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
@@ -310,23 +312,25 @@
     errorMsg.textContent = "";
 
     try {
+      // Prevent duplicate emails
       const methods = await fetchSignInMethodsForEmail(auth, email);
       if (methods.length > 0) {
         errorMsg.textContent = "This email is already in use. If you're an author, switch to the Author tab.";
         return;
       }
 
+      // Create Auth user
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
 
-      // Assign reader role on signup
-      await setDoc(doc(db, "users", uid), {
+      // Create a Firestore doc under "readers/{uid}"
+      await setDoc(doc(db, "readers", uid), {
         email,
-        role: ["reader"],
         plan: selectedPlan,
         joinedAt: serverTimestamp()
       });
 
+      // Redirect
       sessionStorage.setItem("userRole", "reader");
       window.location.href = "explore.html";
     } catch (err) {
@@ -345,12 +349,11 @@
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
 
-      const userDocSnap = await getDoc(doc(db, "users", uid));
-      const data = userDocSnap.data() || {};
-
-      if (!data.role || !data.role.includes("reader")) {
+      // Check Firestore "readers/{uid}"
+      const readerDoc = await getDoc(doc(db, "readers", uid));
+      if (!readerDoc.exists()) {
         errorMsg.textContent = "This account is not registered as a reader.";
-        auth.signOut();
+        await auth.signOut();
         return;
       }
 
@@ -377,12 +380,11 @@
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
 
-      const userDocSnap = await getDoc(doc(db, "users", uid));
-      const data = userDocSnap.data() || {};
-
-      if (!data.role || !data.role.includes("author")) {
-        errorMsg.textContent = "This account is not registered as an author.";
-        auth.signOut();
+      // Check Firestore "authors/{uid}" (and optionally check status==='approved')
+      const authorDoc = await getDoc(doc(db, "authors", uid));
+      if (!authorDoc.exists() || authorDoc.data().status !== "approved") {
+        errorMsg.textContent = "This account is not registered as an approved author.";
+        await auth.signOut();
         return;
       }
 
@@ -409,16 +411,19 @@
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
 
-      const userDocSnap = await getDoc(doc(db, "users", uid));
-      const data = userDocSnap.data() || {};
+      // Ensure reader record exists
+      const readerDoc = await getDoc(doc(db, "readers", uid));
+      if (!readerDoc.exists()) {
+        errorMsg.textContent = "This account is not registered as a reader.";
+        await auth.signOut();
+        return;
+      }
 
-      if (
-        !data.role ||
-        !data.role.includes("author") ||
-        !data.role.includes("reader")
-      ) {
-        errorMsg.textContent = "This account is not registered as both-author-and-reader.";
-        auth.signOut();
+      // Ensure author record exists and is approved
+      const authorDoc = await getDoc(doc(db, "authors", uid));
+      if (!authorDoc.exists() || authorDoc.data().status !== "approved") {
+        errorMsg.textContent = "This account is not registered as an approved author.";
+        await auth.signOut();
         return;
       }
 
