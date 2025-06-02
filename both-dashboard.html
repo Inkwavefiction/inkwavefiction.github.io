@@ -43,7 +43,6 @@
       font-weight: 600;
       cursor: pointer;
     }
-    /* Hide author‐only links until both checks pass */
     .author-section {
       display: none;
     }
@@ -68,27 +67,14 @@
       transition: background 0.2s;
       cursor: pointer;
     }
-    .nav-link:hover,
-    .nav-link.active {
-      background-color: #1e1e1e;
-    }
+    .nav-link:hover, .nav-link.active { background-color: #1e1e1e; }
     .main {
       margin-left: var(--sidebar-width);
       padding: 2.5rem;
       flex: 1;
     }
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-    }
-    h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 2.4rem;
-      font-weight: 600;
-      margin-bottom: 0.3rem;
-    }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    h1 { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 600; margin-bottom: 0.3rem; }
     .btn {
       background-color: var(--accent-author);
       color: white;
@@ -99,164 +85,43 @@
       cursor: pointer;
     }
     .btn:hover { background-color: #5f7f76; }
-
     /* Author stats & table */
     .stats { display: flex; gap: 1.5rem; margin-bottom: 2.5rem; }
-    .stat-box {
-      flex: 1;
-      background: var(--white);
-      padding: 1.25rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-    }
-    .stat-box h4 {
-      font-size: 1rem;
-      color: var(--accent-author);
-      margin-bottom: 0.25rem;
-      font-weight: 500;
-    }
+    .stat-box { flex: 1; background: var(--white); padding: 1.25rem; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); }
+    .stat-box h4 { font-size: 1rem; color: var(--accent-author); margin-bottom: 0.25rem; font-weight: 500; }
     .stat-box p { font-size: 1.6rem; font-weight: 600; }
-    table {
-      width: 100%;
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-collapse: collapse;
-      border-radius: 6px;
-      overflow: hidden;
-    }
-    th, td {
-      text-align: left;
-      padding: 0.85rem 1rem;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.95rem;
-    }
-    th {
-      background: #eef3f1;
-      color: #555;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-      font-size: 0.8rem;
-    }
+    table { width: 100%; background: var(--white); border: 1px solid var(--border); border-collapse: collapse; border-radius: 6px; overflow: hidden; }
+    th, td { text-align: left; padding: 0.85rem 1rem; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+    th { background: #eef3f1; color: #555; text-transform: uppercase; letter-spacing: 0.03em; font-size: 0.8rem; }
     tr:hover { background-color: #f9f9f9; }
-    .story-link {
-      color: var(--accent-author);
-      text-decoration: none;
-      font-weight: 500;
-    }
+    .story-link { color: var(--accent-author); text-decoration: none; font-weight: 500; }
     .story-link:hover { text-decoration: underline; }
-    .badge {
-      font-size: 0.75rem;
-      font-weight: 500;
-      padding: 0.3rem 0.6rem;
-      border-radius: 12px;
-      display: inline-block;
-    }
+    .badge { font-size: 0.75rem; font-weight: 500; padding: 0.3rem 0.6rem; border-radius: 12px; display: inline-block; }
     .badge.published { background-color: #d7f0e5; color: #2b7a5e; }
     .badge.draft { background-color: #e8e8e8; color: #555; }
-    .no-stories {
-      text-align: center;
-      color: var(--muted);
-      padding: 2rem 0;
-      font-style: italic;
-    }
-
-    /* Reader grid (not actually shown in “must be both” mode) */
-    .search-bar {
-      margin-bottom: 1.5rem;
-      padding: 0.5rem;
-      width: 100%;
-      max-width: 400px;
-      font-size: 1rem;
-    }
-    .story-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 20px;
-    }
-    .story-card {
-      background: var(--white);
-      padding: 1rem;
-      border-radius: 8px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-      transition: transform 0.2s;
-      position: relative;
-      cursor: pointer;
-    }
+    .no-stories { text-align: center; color: var(--muted); padding: 2rem 0; font-style: italic; }
+    /* Reader grid */
+    .search-bar { margin-bottom: 1.5rem; padding: 0.5rem; width: 100%; max-width: 400px; font-size: 1rem; }
+    .story-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+    .story-card { background: var(--white); padding: 1rem; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); transition: transform 0.2s; position: relative; cursor: pointer; }
     .story-card:hover { transform: scale(1.01); }
-    .story-title {
-      font-weight: 600;
-      font-size: 1.1rem;
-      margin-bottom: 0.4rem;
-    }
-    .story-info {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-    }
+    .story-title { font-weight: 600; font-size: 1.1rem; margin-bottom: 0.4rem; }
+    .story-info { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.5rem; }
     .badge.book { background-color: #5a4e8f; }
     .badge.short { background-color: #b6648d; }
     .badge.finished { background-color: #1F77DE; }
     .badge.in-progress { background-color: #64B676; }
     .badge.genre { background-color: #FFA500; }
-    .tag {
-      background-color: #e0e0e0;
-      color: #333;
-      padding: 0.2rem 0.5rem;
-      border-radius: 10px;
-      font-size: 0.75rem;
-    }
+    .tag { background-color: #e0e0e0; color: #333; padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.75rem; }
     .story-blurb { font-size: 0.9rem; color: var(--muted); }
-    .heart-icon {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      font-size: 1.2rem;
-      color: #e25555;
-    }
-
-    /* Modal (not actually shown in “must be both” mode) */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0,0,0,0.8);
-    }
-    .modal-content {
-      background-color: #fefefe;
-      margin: 5% auto;
-      padding: 20px;
-      border-radius: 8px;
-      width: 40%;
-      max-height: 80vh;
-      overflow-y: auto;
-      position: relative;
-    }
-    .close-button {
-      color: #aaa;
-      position: absolute;
-      top: 10px;
-      right: 20px;
-      font-size: 28px;
-      font-weight: bold;
-      cursor: pointer;
-    }
+    .heart-icon { position: absolute; top: 10px; right: 10px; font-size: 1.2rem; color: #e25555; }
+    /* Modal */
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.8); }
+    .modal-content { background-color: #fefefe; margin: 5% auto; padding: 20px; border-radius: 8px; width: 40%; max-height: 80vh; overflow-y: auto; position: relative; }
+    .close-button { color: #aaa; position: absolute; top: 10px; right: 20px; font-size: 28px; font-weight: bold; cursor: pointer; }
     .modal-header h2 { margin-bottom: 0.3rem; }
     .modal-header p { color: var(--muted); font-size: 0.9rem; }
-    .section-list {
-      list-style-type: disc;
-      padding-left: 1.5rem;
-      margin-top: 0.5rem;
-      font-size: 1.05rem;
-      font-weight: 500;
-      color: #333;
-    }
+    .section-list { list-style-type: disc; padding-left: 1.5rem; margin-top: 0.5rem; font-size: 1.05rem; font-weight: 500; color: #333; }
     .section-list li { margin-bottom: 0.4rem; line-height: 1.6; }
     .approval-banner {
       background: #fff3cd;
@@ -273,7 +138,6 @@
   <div class="sidebar">
     <h2 onclick="goHome()">Inkwave</h2>
 
-    <!-- Author‐only links (hidden until both checks pass) -->
     <div class="author-section">
       <div class="section">
         <div class="section-title">Core</div>
@@ -305,19 +169,18 @@
       </div>
     </div>
 
-    <!-- Reader links (we never actually show these in the strict “must be both” mode) -->
     <div class="section">
       <div class="section-title">Reader</div>
-      <div class="section-title">Writing Tools</div>
-      <div class="nav-link" id="nav-favorites" onclick="window.location.href='favorites-both.html'">📚 Favorites</div>
-      <div class="nav-link" id="nav-comments" onclick="window.location.href='comments-both.html'">💬 Comments</div>
-      <div class="nav-link" id="nav-following" onclick="window.location.href='following-both.html'">👤 Following</div>
-      <div class="nav-link" id="nav-explore" onclick="showReader('explore')">📰 Explore Stories</div>
-      <div class="nav-link" id="nav-reader-settings" onclick="window.location.href='settings-both.html'">⚙️ Reader Settings</div>
+              <div class="section-title">Writing Tools</div>
+        <div class="nav-link" onclick="window.location.href='favorites-both.html'">📚 Favorites</div>
+        <div class="nav-link" onclick="window.location.href='comments-both.html'">💬 Comments</div>
+        <div class="nav-link" onclick="window.location.href='following-both.html'">👤 Following</div>
+        <div class="nav-link" onclick="window.location.href='explore-both.html'">📰 Explore Stories</div>
+        <div class="nav-link" onclick="window.location.href='settings-both.html'">⚙️ Reader Settings</div>
     </div>
   </div>
 
-  <!-- Author Main (hidden until both guards pass) -->
+  <!-- Author Main -->
   <div id="authorMain" class="main" style="display:none;">
     <div class="header">
       <div>
@@ -335,24 +198,12 @@
       <div class="stat-box"><h4>Total Earnings</h4><p id="total-earnings">$0.00</p></div>
     </div>
     <table>
-      <thead>
-        <tr>
-          <th>Title</th>
-          <th>Reads</th>
-          <th>Likes</th>
-          <th>Revenue</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody id="story-table">
-        <tr>
-          <td colspan="5" class="no-stories">Loading your stories...</td>
-        </tr>
-      </tbody>
+      <thead><tr><th>Title</th><th>Reads</th><th>Likes</th><th>Revenue</th><th>Status</th></tr></thead>
+      <tbody id="story-table"><tr><td colspan="5" class="no-stories">Loading your stories...</td></tr></tbody>
     </table>
   </div>
 
-  <!-- Reader Main (never shown in this strict “must be both” mode) -->
+  <!-- Reader Main -->
   <div id="readerMain" class="main" style="display:none;">
     <div id="approvalBanner" class="approval-banner" style="display:none;">
       Once you're approved as an author, you'll see all the author tools here.
@@ -408,6 +259,7 @@
       else showReader('explore');
     }
     function showAuthor() {
+      if (!isApproved) { showReader('explore'); return; }
       clearActive();
       document.getElementById('nav-dashboard').classList.add('active');
       document.getElementById('readerMain').style.display = 'none';
@@ -421,7 +273,7 @@
         comments: 'nav-comments',
         following: 'nav-following',
         explore: 'nav-explore',
-        'reader-settings': 'nav-reader-settings'
+        settings: 'nav-reader-settings'
       };
       if (idMap[section]) document.getElementById(idMap[section]).classList.add('active');
 
@@ -490,7 +342,7 @@
         });
     }
 
-    // Reader actions (never actually used in “must be both” mode)
+    // Reader actions
     const modal = document.getElementById('storyModal');
     document.querySelector('.close-button').onclick = () => modal.style.display = 'none';
     window.onclick = e => { if (e.target === modal) modal.style.display = 'none'; };
@@ -559,47 +411,27 @@
       });
     }
 
-    // -----------------------------------
-    // Simplified “one‐at‐a‐time” double guard
-    // -----------------------------------
+    // On load / auth state
     auth.onAuthStateChanged(user => {
-      // 1) If no user → redirect to login
       if (!user) {
-        window.location.href = 'login.html';
+        alert('Please log in.');
         return;
       }
-
-      // 2) Check authors/{uid} first
       db.collection('authors').doc(user.uid).get()
-        .then(authorSnap => {
-          // If author doc missing OR status !== 'approved', redirect
-          if (!authorSnap.exists || authorSnap.data().status !== 'approved') {
-            window.location.href = 'login.html';
-            return;
-          }
-
-          // 3) Now check readers/{uid}
-          db.collection('readers').doc(user.uid).get()
-            .then(readerSnap => {
-              // If reader doc missing, redirect
-              if (!readerSnap.exists) {
-                window.location.href = 'login.html';
-                return;
-              }
-
-              // 4) Both checks passed → show author UI
-              isApproved = true;
-              document.querySelectorAll('.author-section').forEach(el => el.style.display = 'block');
-              showAuthor();
-            })
-            .catch(err => {
-              console.error('Error on readers/{uid} fetch:', err);
-              window.location.href = 'login.html';
-            });
+        .then(snap => {
+          isApproved = snap.exists && snap.data().status === 'approved';
+          // toggle author nav
+          document.querySelectorAll('.author-section').forEach(el => {
+            el.style.display = isApproved ? 'block' : 'none';
+          });
+          // initial view
+          if (isApproved) showAuthor();
+          else showReader('explore');
         })
         .catch(err => {
-          console.error('Error on authors/{uid} fetch:', err);
-          window.location.href = 'login.html';
+          console.error(err);
+          document.querySelectorAll('.author-section').forEach(el => el.style.display = 'none');
+          showReader('explore');
         });
     });
   </script>
