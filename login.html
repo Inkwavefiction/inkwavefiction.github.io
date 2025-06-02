@@ -234,7 +234,7 @@
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-  // YOUR FIREBASE CONFIG
+  // Paste your Firebase config here
   const firebaseConfig = {
     apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
     authDomain: "inkwave-549c0.firebaseapp.com",
@@ -244,7 +244,7 @@
     appId: "1:1084811926133:web:abcdef1234567890"
   };
 
-  // INITIALIZE FIREBASE
+  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
@@ -305,25 +305,28 @@
     signupForm.classList.add("active");
   };
 
-  // READER SIGNUP (creates a Firestore doc in "readers/{uid}")
+  // READER SIGNUP (creates a users/{uid} doc with role: ["reader"])
   document.getElementById("signup-btn").onclick = async () => {
     const email = document.getElementById("signup-email").value.trim();
     const password = document.getElementById("signup-password").value.trim();
     errorMsg.textContent = "";
 
     try {
+      // Prevent duplicate emails
       const methods = await fetchSignInMethodsForEmail(auth, email);
       if (methods.length > 0) {
         errorMsg.textContent = "This email is already in use. If you're an author, switch to the Author tab.";
         return;
       }
 
+      // Create Auth user
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
 
-      // Create a Firestore doc under "readers/{uid}"
-      await setDoc(doc(db, "readers", uid), {
+      // Create a Firestore doc under "users/{uid}" with role=["reader"]
+      await setDoc(doc(db, "users", uid), {
         email,
+        role: ["reader"],
         plan: selectedPlan,
         joinedAt: serverTimestamp()
       });
@@ -336,7 +339,7 @@
     }
   };
 
-  // READER LOGIN (checks "readers/{uid}" existence)
+  // READER LOGIN (checks users/{uid}.role.includes("reader"))
   document.getElementById("reader-login-btn").onclick = async () => {
     const email = document.getElementById("reader-email").value.trim();
     const password = document.getElementById("reader-password").value.trim();
@@ -346,9 +349,11 @@
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
 
-      // Fetch Firestore doc at "readers/{uid}"
-      const readerDoc = await getDoc(doc(db, "readers", uid));
-      if (!readerDoc.exists()) {
+      // Check Firestore "users/{uid}"
+      const userDoc = await getDoc(doc(db, "users", uid));
+      const data = userDoc.data() || {};
+
+      if (!data.role || !data.role.includes("reader")) {
         errorMsg.textContent = "This account is not registered as a reader.";
         await auth.signOut();
         return;
@@ -362,7 +367,7 @@
     }
   };
 
-  // AUTHOR LOGIN (checks "authors/{uid}.status === 'approved'")
+  // AUTHOR LOGIN (checks authors/{uid}.status === "approved")
   document.getElementById("author-login-btn").onclick = async () => {
     const email = document.getElementById("author-email").value.trim();
     const password = document.getElementById("author-password").value.trim();
@@ -377,7 +382,7 @@
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
 
-      // Fetch Firestore doc at "authors/{uid}"
+      // Check Firestore "authors/{uid}" (and verify status==='approved')
       const authorDoc = await getDoc(doc(db, "authors", uid));
       if (!authorDoc.exists() || authorDoc.data().status !== "approved") {
         errorMsg.textContent = "This account is not registered as an approved author.";
@@ -393,7 +398,7 @@
     }
   };
 
-  // BOTH LOGIN (checks both "readers/{uid}" and "authors/{uid}.status==='approved'")
+  // BOTH LOGIN (checks users/{uid}.role includes both "author" and "reader")
   document.getElementById("both-login-btn").onclick = async () => {
     const email = document.getElementById("both-email").value.trim();
     const password = document.getElementById("both-password").value.trim();
@@ -408,15 +413,7 @@
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
 
-      // 1) Check reader role
-      const readerDoc = await getDoc(doc(db, "readers", uid));
-      if (!readerDoc.exists()) {
-        errorMsg.textContent = "This account is not registered as a reader.";
-        await auth.signOut();
-        return;
-      }
-
-      // 2) Check author role
+      // First, confirm the "author" piece via authors/{uid}
       const authorDoc = await getDoc(doc(db, "authors", uid));
       if (!authorDoc.exists() || authorDoc.data().status !== "approved") {
         errorMsg.textContent = "This account is not registered as an approved author.";
@@ -424,7 +421,16 @@
         return;
       }
 
-      // Both checks passed
+      // Next, confirm the "reader" piece via users/{uid}.role
+      const userDoc = await getDoc(doc(db, "users", uid));
+      const data = userDoc.data() || {};
+      if (!data.role || !data.role.includes("reader")) {
+        errorMsg.textContent = "This account is not registered as a reader.";
+        await auth.signOut();
+        return;
+      }
+
+      // If both checks passed, user is truly "both"
       sessionStorage.setItem("userRole", "both");
       window.location.href = "both-dashboard.html";
     } catch (err) {
