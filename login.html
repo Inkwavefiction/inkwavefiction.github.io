@@ -231,11 +231,9 @@
     doc,
     getDoc,
     setDoc,
-    updateDoc,
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
 
-  // ——— PASTE THIS EXACT CONFIG FROM YOUR FIREBASE CONSOLE ———
   const firebaseConfig = {
     apiKey: "AIzaSyAJRW3QHNYAucAn0XJEN-w7CJfOAa0NzIE",
     authDomain: "inkwave-549c0.firebaseapp.com",
@@ -245,12 +243,11 @@
     appId: "1:1084811926133:web:abcdef1234567890"
   };
 
-  // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const auth = getAuth(app);
   const db = getFirestore(app);
 
-  // ——— ROLE TOGGLE HANDLERS ——————————————————————————————————————————
+  // ROLE TOGGLE HANDLERS
   const authorBtn    = document.getElementById("author-btn");
   const readerBtn    = document.getElementById("reader-btn");
   const bothBtn      = document.getElementById("both-btn");
@@ -306,7 +303,7 @@
     signupForm.classList.add("active");
   };
 
-  // ——— READER SIGNUP ———————————————————————————————————————————————————
+  // READER SIGNUP
   document.getElementById("signup-btn").onclick = async () => {
     const email = document.getElementById("signup-email").value.trim();
     const password = document.getElementById("signup-password").value.trim();
@@ -322,6 +319,7 @@
       const userCred = await createUserWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
 
+      // Assign reader role on signup
       await setDoc(doc(db, "users", uid), {
         email,
         role: ["reader"],
@@ -337,7 +335,7 @@
     }
   };
 
-  // ——— READER LOGIN ————————————————————————————————————————————————————
+  // READER LOGIN
   document.getElementById("reader-login-btn").onclick = async () => {
     const email = document.getElementById("reader-email").value.trim();
     const password = document.getElementById("reader-password").value.trim();
@@ -347,15 +345,12 @@
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
 
-      await setDoc(doc(db, "users", uid), {
-        role: ["reader"],
-        lastLogin: serverTimestamp()
-      }, { merge: true });
+      const userDocSnap = await getDoc(doc(db, "users", uid));
+      const data = userDocSnap.data() || {};
 
-      const userDoc = await getDoc(doc(db, "users", uid));
-      const data = userDoc.data() || {};
       if (!data.role || !data.role.includes("reader")) {
         errorMsg.textContent = "This account is not registered as a reader.";
+        auth.signOut();
         return;
       }
 
@@ -367,7 +362,7 @@
     }
   };
 
-  // ——— AUTHOR LOGIN (mirrors reader code, but redirects to author-dashboard.html) ———————————————————————————
+  // AUTHOR LOGIN
   document.getElementById("author-login-btn").onclick = async () => {
     const email = document.getElementById("author-email").value.trim();
     const password = document.getElementById("author-password").value.trim();
@@ -382,15 +377,12 @@
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
 
-      await setDoc(doc(db, "users", uid), {
-        role: ["author"],
-        lastLogin: serverTimestamp()
-      }, { merge: true });
+      const userDocSnap = await getDoc(doc(db, "users", uid));
+      const data = userDocSnap.data() || {};
 
-      const userDoc = await getDoc(doc(db, "users", uid));
-      const data = userDoc.data() || {};
       if (!data.role || !data.role.includes("author")) {
         errorMsg.textContent = "This account is not registered as an author.";
+        auth.signOut();
         return;
       }
 
@@ -402,7 +394,7 @@
     }
   };
 
-  // ——— BOTH LOGIN —————————————————————————————————————————————————————
+  // BOTH LOGIN
   document.getElementById("both-login-btn").onclick = async () => {
     const email = document.getElementById("both-email").value.trim();
     const password = document.getElementById("both-password").value.trim();
@@ -417,10 +409,18 @@
       const userCred = await signInWithEmailAndPassword(auth, email, password);
       const uid = userCred.user.uid;
 
-      await setDoc(doc(db, "users", uid), {
-        role: ["author", "reader"],
-        lastLogin: serverTimestamp()
-      }, { merge: true });
+      const userDocSnap = await getDoc(doc(db, "users", uid));
+      const data = userDocSnap.data() || {};
+
+      if (
+        !data.role ||
+        !data.role.includes("author") ||
+        !data.role.includes("reader")
+      ) {
+        errorMsg.textContent = "This account is not registered as both-author-and-reader.";
+        auth.signOut();
+        return;
+      }
 
       sessionStorage.setItem("userRole", "both");
       window.location.href = "both-dashboard.html";
