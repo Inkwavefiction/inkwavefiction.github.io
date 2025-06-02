@@ -132,37 +132,49 @@
 <body>
   <!-- Sidebar -->
   <div class="sidebar">
-    <h2 onclick="location.href='author-dashboard.html'">Inkwave</h2>
-    <div class="section">
-      <div class="section-title">Core</div>
-      <a href="both-dashboard.html" class="nav-link">🏠 Dashboard</a>
-      <a href="earnings-both.html" class="nav-link">💰 Earnings 🚧</a>
+    <h2 onclick="goHome()">Inkwave</h2>
+
+    <div class="author-section">
+      <div class="section">
+        <div class="section-title">Core</div>
+        <div id="nav-dashboard" class="nav-link active" onclick="showAuthor()">🏠 Dashboard</div>
+        <div class="nav-link" onclick="window.location.href='earnings-both.html'">💰 Earnings 🚧</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Writing Tools</div>
+        <div class="nav-link" onclick="window.location.href='blurb-generator-both.html'">🧠 Blurb Generator 🚧</div>
+        <div class="nav-link" onclick="window.location.href='grammar-both.html'">📝 Grammar Fixer 🚧</div>
+        <div class="nav-link" onclick="window.location.href='story-templates-both.html'">📄 Story Templates</div>
+        <div class="nav-link" onclick="window.location.href='formatting.tools-both.html'">📈 Graphing Plots 🚧</div>
+        <div class="nav-link" onclick="window.location.href='genre-tags-both.html'">🏷️ Genre & Tags</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Testing & Feedback</div>
+        <div class="nav-link" onclick="window.location.href='A-B-both.html'">🧪 A/B Testing 🚧</div>
+        <div class="nav-link" onclick="window.location.href='reader-heatmap-both.html'">🔥 Reader Heatmap 🚧</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Publishing</div>
+        <div class="nav-link" onclick="window.location.href='checklist-both.html'">✅ Checklist</div>
+        <div class="nav-link" onclick="window.location.href='cover-generator-both.html'">🖼️ Cover Generator 🚧</div>
+      </div>
+      <div class="section">
+        <div class="section-title">Productivity</div>
+        <div class="nav-link" onclick="window.location.href='inkie-chat-both.html'">🤖 Inky Assistant 🚧</div>
+        <div class="nav-link" onclick="window.location.href='settings-author-both.html'">⚙️ Settings</div>
+      </div>
     </div>
+
     <div class="section">
-      <div class="section-title">Writing Tools</div>
-      <a href="blurb-generator-both.html" class="nav-link">🧠 Blurb Generator 🚧</a>
-      <a href="grammar-both.html" class="nav-link">📝 Grammar Fixer 🚧</a>
-      <a href="story-templates-both.html" class="nav-link">📄 Story Templates</a>
-      <a href="formatting-tools-both.html" class="nav-link">📈 Graphing Plots 🚧</a>
-      <a href="genre-tags-both.html" class="nav-link">🏷️ Genre & Tags</a>
-    </div>
-    <div class="section">
-      <div class="section-title">Testing & Feedback</div>
-      <a href="A-B-both.html" class="nav-link">🧪 A/B Testing 🚧</a>
-      <a href="reader-heatmap-both.html" class="nav-link">🔥 Reader Heatmap 🚧</a>
-    </div>
-    <div class="section">
-      <div class="section-title">Publishing</div>
-      <a href="checklist-both.html" class="nav-link">✅ Checklist</a>
-      <a href="cover-generator-both.html" class="nav-link">🖼️ Cover Generator 🚧</a>
-    </div>
-    <div class="section">
-      <div class="section-title">Productivity</div>
-      <a href="inkie-chat-both.html" class="nav-link">🤖 Inky Assistant 🚧</a>
-      <a href="settings-author-both.html" class="nav-link active">⚙️ Settings</a>
+      <div class="section-title">Reader</div>
+              <div class="section-title">Writing Tools</div>
+        <div class="nav-link" onclick="window.location.href='favorites-both.html'">📚 Favorites</div>
+        <div class="nav-link" onclick="window.location.href='comments-both.html'">💬 Comments</div>
+        <div class="nav-link" onclick="window.location.href='following-both.html'">👤 Following</div>
+        <div class="nav-link" onclick="window.location.href='explore-both.html'">📰 Explore Stories</div>
+        <div class="nav-link" onclick="window.location.href='settings-both.html'">⚙️ Reader Settings</div>
     </div>
   </div>
-
   <!-- Main Content -->
   <div class="main">
     <div class="header">
